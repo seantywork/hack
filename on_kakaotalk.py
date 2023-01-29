@@ -188,7 +188,7 @@ def chatHandle(idx, nm, txt):
         
         print("previous query exists")
 
-        df_recent = df.iloc[idx : ]   # recent
+        df_recent = df.iloc[idx+1 : ]   # recent
 
         chatHandleSender(df_recent)
         

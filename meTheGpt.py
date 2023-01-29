@@ -26,7 +26,7 @@ def getFakeResponse(input_text):
         engine=davinci,
         prompt=gpt_prompt,
         temperature=0.5,
-        max_tokens=256,
+        max_tokens=512,
         top_p=1.0,
         frequency_penalty=0.0,
         presence_penalty=0.0

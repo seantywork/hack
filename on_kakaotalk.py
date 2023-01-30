@@ -37,6 +37,8 @@ def chatStdizer(ttext):
 
     std_list = []
 
+    lang = ''
+
     a = ttext.split('\r\n')   
 
     std_a = [x for x in a if x.find(']') >= 0]
@@ -57,19 +59,31 @@ def chatStdizer(ttext):
 
 
 
-        if txt.find('mpt:') < 0:
+        if txt.find('mpt:') < 0 and txt.find('ㅇㅍㅌ:') < 0:
 
             continue
 
-        txt = txt.replace('mpt:','')
+        if txt.find('mpt:') == 0 :
+
+            txt = txt.replace('mpt:','')
+
+            lang = 'English'
+
+        if txt.find('ㅇㅍㅌ:') == 0
+
+            txt = txt.replace('ㅇㅍㅌ:','')
+
+            lang = 'Korean'
+
 
         nm_txt.append(nm)
         nm_txt.append(txt)
+        nm_txt.append(lang)
 
         std_list.append(nm_txt)
 
 
-    df = pd.DataFrame(std_list,columns=['NM','TXT'])    
+    df = pd.DataFrame(std_list,columns=['NM','TXT','LANG'])    
 
 
     return df
@@ -128,7 +142,9 @@ def chatHandleSender(df):
 
         req_text =  df.iloc[i, 1]
 
-        resp_text = meTheGpt.getFakeResponse(req_text)
+        lang = df.iloc[i,2]
+
+        resp_text = meTheGpt.getFakeResponse(req_text, lang)
 
         out_text = 'Response to -> '+ df.iloc[i, 0] + ' : ' + resp_text
 

@@ -11,13 +11,13 @@ openai.api_key = OPENAI_KEY
 
 
 
-def getFakeResponse(input_text):
+def getFakeResponse(input_text, lang):
 
     babbage = 'text-babbage-001'
     curie = 'text-curie-001'
     davinci = 'text-davinci-003'
 
-    gpt_prompt = "Generate a professional response for each of the below queries in Korean. : \n\n"
+    gpt_prompt = "Generate a professional response to the below query in %s : \n\n"%(lang)
 
 
     gpt_prompt += input_text

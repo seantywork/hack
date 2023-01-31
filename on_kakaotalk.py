@@ -1,8 +1,8 @@
 import time, win32con, win32api, win32gui, ctypes
-from apscheduler.schedulers.background import BackgroundScheduler
 from pywinauto import clipboard 
 from pywinauto import keyboard
 from pywinauto import mouse
+import pywinauto
 import pandas as pd 
 from dotenv import load_dotenv, find_dotenv
 import os
@@ -14,15 +14,6 @@ load_dotenv(find_dotenv('./cred/.env'))
 
 
 TARGET_CHATROOM_NAME = os.environ.get('TARGET_CHATROOM_NAME')
-
-
-TARGET_CHATROOM_X = int(os.environ.get('TARGET_CHATROOM_X'))
-
-TARGET_CHATROOM_Y = int(os.environ.get('TARGET_CHATROOM_Y'))
-
-
-PBYTE256 = ctypes.c_ubyte * 256
-_user32 = ctypes.WinDLL("user32")
 
 
 def findAllSub(match, text):
@@ -69,7 +60,7 @@ def chatStdizer(ttext):
 
             lang = 'English'
 
-        if txt.find('ㅇㅍㅌ:') == 0
+        if txt.find('ㅇㅍㅌ:') == 0:
 
             txt = txt.replace('ㅇㅍㅌ:','')
 
@@ -93,16 +84,82 @@ def chatStdizer(ttext):
 
 def copyChatRecord(chatroom_name):
 
-
+    w = win32con
     
     hwndMain = win32gui.FindWindow( None, chatroom_name)
     hwndListControl = win32gui.FindWindowEx(hwndMain, None, "EVA_VH_ListControl_Dblclk", None)
-    mouse.click(button='left', coords=(TARGET_CHATROOM_X, TARGET_CHATROOM_Y))
-    time.sleep(1)
-    keyboard.send_keys('^a^c')
-    ctext = clipboard.GetData()
+
+
+
+    PostKeyEx(hwndListControl, ord('A'), [w.VK_CONTROL], False)
+    time.sleep(0.5)
+    PostKeyEx(hwndListControl, ord('C'), [w.VK_CONTROL], False)
+    ctext = clipboard.GetData()	
 
     return ctext
+
+
+def PostKeyEx(hwnd, key, shift, specialkey):
+
+
+    PBYTE256 = ctypes.c_ubyte * 256
+    _user32 = ctypes.WinDLL("user32")
+    GetKeyboardState = _user32.GetKeyboardState
+    SetKeyboardState = _user32.SetKeyboardState
+    PostMessage = win32api.PostMessage
+    SendMessage = win32gui.SendMessage
+    FindWindow = win32gui.FindWindow
+    IsWindow = win32gui.IsWindow
+    GetCurrentThreadId = win32api.GetCurrentThreadId
+    GetWindowThreadProcessId = _user32.GetWindowThreadProcessId
+    AttachThreadInput = _user32.AttachThreadInput
+
+    MapVirtualKeyA = _user32.MapVirtualKeyA
+    MapVirtualKeyW = _user32.MapVirtualKeyW
+
+    MakeLong = win32api.MAKELONG
+    w = win32con
+
+    if IsWindow(hwnd):
+
+        ThreadId = GetWindowThreadProcessId(hwnd, None)
+
+        lparam = MakeLong(0, MapVirtualKeyA(key, 0))
+        msg_down = w.WM_KEYDOWN
+        msg_up = w.WM_KEYUP
+
+        if specialkey:
+            lparam = lparam | 0x1000000
+
+        if len(shift) > 0: 
+            pKeyBuffers = PBYTE256()
+            pKeyBuffers_old = PBYTE256()
+
+            SendMessage(hwnd, w.WM_ACTIVATE, w.WA_ACTIVE, 0)
+            AttachThreadInput(GetCurrentThreadId(), ThreadId, True)
+            GetKeyboardState(ctypes.byref(pKeyBuffers_old))
+
+            for modkey in shift:
+                if modkey == w.VK_MENU:
+                    lparam = lparam | 0x20000000
+                    msg_down = w.WM_SYSKEYDOWN
+                    msg_up = w.WM_SYSKEYUP
+                pKeyBuffers[modkey] |= 128
+
+            SetKeyboardState(ctypes.byref(pKeyBuffers))
+            time.sleep(0.01)
+            PostMessage(hwnd, msg_down, key, lparam)
+            time.sleep(0.01)
+            PostMessage(hwnd, msg_up, key, lparam | 0xC0000000)
+            time.sleep(0.01)
+            SetKeyboardState(ctypes.byref(pKeyBuffers_old))
+            time.sleep(0.01)
+            AttachThreadInput(GetCurrentThreadId(), ThreadId, False)
+
+        else:  
+            SendMessage(hwnd, msg_down, key, lparam)
+            SendMessage(hwnd, msg_up, key, lparam | 0xC0000000)
+
 
 
 
@@ -127,7 +184,11 @@ def sendChatMessage(chatroom, text):
     if not isinstance(text, str): text = str(text)
     whndMain = win32gui.FindWindow(None, chatroom)
     whndChild = win32gui.FindWindowEx(whndMain, None, "RICHEDIT50W", None)
+
+    w = win32con
     
+    PostKeyEx(whndChild, ord(' '), [w.VK_CONTROL], False)
+    time.sleep(0.5)
 
     win32api.SendMessage(whndChild, win32con.WM_SETTEXT, 0, text)
     win32api.PostMessage(whndChild, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
@@ -234,4 +295,7 @@ def main():
 
 if __name__ == '__main__':
 
+
     main()
+
+

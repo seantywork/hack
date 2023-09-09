@@ -2,4 +2,7 @@ VENV
 py/vision/checkpoint
 py/vision/img
 .ipynb_checkpoints
+.env
+*.pickle
 cred
+ogapi.json

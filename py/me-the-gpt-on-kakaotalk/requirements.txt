@@ -1,0 +1,4 @@
+openai
+pywinauto
+pywin32
+python-dotenv

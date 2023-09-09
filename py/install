@@ -1,0 +1,42 @@
+#!/bin/bash
+
+TARGET=""
+TARGET_REQ=""
+
+if [ ! -e "$1" ]
+then
+    echo "feed target"
+    echo "default: installs the requirements.txt at the py root"
+    echo "dir_name: installs the requirements.txt at the specified directory"
+    exit 1
+fi
+
+TARGET="$1"
+
+if [ ! -e "./VENV" ]
+then
+    python3 -m venv VENV    
+    
+    source VENV/bin/activate
+
+    pip3 install -r requirements.txt
+fi
+
+if [ "$TARGET" = "default" ]
+then
+    
+    pip3 install -r requirements.txt
+
+else
+
+    TARGET_REQ="$TARGET/requirements.txt"
+
+    pip3 install -r "$TARGET_REQ"
+
+fi
+
+
+echo " "
+echo "-----INSTALLATION COMPLETE-----"
+echo " "
+echo "Now run 'source VENV/bin/activate'"

@@ -50,7 +50,12 @@ service = build('sheets', 'v4', credentials=creds)
 
 sheets_metadata = beater_mod.get_sheets_metadata(service, SHEET_ID)
 
+batch_update_range = {
+    "valueInputOption": "RAW",
+    "data": [
 
+    ]
+}
 
 for i in range(len(sheets_metadata)):
 
@@ -68,11 +73,7 @@ for i in range(len(sheets_metadata)):
 
         sheet_col_idx = sheets_metadata[i].get("properties", {}).get("gridProperties", {}).get("columnCount",0)
 
-        print(sheet_col_idx)
-
         sheet_col_iterator = beater_mod.populate_iterator_by_col(sheet_col_idx)
-
-        print(sheet_col_iterator)
 
 
     at_str = str(sheet_counter)
@@ -83,11 +84,22 @@ for i in range(len(sheets_metadata)):
 
         if MATCH_PATTERN_CASE == 'COL':
 
-            beater_mod.beat_every_single_o_by_col(service, SHEET_ID, sheet_name, sheet_col_iterator, MATCH_PATTERN)
+            #beater_mod.beat_every_single_o_by_sheet(service, SHEET_ID, sheet_name, SHEET_RANGE, sheet_col_iterator, MATCH_PATTERN)
+
+            container = beater_mod.collect_beatable_o_by_sheet(service, SHEET_ID, sheet_name, SHEET_RANGE, sheet_col_iterator, MATCH_PATTERN)
+
+            for el in container:
+
+                batch_update_range["data"].append(el)
 
         else :
 
-            beater_mod.beat_every_single_o_by_row(service, SHEET_ID, sheet_name, SHEET_RANGE, MATCH_PATTERN)
+            print('AT: '+at_str+': ERROR '+': ROW not supported')
+
+            raise Exception
+
+        
+        sheet_counter += 1
 
     except Exception as e:
 
@@ -103,5 +115,11 @@ if running_error == 1:
     print('!!!!!!!!!! Aborted due to error')
 
 else:
+
+    beater_mod.update_batch(service, SHEET_ID, batch_update_range)
+
+    f = open("_success", "w")
+    f.write("SUCCESS")
+    f.close()
 
     print('SUCCESS')

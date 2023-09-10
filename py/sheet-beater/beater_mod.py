@@ -1,6 +1,6 @@
 import re
 import datetime
-
+import pandas as pd
 
 
 def populate_iterator_by_col(total_col):
@@ -92,95 +92,113 @@ def get_sheet(service, sheet_id, target_sheet, sheet_range):
     
     return values_input
 
-def update_sheet(service, sheet_id, target_sheet, sheet_range, write_val):
+def update_sheet_per_cell(service, sheet_id, target_sheet, sheet_range, write_val):
 
 
-    target_sheet += sheet_range
+    update_target = target_sheet + sheet_range
 
     sheet = service.spreadsheets()
 
+    values = [[write_val]]
+
+    value_range = {
+        "majorDimension" : 'ROWS',
+        "values": values
+    }
+
+    sheet.values().update(
+        spreadsheetId=sheet_id,
+        valueInputOption='USER_ENTERED',
+        range=update_target,
+        body = value_range
+
+    ).execute()
+
+
+
+def update_batch(service, sheet_id, batch_update_range):
+
+
+    service.spreadsheets().values().batchUpdate(
+        spreadsheetId=sheet_id, 
+        body=batch_update_range
+    ).execute()
+
+
+
+def populate_local_frame(sheet_col_iterator, values_input):
+
+    df = pd.DataFrame(values_input, columns=sheet_col_iterator)
+
+    return df
 
 
 
 def find_match_pattern_by_col(match_pattern, arr):
 
-    hit = 0
+    try:
+        
+        el = arr.at[int(match_pattern)]
 
-    for el in arr:
+        if el == '' or el == None:
 
-        x = re.search(match_pattern, el[0])
+            raise Exception
 
-        if x:
-            hit = 1
-            break
+        match_parsed = el.replace(' ','').replace('\n','').split('~')[0].split('/')
 
-    if hit == 1 :
 
-        return el[0][x.start():x.end()]
+        if len(match_parsed) != 2 :
+
+            raise Exception
+
+        match_parsed[0] = int(match_parsed[0])
+
+        match_parsed[1] = int(match_parsed[1])        
+
+        if match_parsed[0] > 12 or match_parsed[0] < 1:
+
+            raise Exception
+        
+
+        if match_parsed[1] > 31 or match_parsed [1] < 1:
+
+            raise Exception
+
+        return match_parsed
+
+
+    except:
+
+        return []
+
+
+
     
-    else:
-
-        return ''
-
-
-def dd():
-
-    now = datetime.datetime.now()
-    
-    m = now.month
-
-    d = now.day
-
-    print(m)
-    print(d)
-
-    return 0
-    
-def check_if_within_date_range(match_val, month_now, day_now):
+def check_if_within_date_range(month_now, day_now, month_match, day_match):
 
     check = False
 
-    match_parsed = match_val.replace(' ','').replace('\n','').split('~')[0].split('/')
-
-    match_month = int(match_parsed[0])
-
-    match_day = int(match_parsed[1])
-
-    if month_now < match_month:
+    if month_now < month_match:
 
         check = False
 
-    elif month_now == match_month and day_now < match_day:
+    elif month_now == month_match and day_now < day_match:
 
         check = False
 
-    elif month_now == match_month and day_now >= match_day:
+    elif month_now == month_match and day_now >= day_match:
 
         check = True
 
-    elif month_now > match_month:
+    elif month_now > month_match:
 
         check = True
 
     return check
 
 
-def beat_o_batch(service, sheet_id, target_sheet, base_address, target_arr):
 
-    for i in range(len(target_arr)):
-
-        if target_arr[i] == 'X' or target_arr[i] == 'x':
-
-            row_num = str(i + 1)
-
-            target_address = '!' + base_address + row_num
-
-            update_sheet(service, sheet_id, target_sheet, target_address, 'O')
-
-
-
-
-def beat_every_single_o_by_col(service, sheet_id, sheet_name, sheet_col_iterator, match_pattern):
+def beat_o_per_col(service, sheet_id, target_sheet, sheet_col_iterator, local_frame, match_pattern):
 
     now = datetime.datetime.now()    
 
@@ -188,31 +206,120 @@ def beat_every_single_o_by_col(service, sheet_id, sheet_name, sheet_col_iterator
 
     day_now = now.day
 
+
     for i in range(len(sheet_col_iterator)):
 
-        target_range = '!' + sheet_col_iterator[i] + str(1) + ':' + sheet_col_iterator[i] + str(1000)
-        
-        values_input = get_sheet(service, sheet_id, sheet_name, target_range)
+        col_lable = sheet_col_iterator[i]
 
-        match_val = find_match_pattern_by_col(match_pattern, values_input)
+        col_df = local_frame[col_lable]
 
+        match_val = find_match_pattern_by_col(match_pattern, col_df)
 
-        if match_val == '':
+        if len(match_val) == 0:
 
             continue
 
 
-        within_date_range = check_if_within_date_range(match_val, month_now, day_now)
-        
-        if not within_date_range:
+        if not check_if_within_date_range(month_now, day_now, match_val[0], match_val[1]):
 
-            break
-        
+            continue
 
-        beat_o_batch(service, sheet_id, sheet_name, sheet_col_iterator[i], values_input)
+
+        for j in range(len(col_df)):
+
+            if col_df.at[j] == 'O' or col_df.at[j] == 'o':
+
+                target_range = '!' + col_lable + str(j+1)
+
+                print('***** found beatable O')
+                print('***** > '+ target_sheet)
+                print('***** > '+ target_range)
+
+                update_sheet_per_cell(service, sheet_id, target_sheet, target_range, 'X')
+
+                print('***** > updated: ' + target_sheet + target_range)
+
+
+def collect_o_per_col(service, sheet_id, target_sheet, sheet_col_iterator, local_frame, match_pattern):
+
+    now = datetime.datetime.now()    
+
+    month_now = now.month
+
+    day_now = now.day
+
+    ret_container = []
+
+    for i in range(len(sheet_col_iterator)):
+
+        col_lable = sheet_col_iterator[i]
+
+        col_df = local_frame[col_lable]
+
+        match_val = find_match_pattern_by_col(match_pattern, col_df)
+
+        if len(match_val) == 0:
+
+            continue
+
+
+        if not check_if_within_date_range(month_now, day_now, match_val[0], match_val[1]):
+
+            continue
+
+
+        for j in range(len(col_df)):
+
+            if col_df.at[j] == 'O' or col_df.at[j] == 'o':
+
+                target_range = '!' + col_lable + str(j+1)
+
+                print('***** found beatable O')
+                print('***** > '+ target_sheet)
+                print('***** > '+ target_range)
+
+                print('***** > collected: ' + target_sheet + target_range)
+
+                collection = {
+                    "range": target_sheet + target_range,
+                    "values": [['X']]
+                }
+
+                ret_container.append(collection)
+
+    return ret_container
+
+                
+
+
+
+
+def beat_every_single_o_by_sheet(service, sheet_id, sheet_name, sheet_range, sheet_col_iterator, match_pattern):
+
+
+    
+    target_range = sheet_range
+
+    values_input = get_sheet(service, sheet_id, sheet_name, target_range)
+
+    local_frame = populate_local_frame(sheet_col_iterator, values_input)
+
+    
+    beat_o_per_col(service, sheet_id, sheet_name, sheet_col_iterator, local_frame, match_pattern)
 
 
     return
+
+def collect_beatable_o_by_sheet(service, sheet_id, sheet_name, sheet_range, sheet_col_iterator, match_pattern):
+    
+    target_range = sheet_range
+
+    values_input = get_sheet(service, sheet_id, sheet_name, target_range)
+
+    local_frame = populate_local_frame(sheet_col_iterator, values_input)
+
+
+    return collect_o_per_col(service, sheet_id, sheet_name, sheet_col_iterator, local_frame, match_pattern)
     
 
 
@@ -226,4 +333,4 @@ if __name__ == '__main__':
 
     #print(populate_iterator_by_col(375))
 
-    dd()
+    print('main')

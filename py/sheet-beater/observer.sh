@@ -18,6 +18,7 @@ do
     if [ -f ./_success ]
     then 
         echo "shutting down observer"
+        rm ./_success
 	    exit 0
     fi
 done

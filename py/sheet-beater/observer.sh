@@ -1,25 +1,28 @@
 #!/bin/bash
 
-if [ -f ./_success ]
+
+WORKDIR=$1
+
+if [ -f "$WORKDIR/sheet-beater/_success" ]
 then 
-	rm ./_success
+	rm "$WORKDIR/sheet-beater/_success"
 fi
 
-source ../VENV/bin/activate
+source "$WORKDIR/VENV/bin/activate"
 
 while true
 do
 
-    if [ ! -f ./_success ]
+    if [ ! -f "$WORKDIR/sheet-beater/_success" ]
     then
-        python3 beater.py
+        python3 "$WORKDIR/sheet-beater/beater.py" "$WORKDIR/sheet-beater"
     fi
     sleep 3
-    if [ -f ./_success ]
+    if [ -f "$WORKDIR/sheet-beater/_success" ]
     then 
         echo "shutting down observer"
-        rm ./_success
-	    exit 0
+        rm "$WORKDIR/sheet-beater/_success"
+	exit 0
     fi
 done
 

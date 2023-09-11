@@ -11,6 +11,10 @@ from google.auth.transport.requests import Request
 
 import beater_mod
 
+import sys
+
+BASE_DIR = sys.argv[1] + '/'
+
 load_dotenv(find_dotenv())
 
 
@@ -26,14 +30,16 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 sheets_ignore_list = SHEETS_IGNORE.split(',')
 
+CRED_PATH = BASE_DIR + CRED_PATH
+
 creds = None
 
 sheet_counter = 0
 
 running_error = 0
 
-if os.path.exists('token.pickle'):
-    with open('token.pickle', 'rb') as token:
+if os.path.exists(BASE_DIR+'token.pickle'):
+    with open(BASE_DIR + 'token.pickle', 'rb') as token:
         creds = pickle.load(token)
 if not creds or not creds.valid:
     if creds and creds.expired and creds.refresh_token:
@@ -42,7 +48,7 @@ if not creds or not creds.valid:
         flow = InstalledAppFlow.from_client_secrets_file(
             CRED_PATH, SCOPES) 
         creds = flow.run_local_server(port=0)
-    with open('token.pickle', 'wb') as token:
+    with open(BASE_DIR + 'token.pickle', 'wb') as token:
         pickle.dump(creds, token)
 
 
@@ -118,7 +124,7 @@ else:
 
     beater_mod.update_batch(service, SHEET_ID, batch_update_range)
 
-    f = open("_success", "w")
+    f = open(BASE_DIR+"_success", "w")
     f.write("SUCCESS")
     f.close()
 

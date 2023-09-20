@@ -1,7 +1,7 @@
 __pycache__
 VENV
-py/vision/checkpoint
-py/vision/img
+lang/py/vision/checkpoint
+lang/py/vision/img
 .ipynb_checkpoints
 .env
 *.pickle

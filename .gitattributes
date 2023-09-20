@@ -1,5 +1,6 @@
 *.ipynb linguist-vendored
 *.pl linguist-vendored
+*.pm linguist-vendored
 *.m4 linguist-vendored
 *.3 linguist-vendored
 *.com linguist-vendored

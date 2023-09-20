@@ -1,9 +1,13 @@
 __pycache__
 VENV
-lang/py/vision/checkpoint
-lang/py/vision/img
+py/vision/checkpoint
+py/vision/img
 .ipynb_checkpoints
 .env
 *.pickle
 cred
 ogapi.json
+*.o
+*.out
+*.so
+*.a

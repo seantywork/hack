@@ -4,7 +4,7 @@
 **Disclaimer : I am not liable for any misuse of this code Only use it on machines and in environments that you have explicit permissions and authrizations to do so**
 
 
-## flag
+## hack
 
 This is where materials related to whatever things I'm interested in so far, primarily in C/C++ and including Go & Python, theme-oriented per se, are stored.
 

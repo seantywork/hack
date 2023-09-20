@@ -6,7 +6,7 @@
 
 ## hack
 
-This is where materials related to whatever things I'm interested in so far, primarily in C/C++ and including Go & Python, theme-oriented per se, are stored.
+This is where materials related to whatever things I'm interested in so far, primarily in C/C++ and Python, theme-oriented per se, are stored.
 
 
 

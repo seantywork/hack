@@ -2,6 +2,8 @@ __pycache__
 VENV
 py/vision/checkpoint
 py/vision/img
+cc/jsonyaml/json
+cc/jsonyaml/yaml
 .ipynb_checkpoints
 .env
 *.pickle

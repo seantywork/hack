@@ -10,3 +10,7 @@ http-req-debug: http-req/http-req.c
 
 http-req: http-req/http-req.c
 	gcc -o http-req/hr.out http-req/http-req.c 
+
+jsonyaml: jsonyaml/basic.cc
+	g++ -pthread -o jsonyaml/basic.out jsonyaml/basic.cc
+

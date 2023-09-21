@@ -1,0 +1,1 @@
+55 15 * * * /home/styw/cc/hack/run/sheet-beater/observer.sh /home/styw/cc/hack/run > /tmp/sheet-beater-log

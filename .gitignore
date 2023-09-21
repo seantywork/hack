@@ -1,9 +1,9 @@
 __pycache__
 VENV
-py/vision/checkpoint
-py/vision/img
-cc/jsonyaml/json
-cc/jsonyaml/yaml
+run/vision/checkpoint
+run/vision/img
+sys/jsonyaml/json
+sys/jsonyaml/yaml
 .ipynb_checkpoints
 .env
 *.pickle

@@ -8,7 +8,7 @@
 
 C/C++ codes, mostly related to computer concepts and system vulnerabilities
 
-## app
+## run
 
 Python codes, the world's puniest gadgets and stuff for pentesting 
 
@@ -16,6 +16,6 @@ Python codes, the world's puniest gadgets and stuff for pentesting
 
 Materials related to specific projects, not bound to specific themes but rather of combined scripts and configs (and also programs) for each project
 
-## tool
+## tools
 
 Anything else that needs to be in place to manage the source base

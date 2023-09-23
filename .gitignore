@@ -1,4 +1,5 @@
 __pycache__
+flask_session
 VENV
 run/vision/checkpoint
 run/vision/img

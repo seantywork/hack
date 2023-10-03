@@ -87,7 +87,7 @@ EOF
 MASTER_IP=$local_ip
 LB_IP=$local_ip
 IP_NO_DOT=$(echo "$local_ip" | sed "s/\./-/g")
-PORT="6443"
+PORT="3446"
 NODENAME="$(hostname -s)"
 NODENAME="lead-$NODENAME-$IP_NO_DOT-$(openssl rand -hex 8)"
 POD_CIDR="10.10.0.0/16"

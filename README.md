@@ -10,7 +10,7 @@ Python codes, the world's puniest gadgets and stuff for pentesting
 
 ## etc
 
-Materials related to specific projects, not bound to specific themes but rather of combined scripts and configs (and also programs) for each project
+Primarily intended to be Shell scripts, but also materials related to specific projects, not bound to specific themes but rather of combined scripts and configs (and also programs) for each project (or not. Frankly I have no specific idea of what this directory is or should be)
 
 ## tools
 

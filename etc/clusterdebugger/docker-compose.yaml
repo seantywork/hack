@@ -1,0 +1,16 @@
+
+version: "3"
+
+
+services:
+
+        clusterdebugger:
+
+                build: .
+
+
+                container_name: clusterdebugger
+
+                ports:
+
+                        - "6700:6700"

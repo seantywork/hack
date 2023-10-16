@@ -10,33 +10,20 @@ fi
 echo "Dependency UPdator"
 
 
-mkdir -p yaml
+mkdir -p C
 
-mkdir -p json
-
-mkdir -p ../cc/jsonyaml/yaml
-
-mkdir -p ../cc/jsonyaml/json
+mkdir -p ../bin/algorithms
 
 
-git -C ./yaml init
-
-git -C ./json init
+git -C ./C init
 
 
-git -C ./yaml pull https://github.com/jimmiebergmann/mini-yaml.git master
+git -C ./C pull https://github.com/seantywork/C.git master
 
-git -C ./json pull https://github.com/nlohmann/json.git develop
+sudo rm -r ./C/.git
 
+/bin/cp -Rf ./C/* ../bin/algorithms
 
-/bin/cp -Rf ./yaml/yaml/* ../cc/jsonyaml/yaml/
-
-
-/bin/cp -Rf ./json/single_include/nlohmann/* ../cc/jsonyaml/json/
-
-
-sudo rm -r ./yaml
-
-sudo rm -r ./json
+sudo rm -r C
 
 echo "Successfully updated"

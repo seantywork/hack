@@ -3,4 +3,4 @@
 *.out
 *.so
 *.a
-grpc/grpc
+grpc/grpc-go

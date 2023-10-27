@@ -1,15 +1,21 @@
-
-
 all:
-
 	@echo "gRPC"
 
-install:
 
-	./install.sh
+go-protoc:
 
-protoc:
+	protoc 	--go_out=. --go_opt=paths=source_relative \
+    		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		    go/protobuf/svc.proto
 
-	protoc --grpc_out=./hi --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./hi/hi.proto
 
-	protoc --cpp_out=./hi ./hi/hi.proto
+go-build:
+
+	go build -o go/client/client.out ./go/client 
+
+	go build -o go/server/server.out ./go/server
+
+
+go-example:
+	git clone -b v1.58.2 --depth 1 https://github.com/grpc/grpc-go
+

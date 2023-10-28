@@ -16,14 +16,14 @@ int main(int argc, char** argv) {
     char request[MAX_REQUEST_LEN];
     char request_template[] = "GET / HTTP/1.1\r\nHost: %s\r\n\r\n";
     struct protoent *protoent;
-    char *hostname = "example.com";
+    char *hostname = "127.0.0.1";
     in_addr_t in_addr;
     int request_len;
     int socket_file_descriptor;
     ssize_t nbytes_total, nbytes_last;
     struct hostent *hostent;
     struct sockaddr_in sockaddr_in;
-    unsigned short server_port = 80;
+    unsigned short server_port = 8000;
 
     if (argc > 1)
         hostname = argv[1];

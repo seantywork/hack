@@ -8,12 +8,24 @@ go-protoc:
     		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		    go/protobuf/svc.proto
 
+go-proto-build:
 
-go-build:
+	go build -o go/protoclient/client.out ./go/protoclient 
 
-	go build -o go/client/client.out ./go/client 
+	go build -o go/protoserver/server.out ./go/protoserver
 
-	go build -o go/server/server.out ./go/server
+go-flatc:
+
+	flatc 	--go --grpc go/flatbuf/svc.fbs
+
+	mv bookmarks go/flatbuf
+
+
+go-flat-build:
+
+	go build -o go/flatclient/client.out ./go/flatclient 
+
+	go build -o go/flatserver/server.out ./go/flatserver
 
 
 go-example:

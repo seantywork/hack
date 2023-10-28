@@ -1,4 +1,4 @@
-module github.com/seantywork/hack
+module github.com/seantywork/cc
 
 go 1.20
 

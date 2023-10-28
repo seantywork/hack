@@ -26,7 +26,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/seantywork/hack/grpc/go/protobuf"
+	pb "github.com/seantywork/cc/grpc/go/protobuf"
 	"google.golang.org/grpc"
 )
 

@@ -1,7 +1,7250 @@
-# hack
+# cc
+
+***crap compilation of Linux based C, Shell codes (mostly)***
 
 
 **Disclaimer : I am not liable for any misuse of this code Only use it on machines and in environments that you have explicit permissions and authrizations to do so**
 
 
-hacks that try to break my laptop by writing linux based things in (mostly) C
+# LINUX
+
+```bash
+
+# kernel mode
+
+process & memory (arch_mem)
+   process, hardware interrupt -> kernel -> process -> hardware interrupt, threads
+   memory, kernel space, user space, virtual address, physical address, page table, mmu, major fault, minor fault
+   ps, top, lsof, strace, ltrace, renice, uptime
+   vmstat, iostat, iotop, pidstat
+   cgroup, /proc/self/cgroup, /sys/fs/cgroup
+
+# syscall & user mode (os)
+
+# device (driver)
+   rootfs, /bin, /dev, /etc, /home, /lib, /proc, /run, /sys, /sbin, /tmp, /usr, /var, /boot, /media, /opt
+   /dev, block, character, pipe, socket, user i/o oriented, /sys/devices, actual device info
+     udev, devtmpfs, kernel sends uevent to udev, udev initializes and registers devices, in devtmpfs when booting
+     udevadm info --query=all --name=/dev/sda, udevadm monitor
+     kernel block device interface < - > scsi device driver < - > bus < - > (ATA, USB...) bridge driver < - > device
+   disk, partition table -> partition -> fs data structure -> fs (maybe rootfs) data
+     parted -l, fdisk /dev/sdd, mkfs -t ext4 /dev/sdf2, mount -t ext4 /dev/sdf2 /home/some, umount /home/some, blkid, /etc/fstab
+     lvm, pvs, pvdisaply, vgs, vgdisplay, lvs, lvdisplay, pvcreate,vgcreate, vgextend, lvcreate, lvextend
+     block device (kernel) > devmapper (kernel) > lvm (user)
+     inode (data pointer), block bitmap (allocation pointer), fsck > inode != block bitmap > lost + found
+   network, physical, internet, transport, application, ipv4, ipv6
+     ping, host, ip, iw, linux network interface
+     netplan, /etc/netplan, networkmanager, /etc/NetworkManager
+     /etc/hosts, /etc/resolv.conf, /etc/nsswitch.conf
+     netstat, tcp, udp
+     iptables
+     user process < - > kernel socket (system call) < - > network
+     ipc (inter process communication) > unix domain socket > eg) mysql.sock
+     rsync
+```
+
+# LINUX BOOT
+
+```bash
+boot (firm)
+
+bios | uefi -> grub -> vmlinuz, initramfs -> device and drivers -> rootfs mount -> init (pid 1, systemd, user space) -> log in
+
+kernel inspection, cpu, memory, device bus, device, aux kernel subsys(networking...), rootfs, user space
+
+init(systemd)
+  systemctl, unit, /etc/systemd, /lib/systemd, /usr/systemd...
+    target, service, socket, mount...
+```
+
+# GRUB
+
+```bash
+# check partition and images
+
+ls
+
+linux (hd0,1)/vmlinuz root=/dev/sda1
+
+initrd (hd0,1)/initrd.img
+
+boot
+
+```
+
+# LINUX KERNEL BUILD
+
+```bash
+
+# packages
+
+sudo apt update
+
+
+sudo apt install -y git fakeroot build-essential tar ncurses-dev \
+    tar xz-utils libssl-dev bc stress python3-distutils libelf-dev \
+    linux-headers-$(uname -r) bison flex libncurses5-dev util-linux net-tools "linux-tools-$(uname -r)" exuberant-ctags cscope \
+    sysfsutils gnome-system-monitor curl perf-tools-unstable \
+    gnuplot rt-tests indent tree psmisc smem libnuma-dev numactl \
+    hwloc bpfcc-tools sparse flawfinder cppcheck bsdmainutils \
+    trace-cmd virt-what dwarves 
+
+
+# get source
+
+curl -o /tmp/linux-5.5.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.5.1.tar.xz
+
+# or clone
+
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+mv /tmp/linux-5.5.1.tar.xz ~
+
+cd ~
+
+tar -xf linux-5.5.1.tar.xz
+
+# default
+    LLKD_KSRC="$HOME/linux-5.5.1"
+    cp /boot/config-5.4.0-148-generic "$LLKD_KSRC/.config"
+    cd "$LLKD_KSRC"
+    make menuconfig
+
+# localmod
+    LLKD_KSRC="$HOME/linux-5.5.1"
+    lsmod > /tmp/lsmod.now
+    cd "$LLKD_KSRC"
+    make LSMOD=/tmp/lsmod.now localmodconfig
+    make menuconfig
+
+# ubuntu specific
+
+scripts/config --disable SYSTEM_TRUSTED_KEYS
+scripts/config --disable SYSTEM_REVOCATION_KEYS
+
+# change config
+
+LLKD_KSRC="$HOME/linux-5.5.1"
+
+cp "$LLKD_KSRC/init/Kconfig" "$LLKD_KSRC/init/Kconfig.orig"
+
+vim "$LLKD_KSRC/init/Kconfig"
+
+# build
+
+cd "$LLKD_KSRC"
+
+time make -j4
+
+
+# module install
+
+cd "$LLKD_KSRC"
+
+sudo make modules_install
+
+ls /lib/modules
+
+
+# boot image and initramfs
+
+LLKD_KSRC="$HOME/linux-5.5.1"
+
+
+cd "$LLKD_KSRC"
+
+sudo make install
+
+
+# boot update 
+
+sudo cp /etc/default/grub /etc/default/grub.orig
+
+sudo vim /etc/default/grub
+
+sudo update-grub
+
+
+# ui mode switch
+
+Ctrl + Alt + F2
+
+
+# make iso
+
+sudo apt install genisofs
+
+mkdir /bck
+
+# with isolinux at the top "/boot" directroy - relative to source path
+
+mkisofs -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -J -joliet-long -R -x /bck -x /proc -x /tmp -x /mnt -x /dev -x /sys -x /run -x /media -x /var/log -x /var/cache/apt/archives -o /bck/<name>.iso /
+
+# then extract iso using scp or whatever
+
+sudo isohybrid /bck/<output>.iso
+
+
+```
+
+# LINUX DIAGNOSTIC
+
+```bash
+journalctl -f
+journalctl -xe
+journalctl -k
+journalctl -b
+dmesg
+efibootmgr
+```
+
+# ON WINDOWS 
+
+```bash
+virtual machine -> bridge  
+
+ 
+
+wsl bridge -> netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=<winport> connectaddress=localhost connectport=linuxport 
+
+```
+ 
+# GIT
+
+```bash
+
+# local branch
+
+git switch -c <loc_name> <remote_name>/<branch>
+
+# local merge
+# on target branch
+
+git merge <loc_name>
+
+# on forked remote branch's local branch
+# pulling equivalent
+
+git remote add <upstream_name> <upstream_addr>
+
+git fetch <upstream_name>
+
+git rebase <upstream_name>/<branch>
+
+git add .
+
+git commit
+
+git push -f <forked_origin> <forked_origin_branch>
+
+# then PR
+
+# squash commits
+
+git log
+
+git reset --soft HEAD~<last_commits_count>
+
+ex) git reset --soft HEAD~5
+
+# config 
+
+git config --global credential.helper store
+
+# then clone or pull or whatever to store
+
+# private repo
+# automatic with go
+
+git config --global set url."https://$ID:$PW@github.com/org".instreadOf "https://github.com/org"
+
+# github workflow self hosted runner 
+
+# Create a folder
+mkdir actions-runner && cd actions-runner
+
+# Download the latest runner package
+
+curl -o actions-runner-linux-x64-2.306.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.306.0/actions-runner-linux-x64-2.306.0.tar.gz
+
+# Optional: Validate the hash
+
+echo "b0a090336f0d0a439dac7505475a1fb822f61bbb36420c7b3b3fe6b1bdc4dbaa  actions-runner-linux-x64-2.306.0.tar.gz" | shasum -a 256 -c
+
+# Extract the installer
+
+tar xzf ./actions-runner-linux-x64-2.306.0.tar.gz
+
+# Create the runner and start the configuration experience
+
+./config.sh --url https://github.com/seantywork/k8s-base-cluster-setup --token <TOKEN>
+
+# Last step, run it!
+
+./run.sh
+
+```
+
+
+```bash
+
+# install github cli
+
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 
+
+sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null 
+
+sudo apt update
+
+sudo apt install gh -y
+
+```
+
+
+# PURCHASE 
+
+ 
+```bash
+Server - AWS EC2 instance, Http, https, ssh inbound setting  
+
+Domain Name - Namecheap - two A RECORD set for host @, www, and link IP  
+
+openai ready 
+```
+ 
+
+# OS VERSION 
+
+```bash
+
+
+
+AWS EC2 Ubuntu 22 
+
+``` 
+
+# INSTALL 
+
+ 
+```bash
+chrome 
+
+virtualbox 
+
+git 
+
+curl 
+
+wget 
+
+vim 
+
+vscode 
+
+python3-pip 
+
+nodejs 
+
+go 
+
+docker 
+
+kubectl 
+
+virtualbox 
+
+ghidra 
+
+wireshark 
+
+metasploit 
+
+nmap 
+
+sqlmap 
+
+nikto 
+
+burpesuite 
+
+owasp zap 
+
+tor 
+
+ 
+
+nginx 
+
+gunicorn 
+
+mysql 
+
+python 
+
+pip 
+
+django 
+
+pandas 
+
+openai 
+
+mysql-connector-python 
+
+mysqlclient 
+
+```
+
+# MYSQL SETTING 
+
+ 
+```bash
+# create user, grant privileges 
+
+python manage.py migrate 
+```
+ 
+
+# GUNICORN
+
+```bash
+
+
+mkdir -pv config/gunicorn/ 
+
+
+
+```
+
+```python
+
+# gunicorn dev.py 
+
+"""Gunicorn *development* config file""" 
+
+# Django WSGI application path in pattern MODULE_NAME:VARIABLE_NAME 
+
+wsgi_app = "<project_name>.wsgi:application" 
+
+# The granularity of Error log outputs 
+
+loglevel = "debug" 
+
+# The number of worker processes for handling requests 
+
+workers = 2 
+
+# The socket to bind 
+
+bind = "0.0.0.0:8000" 
+
+# Restart workers when code changes (development only!) 
+
+reload = True 
+
+# Write access and error info to /var/log 
+
+accesslog = errorlog = "/var/log/gunicorn/dev.log" 
+
+# Redirect stdout/stderr to log file 
+
+capture_output = True 
+
+# PID file so you can easily fetch process ID 
+
+pidfile = "/var/run/gunicorn/dev.pid" 
+
+# Daemonize the Gunicorn process (detach & enter background) 
+
+daemon = True 
+
+
+```
+
+```bash
+sudo mkdir -pv /var/{log,run}/gunicorn/ 
+
+ 
+
+sudo chown -cR ubuntu:ubuntu /var/{log,run}/gunicorn/ 
+
+ 
+
+gunicorn -c config/gunicorn/dev.py 
+```
+
+# NGINX SETTING
+
+
+```bash
+sudo mkdir -pv /var/www/<project_name>/static/ 
+
+sudo chown -cR ubuntu:ubuntu /var/www/<project_name>/  
+
+ 
+
+django setting.py debug false 
+
+python manage.py collectstatic 
+```
+
+# HTTPS
+
+```bash
+
+# Nginx configuration: /etc/nginx/sites-available/<nginx_config_name> 
+
+server_tokens               off; 
+
+access_log                  /var/log/nginx/<nginx_config_name>.access.log; 
+
+error_log                   /var/log/nginx/<nginx_config_name>.error.log; 
+
+ 
+
+server { 
+
+  server_name               .<domain_name>; 
+
+  listen                    80; 
+
+  return                    307 https://$host$request_uri; 
+
+} 
+
+ 
+
+server { 
+
+  location / { 
+
+    proxy_pass              http://localhost:8000; 
+
+    proxy_set_header        Host $host; 
+
+    proxy_set_header    X-Forwarded-Proto $scheme; 
+
+  } 
+
+ 
+
+  location /static { 
+
+    autoindex on; 
+
+    alias <static_location>; 
+
+  } 
+
+ 
+
+  listen 443 ssl; 
+
+  ssl_certificate /etc/letsencrypt/live/www.supersecure.codes/fullchain.pem; 
+
+  ssl_certificate_key /etc/letsencrypt/live/www.supersecure.codes/privkey.pem; 
+
+  include /etc/letsencrypt/options-ssl-nginx.conf; 
+
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+
+} 
+
+
+```
+
+```bash
+
+sudo systemctl restart nginx 
+
+ 
+
+cd /etc/nginx/sites-enabled 
+
+sudo ln -s ../sites-available/<nginx_config_name> . 
+
+ 
+
+sudo vi /etc/nginx/nginx.conf 
+
+ssl_protocols TLSv1.2 TLSv1.3; 
+
+include /etc/nginx/sites-enabled/<nginx_config_name> 
+
+sudo systemctl restart nginx 
+
+ 
+
+sudo snap install --classic certbot 
+
+sudo ln -s /snap/bin/certbot /usr/bin/certbot 
+
+sudo certbot --nginx --rsa-key-size 4096 --no-redirect 
+
+ 
+
+sudo systemctl restart nginx 
+
+ 
+
+
+```
+
+
+# AWS RESTART
+
+```bash
+# ip and dns check 
+
+# aws new ssh domain and ip check  
+
+# namecheap DNS relinking 
+
+```
+
+# DB CHECK
+
+```bash
+
+# running
+
+```
+
+# GUINCORN CHECK
+
+```bash
+sudo mkdir -pv /var/{log,run}/gunicorn/ 
+
+sudo chown -cR ubuntu:ubuntu /var/{log,run}/gunicorn/ 
+
+gunicorn -c config/gunicorn/dev.py 
+
+
+```
+
+
+
+# NGINX CHECK 
+
+```bash
+
+
+
+ 
+
+stream { 
+
+        upstream galera_cluster { 
+
+            server 127.0.0.1:33061; #node1 
+
+            server 127.0.0.1:33062; #node2 
+
+            server 127.0.0.1:33063; #node3 
+
+            zone tcp_mem 64k; 
+
+            least_conn; 
+
+        } 
+
+ 
+
+        server { 
+
+            listen 3306; # MySQL default 
+
+            proxy_pass galera_cluster; 
+
+        } 
+
+} 
+
+ 
+
+ 
+
+http  
+
+ 
+
+        sendfile on; 
+
+        tcp_nopush on; 
+
+        tcp_nodelay on; 
+
+        reset_timedout_connection on; 
+
+        client_body_timeout 3600; 
+
+        send_timeout 2; 
+
+ 
+
+        keepalive_timeout 30; 
+
+        keepalive_requests 100000; 
+
+ 
+
+        #types_hash_max_size 2048; 
+
+        # server_tokens off; 
+
+ 
+
+        client_max_body_size 40G; 
+
+        client_body_buffer_size 16K; 
+
+        client_header_buffer_size 1K; 
+
+ 
+
+        proxy_request_buffering off; 
+
+ 
+
+        proxy_send_timeout 3600; 
+
+ 
+
+server 
+
+ 
+
+location 
+
+ 
+
+                proxy_pass http://agc_server; 
+
+                proxy_read_timeout 300s; 
+
+                proxy_connect_timeout 75s; 
+
+                proxy_set_header X-Real-IP $remote_addr; 
+
+                #proxy_set_header Host $host; 
+
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
+
+                proxy_set_header X-Forwarded-For $remote_addr; 
+
+                proxy_set_header X-Forwarded-Proto $scheme; 
+
+                proxy_set_header Host $http_host; 
+
+                proxy_http_version 1.1; 
+
+                proxy_set_header   Upgrade $http_upgrade; 
+
+                proxy_set_header   Connection "upgrade"; 
+
+ 
+
+ 
+
+```
+
+
+```bash
+# or
+
+upstream UC {
+
+  server 0.0.0.0:8888;
+
+}
+
+upstream PTT {
+
+  server 0.0.0.0:8888;
+
+}
+
+
+server
+{
+        listen       80;
+        server_name      usagecorpus.com www.usagecorpus.com;
+        return 301 https://$host$request_uri;
+}
+
+server
+{
+        listen       80;
+        server_name      ptt.usagecorpus.com;
+        return 301 https://$host$request_uri;
+}
+
+
+
+server
+{
+        server_name  usagecorpus.com www.usagecorpus.com;
+        client_max_body_size 0;
+
+        location / {
+            # add_header Content-Type text/plain;
+            # return 200 'okay';
+
+             proxy_pass http://UC;
+             proxy_set_header X-Real-IP $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_set_header X-Forwarded-For $remote_addr;
+             proxy_set_header X-Forwarded-Proto $scheme;
+             proxy_set_header Host $http_host;
+
+       #      proxy_buffering off;
+       #      proxy_request_buffering off;
+
+       #      proxy_http_version 1.1;
+       #      proxy_set_header   Upgrade $http_upgrade;
+       #      proxy_set_header   Connection "upgrade";
+
+
+      }
+
+
+    #listen 80; # managed by Certbot
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/usagecorpus.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/usagecorpus.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+
+server
+{
+        server_name  ptt.usagecorpus.com;
+        client_max_body_size 0;
+
+        location / {
+            # add_header Content-Type text/plain;
+            # return 200 'okay';
+
+             proxy_pass http://PTT;
+             proxy_set_header X-Real-IP $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_set_header X-Forwarded-For $remote_addr;
+             proxy_set_header X-Forwarded-Proto $scheme;
+             proxy_set_header Host $http_host;
+
+       #      proxy_buffering off;
+       #      proxy_request_buffering off;
+
+       #      proxy_http_version 1.1;
+       #      proxy_set_header   Upgrade $http_upgrade;
+       #      proxy_set_header   Connection "upgrade";
+
+
+       }
+
+
+    #listen 80; # managed by Certbot
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/usagecorpus.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/usagecorpus.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+```
+
+```bash
+sudo systemctl start nginx 
+
+sudo systemctl restart nginx 
+
+ 
+
+```
+
+# ROUTER/MODEM LAN
+
+```bash
+
+
+ 
+
+ethernet 
+
+ 
+
+wifi 
+
+
+mac
+
+ip
+ 
+
+dns (check /etc/resolv.conf) 
+
+ 
+
+dhcp (alongside static) 
+
+# ethernet wan
+
+ plug the cable into wan port
+
+# ethernet hub/ap mode & ethernet extension
+
+ turn off dhcp, enable hub/ap mode
+
+ set internal new ip avoiding collision, under the default gateway cidr, set default gateway and dns
+
+ plug the cable into lan port
+
+
+# wireless wan
+
+wifi wan
+
+dont turn off dhcp
+
+set internal new ip, for a new cidr range connect to the main ap with wisp
+
+
+# wireless multibridge
+
+wifi extension
+
+set internal new ip avoiding collision, under the default gateway cidr
+
+turn off dhcp
+
+connect to the main ap with repeater
+
+
+port forward 
+
+
+
+```
+
+# DISABLE/ENABLE WIFI IF
+
+```bash
+# disable
+```
+
+```bash
+# /etc/network/interfaces
+iface <interface_name> inet manual
+```
+
+```bash
+# enable
+# undo above
+
+```
+
+
+
+# FIREWALL  
+
+```bash
+
+
+# ubuntu 
+
+
+
+sudo ufw default allow incoming 
+
+sudo ufw default allow outgoing 
+
+ 
+
+sudo ufw allow ssh 
+
+sudo ufw allow https 
+
+ 
+
+sudo ufw allow 22 
+
+sudo ufw allow 443 
+
+ 
+
+sudo ufw allow 6000:6007/tcp 
+
+ 
+
+sudo ufw allow from 203.0.113.4 to any port 22 
+
+ 
+
+sudo ufw allow from 203.0.113.0/24 
+
+ 
+
+sudo ufw deny from 203.0.113.4 
+
+ 
+
+sudo ufw enable 
+
+ 
+
+sudo ufw disable 
+
+ 
+
+ 
+
+# centos 
+
+ 
+
+systemctl enable firewalld 
+
+ 
+
+sudo firewall-cmd --permanent --add-service={http,https} --permanent 
+
+ 
+
+sudo firewall-cmd --add-port=7070/tcp --permanent 
+
+ 
+
+firewall-cmd --zone=trusted --add-source=192.168.0.1/24 --permanent 
+
+ 
+
+firewall-cmd --zone=trusted --add-source=10.10.0.0/16 --permanent 
+
+```
+
+# SSH KEY DISTRIBUTE
+
+```bash
+ssh-keygen -t rsa 
+
+ 
+
+ssh-copy-id username@node_name 
+
+```
+
+# NCAT
+
+```bash
+
+apt install -y ncat 
+
+ 
+
+ncat -lvp <port> 
+
+ 
+
+ncat <addr> <port> -e /bin/bash
+```
+
+
+# AP
+
+```bash
+sudo apt-get install hostapd dnsmasq
+
+sudo vim /etc/hostapd/hostapd.conf
+```
+
+```bash
+# /etc/hostapd/hostapd.conf
+interface=wlan0
+driver=nl80211
+ssid=MyWiFiNetwork
+hw_mode=g
+channel=7
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=12345678
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+```
+
+```bash
+sudo vim /etc/default/hostapd
+```
+
+```bash
+# /etc/default/hostapd
+
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+```
+
+```bash
+
+sudo systemctl unmask hostapd
+sudo systemctl enable hostapd
+sudo systemctl start hostapd
+
+
+sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.org
+
+sudo vim /etc/dnsmasq.conf
+
+```
+
+```bash
+# /etc/dnsmasq.conf
+port=5353
+interface=wlan0
+dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+```
+```bash
+
+sudo systemctl enable hostapd
+sudo systemctl start hostapd
+sudo systemctl reload dnsmasq
+
+sudo vim /lib/systemd/system/dnsmasq.service
+```
+
+```bash
+# /lib/systemd/system/dnsmasq.service
+
+After=network-online.target
+Wants=network-online.target
+```
+
+```bash
+sudo vim /etc/netplan/50-cloud-init.yaml
+```
+
+```yaml
+network:
+    ethernets:
+        eth0:
+            dhcp4: true
+            optional: true
+        wlan0:
+            dhcp4: false
+            addresses:
+            - 192.168.4.1/24
+    version: 2
+```
+
+```bash
+sudo reboot
+```
+
+# SOCKET IO
+
+```bash
+# node
+npm install socket.io
+```
+
+# GRPC
+
+```bash
+# golang
+
+apt install -y protobuf-compiler
+
+apt install golang-goprotobuf-dev -y
+
+go install google.golang.org/protobuf/cmd/protoc-gen-go
+
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
+protoc --go_out=plugins=grpc:. <file>.proto
+```
+
+# FS MOUNT
+
+```bash
+
+
+lsblk 
+
+ 
+
+mkfs.<fs> <drive> 2>/dev/null 
+
+ 
+
+mkfs.xfs /dev/sdb 2>/dev/null 
+
+ 
+
+mkdir <dir> 
+
+ 
+
+mount <drive> <dir> 
+
+ 
+
+df 
+
+ 
+
+/etc/fstab 
+
+```
+
+
+# RAID
+
+```bash
+
+
+mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc  
+
+ 
+
+mkfs.<fs> <drive> 2>/dev/null 
+
+ 
+
+mkdir <dir> 
+
+ 
+
+mount <drive> <dir> 
+
+ 
+
+df 
+
+ 
+
+/etc/fstab 
+
+```
+
+# LVM DISK EXTENSION
+
+```bash
+
+# resize 
+
+ 
+
+sudo lvremove /dev/ubuntu-box-SOMETHING 
+
+ 
+
+sudo lvm lvextend -l +100%FREE /dev/ubuntu-box-1-vg 
+
+ 
+
+sudo resize2fs -p /dev/ubuntu-box-1-vg 
+
+ 
+
+# xfs 
+
+sudo xfs_growfs /dev/ubuntu-box-1-vg 
+
+ 
+
+# extend 
+
+ 
+
+sudo pvcreate /dev/vdb 
+
+ 
+
+sudo vgextend ubuntu-box-1-vg /dev/vdb 
+
+ 
+
+sudo lvm lvextend -l +100%FREE /dev/ubuntu-box-1-vg 
+
+ 
+
+sudo resize2fs -p /dev/ubuntu-box-1-vg 
+
+ 
+
+# xfs 
+
+sudo xfs_growfs /dev/ubuntu-box-1-vg 
+
+ 
+
+/etc/fstab 
+
+```
+
+# NFS
+
+```bash
+
+
+# on nfs server 
+
+ 
+
+sudo apt install nfs-kernel-server 
+
+ 
+
+sudo apt install nfs-common 
+
+ 
+
+mkdir -p /nfs/data 
+
+ 
+
+sudo chown nobody:nogroup /nfs/data 
+
+ 
+
+sudo vim /etc/exports   
+
+
+```
+
+```bash
+# /etc/exports   
+
+
+... 
+
+/nfs/data    <client-addr>(rw,sync,no_subtree_check)  
+
+ 
+
+```
+
+```bash
+
+exportfs -a 
+
+ 
+
+sudo systemctl restart nfs-kernel-server  
+
+ 
+
+# on nfs client 
+
+ 
+
+sudo apt install nfs-common 
+
+ 
+
+mkdir -p /nfsclient/upload 
+
+ 
+
+sudo mount <nfs-server-addr>:/nfs/data /nfsclient/upload 
+
+ 
+
+# disconnect  
+
+ 
+
+sudo umount /nfsclient/upload 
+
+ 
+
+
+```
+
+# API KEY
+
+```bash
+
+# apt-key 
+
+ 
+
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys <> 
+
+ 
+
+# wget or curl 
+
+ 
+
+sudo wget -q -O /usr/share/keyrings/<>.gpg https://<>/<>.gpg 
+
+ 
+
+echo "deb [signed-by=/usr/share/keyrings/<>.gpg] https://packages.cloud.google.com/apt kubernetes-xenial" | sudo tee -a /etc/apt/sources.list.d/cloud-google.list 
+
+ 
+
+```
+
+# DB & SYNC
+
+```bash
+
+
+
+sudo apt install mysql-server mysql-client 
+
+ 
+
+mysql_secure_installation 
+
+ 
+
+# dump 
+
+ 
+
+mysqldump -u username -p database_name > data-dump.sql 
+
+ 
+
+mysql -u username -p new_database < data-dump.sql 
+
+ 
+
+# sync 
+
+ 
+
+# master 
+
+ 
+
+sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf 
+```
+
+```bash
+bind-address 	 =0.0.0.0 
+
+ 
+
+server-id	 =1 
+
+... 
+
+log_bin = /var/log/mysql/mysql-bin.log 
+
+log_bin_index =/var/log/mysql/mysql-bin.log.index 
+
+relay_log = /var/log/mysql/mysql-relay-bin 
+
+relay_log_index = /var/log/mysql/mysql-relay-bin.index 
+```
+
+```bash
+
+sudo systemctl restart mysql 
+
+ 
+
+sudo mysql -u root -p 
+
+ 
+
+CREATE USER 'replication_user'@'*' IDENTIFIED BY 'replica_password'; 
+
+ 
+
+GRANT REPLICATION SLAVE ON *.* TO 'replication_user'@'*'; 
+
+ 
+
+SHOW MASTER STATUS\G 
+
+ 
+
+// Get File (MASTER_LOG_FILE), Position (MASTER_LOG_POS) 
+
+
+# slave 
+
+ 
+
+sudo vim  /etc/mysql/mysql.conf.d/mysqld.cnf 
+```
+
+```bash
+# /etc/mysql/mysql.conf.d/mysqld.cnf 
+
+bind-address           = 0.0.0.0 
+
+ 
+
+server-id		=2  
+
+ 
+
+log_bin = /var/log/mysql/mysql-bin.log 
+
+log_bin_index =/var/log/mysql/mysql-bin.log.index 
+
+relay_log = /var/log/mysql/mysql-relay-bin 
+
+relay_log_index = /var/log/mysql/mysql-relay-bin.index 
+
+
+```
+
+```bash
+ 
+
+sudo mysql -u root -p 
+
+ 
+
+STOP SLAVE;  
+
+ 
+
+CHANGE MASTER TO MASTER_HOST ='MASTER_IP', MASTER_USER ='replication_user', MASTER_PASSWORD ='replica_password', MASTER_LOG_FILE = 'mysql-bin.000002', MASTER_LOG_POS = 1643; 
+
+ 
+
+START SLAVE; 
+
+ 
+
+# MGR 
+
+ 
+
+uuidgen 
+
+ 
+
+sudo vim  /etc/mysql/mysql.conf.d/mysqld.cnf 
+
+```
+
+```bash
+
+[mysqld] 
+
+ 
+
+# General replication settings 
+
+disabled_storage_engines="MyISAM,BLACKHOLE,FEDERATED,ARCHIVE,MEMORY" 
+
+gtid_mode = ON 
+
+enforce_gtid_consistency = ON 
+
+master_info_repository = TABLE 
+
+relay_log_info_repository = TABLE 
+
+binlog_checksum = NONE 
+
+log_slave_updates = ON 
+
+log_bin = binlog 
+
+binlog_format = ROW 
+
+transaction_write_set_extraction = XXHASH64 
+
+loose-group_replication_bootstrap_group = OFF 
+
+loose-group_replication_start_on_boot = OFF 
+
+loose-group_replication_ssl_mode = REQUIRED 
+
+loose-group_replication_recovery_use_ssl = 1 
+
+ 
+
+# Shared replication group configuration 
+
+loose-group_replication_group_name = "" # uuidgen value 
+
+loose-group_replication_ip_whitelist = "ip1,ip2,ip3" # group ips 
+
+loose-group_replication_group_seeds = "ip1:port,ip2:port,ip3:port" # group ips with ports # port usually 33061 
+
+ 
+
+# Single or Multi-primary mode? Uncomment these two lines 
+
+# for multi-primary mode, where any host can accept writes 
+
+#loose-group_replication_single_primary_mode = OFF  # for multi primary group uncomment 
+
+#loose-group_replication_enforce_update_everywhere_checks = ON # for multi primary group uncomment 
+
+ 
+
+# Host specific replication configuration 
+
+server_id =    # id 
+
+bind-address = "" # bind-address 
+
+report_host = "" # bind-address  
+
+loose-group_replication_local_address = "" # bind-address:port # port usually 33061 
+
+
+```
+
+```bash
+
+
+systemctl restart mysql 
+
+ 
+
+# on all members 
+
+ 
+
+mysql 
+
+ 
+
+SET SQL_LOG_BIN=0; 
+
+ 
+
+CREATE USER 'repl'@'%' IDENTIFIED BY 'password' REQUIRE SSL; 
+
+ 
+
+GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%'; 
+
+ 
+
+FLUSH PRIVILEGES; 
+
+ 
+
+SET SQL_LOG_BIN=1; 
+
+ 
+
+CHANGE REPLICATION SOURCE TO SOURCE_USER='repl', SOURCE_PASSWORD='password' FOR CHANNEL 'group_replication_recovery'; 
+
+# or 
+
+CHANGE MASTER TO MASTER_USER='repl', MASTER_PASSWORD='password' FOR CHANNEL 'group_replication_recovery'; 
+
+ 
+
+INSTALL PLUGIN group_replication SONAME 'group_replication.so'; 
+
+ 
+
+# on one member (maybe first) 
+
+ 
+
+SET GLOBAL group_replication_bootstrap_group=ON; 
+
+ 
+
+START GROUP_REPLICATION; 
+
+ 
+
+SET GLOBAL group_replication_bootstrap_group=OFF; 
+
+ 
+
+# on the other members 
+
+ 
+
+START GROUP_REPLICATION; 
+
+ 
+
+ 
+```
+
+# MONGODB
+
+```bash
+
+curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add - 
+
+ 
+
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list 
+
+ 
+
+sudo apt update 
+
+ 
+
+sudo apt install mongodb-org 
+
+ 
+
+mkdir -p ~/data/db 
+
+ 
+
+sudo mongod --dbpath ~/data/db 
+
+
+```
+
+
+# CHROME
+
+```bash
+
+# download .deb 
+
+ 
+
+sudo apt install ./<file>.deb 
+
+
+```
+
+
+# VSCODE
+
+```bash
+# download .deb 
+
+ 
+
+sudo apt install ./<file>.deb 
+```
+
+# GOLANG
+
+```bash
+curl -OL https://golang.org/dl/go1.16.7.linux-amd64.tar.gz 
+
+ 
+
+sudo tar -C /usr/local -xvf go1.16.7.linux-amd64.tar.gz 
+
+ 
+
+sudo nano ~/.profile 
+
+
+```
+
+```bash
+. . . 
+
+export PATH=$PATH:/usr/local/go/bin 
+```
+
+```bash
+source ~/.profile 
+
+```
+
+# KOTLIN
+
+```bash
+
+
+sudo apt install openjdk-11-jdk 
+
+ 
+
+curl -s https://get.sdkman.io | bash 
+
+ 
+
+sdk install kotlin 
+
+ 
+
+kotlinc Kotlin.kt -include-runtime -d outPutFile.jar 
+
+ 
+
+java -jar outPutFile.jar 
+
+```
+
+# NODEJS
+
+```bash
+
+curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh 
+
+ 
+
+sudo bash /tmp/nodesource_setup.sh 
+
+ 
+
+sudo apt install nodejs 
+
+
+
+```
+
+
+# DJANGO
+
+```bash
+
+django-admin startproject mysite
+
+```
+
+# EXPRESSJS
+
+```bash
+
+ npm install -g express-generator
+ 
+ express myapp
+
+```
+
+# JMETER
+
+```bash
+
+# install openjdk
+
+# create thread group
+
+# add sampler
+
+jmeter -n -t <ThreadGroup.jmx> -l <report.csv> -e -o <report>
+
+```
+
+# CRYPTO
+
+```bash
+
+openssl
+
+
+# issuer(ca) keygen
+
+openssl genrsa -out ca_priv.pem 2048
+
+openssl rsa -in ca_priv.pem -outform PEM -pubout -out ca_pub.pem
+
+openssl req -x509 -new -key ca_priv.pem -days 365 -out ca.crt -subj "/CN=issuerforseantywork.com"
+
+# subject(issuer) keygen
+
+openssl genrsa -out sub_priv.pem 2048
+
+openssl rsa -in sub_priv.pem -outform PEM -pubout -out sub_pub.pem
+
+# subject csr
+
+openssl req -key sub_priv.pem -new -sha256 -out sub.csr
+
+# issuer signing
+
+openssl  x509 -req -days 180 -in sub.csr -CA ca.crt -CAkey ca_priv.pem -CAcreateserial -sha256 -out sub.crt
+
+# read csr, certificate
+
+openssl x509 -in <csr,crt> -text -noout
+
+# verify subject cert against issuer cert
+
+openssl verify -CAfile ca.crt sub.crt
+
+
+# x509
+
+ certificate and public key send, root ca on the authenticate requester side, chained authentication
+
+ if done, use the pub key to send symmetric key
+
+# gpg
+
+gpg --output encrypted.data --symmetric --cipher-algo AES256 un_encrypted.data
+
+gpg --output un_encrypted.data --decrypt encrypted.data
+
+
+# john
+
+./john --format=raw-MD5-opencl --wordlist=../passwords.txt --rules ../md5.txt
+
+# hashcat
+
+./hashcat.bin -m 17400 ../sha3_256.txt ../passwords.txt -r ../password_rule.rule -w 3 --force
+
+
+
+```
+
+# DOCKER & KUBERNETES
+
+```bash
+
+
+docker version - 20.10.17 
+
+kubectl version v1.24.3 
+
+ 
+
+# !!!! sudo -i  FIRST!!!! 
+
+ 
+
+# swap disabled and firewall check 
+
+swapoff -a 
+
+apt update 
+
+apt upgrade -y 
+
+
+```
+
+
+# DOCKER INSTALL
+
+```bash
+
+
+apt remove docker docker-engine docker.io containerd runc 
+
+apt update 
+
+apt install \ 
+
+    ca-certificates \ 
+
+    curl \ 
+
+    gnupg \ 
+
+    lsb-release 
+
+mkdir -p /etc/apt/keyrings 
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 
+
+echo \ 
+
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \ 
+
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 
+
+apt update 
+
+apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin 
+
+ 
+```
+
+# INSTALL DOCKER-COMPOSE
+
+```bash
+
+curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose 
+
+chmod +x /usr/local/bin/docker-compose 
+
+ 
+
+```
+
+# PREPARE DOCKER IMAGE
+
+```bash
+
+cat > /etc/docker/daemon.json <<EOF 
+
+{ 
+
+  "exec-opts": ["native.cgroupdriver=systemd"], 
+
+  "log-driver": "json-file", 
+
+  "log-opts": { 
+
+    "max-size": "100m" 
+
+  }, 
+
+  "storage-driver": "overlay2", 
+
+  "storage-opts": [ 
+
+    "overlay2.override_kernel_check=true" 
+
+  ] 
+
+} 
+
+EOF 
+
+systemctl restart docker 
+
+# add runtime: sysbox-runc   if using sysbox
+
+
+
+docker-compose up  
+
+ 
+
+docker-compose down 
+
+ 
+
+docker login 
+
+ 
+
+docker tag IMAGEID seantywork/NAME 
+
+ 
+
+docker push seantywork/NAME
+
+```
+
+# DOCKER PRIVATE
+
+```bash
+
+docker login <address:port> 
+```
+
+
+# DOCKER 
+
+```bash
+
+docker image 
+docker container
+docker network
+docker volume
+ 
+```
+
+
+# DOCKER-COMPOSE
+
+```bash
+
+# build, name, port,  
+
+# image , volume, runtime 
+
+```
+
+
+# DOCKER REMOTE
+
+```bash
+
+
+
+# on docker daemon host 
+
+ 
+
+ssh-keygen 
+
+ 
+
+# move id_rsa to the client 
+
+# add id_rsa.pub to authrized_keys 
+
+# on client move id_rsa to ~/.ssh 
+
+ 
+
+docker -H ssh://user@host <command> 
+
+
+```
+
+# DOCKER REMOTE CONTEXT
+
+```bash
+
+
+docker context create \ 
+
+    --docker host=ssh://user@host \ 
+
+    docker-remote 
+
+ 
+
+docker context use docker-remote 
+
+ 
+
+docker context use default 
+
+ 
+```
+
+# KUBERNETES INSTALL
+
+
+```bash
+
+apt update 
+
+ 
+
+apt install -y apt-transport-https ca-certificates curl 
+
+ 
+
+curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg 
+
+ 
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list 
+
+ 
+
+apt update 
+
+ 
+
+apt install -y kubectl kubelet kubeadm  
+
+ 
+
+sudo apt-mark hold kubelet kubeadm kubectl 
+
+
+```
+
+
+# KIND INSTALL
+
+```bash
+
+
+curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.14.0/kind-$(uname)-amd64" 
+
+ 
+
+chmod +x ./kind 
+
+ 
+
+sudo mv ./kind /usr/local/bin/ 
+
+```
+
+
+# KUBEADM ALL NODES
+
+
+```bash
+
+#!/bin/bash 
+
+ 
+
+ 
+
+ 
+
+set -euxo pipefail 
+
+ 
+
+# Variable Declaration 
+
+ 
+
+KUBERNETES_VERSION="1.23.6-00" 
+
+ 
+
+# disable swap 
+
+sudo swapoff -a 
+
+ 
+
+# keeps the swaf off during reboot 
+
+(crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true 
+
+sudo apt-get update -y 
+
+ 
+
+ 
+
+# Install CRI-O Runtime 
+
+ 
+
+OS="xUbuntu_20.04" 
+
+ 
+
+VERSION="1.23" 
+
+ 
+
+# Create the .conf file to load the modules at bootup 
+
+cat <<EOF | sudo tee /etc/modules-load.d/crio.conf 
+
+overlay 
+
+br_netfilter 
+
+EOF 
+
+ 
+
+sudo modprobe overlay 
+
+sudo modprobe br_netfilter 
+
+ 
+
+# Set up required sysctl params, these persist across reboots. 
+
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf 
+
+net.bridge.bridge-nf-call-iptables  = 1 
+
+net.ipv4.ip_forward                 = 1 
+
+net.bridge.bridge-nf-call-ip6tables = 1 
+
+EOF 
+
+ 
+
+sudo sysctl --system 
+
+ 
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list 
+
+deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ / 
+
+EOF 
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list 
+
+deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ / 
+
+EOF 
+
+ 
+
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add - 
+
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add - 
+
+ 
+
+sudo apt-get update 
+
+sudo apt-get install cri-o cri-o-runc -y 
+
+ 
+
+sudo systemctl daemon-reload 
+
+sudo systemctl enable crio --now 
+
+ 
+
+echo "CRI runtime installed susccessfully" 
+
+ 
+
+# Install kubelet, kubectl and Kubeadm 
+
+ 
+
+sudo apt-get update 
+
+sudo apt-get install -y apt-transport-https ca-certificates curl 
+
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg 
+
+ 
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list 
+
+sudo apt-get update -y 
+
+sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION" 
+
+sudo apt-get update -y 
+
+sudo apt-get install -y jq 
+
+ 
+
+ 
+
+netinf_row="$(ip -o link | awk '$2 != "lo:" {print $2, $(NF-2)}')" 
+
+searchstring=": " 
+
+ 
+
+rest=${netinf_row#*$searchstring} 
+
+idx=$(( ${#netinf_row} - ${#rest} - ${#searchstring} )) 
+
+netinf_name=${netinf_row:0:idx} 
+
+ 
+
+local_ip="$(ip --json a s | jq -r --arg NETINF_NAME $netinf_name '.[] | if .ifname == $NETINF_NAME then .addr_info[] | if .family == "inet" then .local else empty end else empty end')" 
+
+cat > /etc/default/kubelet << EOF 
+
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip 
+
+EOF 
+
+ 
+
+
+```
+
+# MASTER - ON MASTER NODE
+
+
+```bash
+
+set -euxo pipefail 
+
+ 
+
+netinf_row="$(ip -o link | awk '$2 != "lo:" {print $2, $(NF-2)}')" 
+
+searchstring=": " 
+
+ 
+
+rest=${netinf_row#*$searchstring} 
+
+idx=$(( ${#netinf_row} - ${#rest} - ${#searchstring} )) 
+
+netinf_name=${netinf_row:0:idx} 
+
+ 
+
+local_ip="$(ip --json a s | jq -r --arg NETINF_NAME $netinf_name '.[] | if .ifname == $NETINF_NAME then .addr_info[] | if .family == "inet" then .local else empty end else empty end')" 
+
+ 
+
+MASTER_IP=$local_ip 
+
+#LB_IP=<load_balancer_ip> 
+
+#PORT=<load_balancer_port> 
+
+NODENAME=$(hostname -s) 
+
+POD_CIDR="10.10.0.0/16" 
+
+ 
+
+sudo kubeadm config images pull 
+
+ 
+
+echo "Preflight Check Passed: Downloaded All Required Images" 
+
+ 
+
+sudo kubeadm init --apiserver-advertise-address=$MASTER_IP --apiserver-cert-extra-sans=$MASTER_IP --pod-network-cidr=$POD_CIDR --node-name "$NODENAME" --ignore-preflight-errors Swap  
+
+ 
+
+mkdir -p "$HOME"/.kube 
+
+sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config 
+
+sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config 
+
+ 
+
+ 
+
+ 
+
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml -O 
+
+ 
+
+kubectl apply -f calico.yaml 
+
+ 
+
+ 
+
+mkdir -p "$HOME"/.kube 
+
+sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config 
+
+sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config 
+
+ 
+
+# Install Claico Network Plugin Network  
+
+ 
+
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml -O 
+
+ 
+
+kubectl apply -f calico.yaml 
+
+
+```
+
+
+# JOIN TOKEN CREATION
+
+```bash
+kubeadm token create --print-join-command 
+
+```
+
+
+# WORKER NODE JOIN
+
+```bash
+
+sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \ 
+
+    --discovery-token-ca-cert-hash sha256:37f94469b58bcc8f26a4aa44441fb17196a585b37288f85e22475b00c36f1c61 
+
+ 
+
+```
+
+
+# LABEL WORKER
+
+
+```bash
+sudo kubectl label node worker-node01  node-role.kubernetes.io/worker=worker 
+
+ 
+
+sudo kubectl label node worker-node01  ingress-ready=true 
+
+ 
+
+
+```
+
+
+# IN CASE OF DNS MESSED UP
+
+```bash
+
+
+sudo kubectl -n kube-system rollout restart deployment coredns 
+
+ 
+
+```
+
+
+# MASTER NODE SCHEDULING
+
+
+```bash
+kubectl taint nodes --all node-role.kubernetes.io/master- 
+
+ 
+
+
+```
+
+# PREVENT SCHEDULING
+
+
+```bash
+sudo kubectl cordon <node> 
+
+ 
+
+```
+
+
+# TEAR DOWN CLUSTER
+
+
+```bash
+
+sudo kubectl drain <node> --delete-local-data --force --ignore-daemonsets 
+
+ 
+```
+
+
+# RE-SCHEDULE NODE
+
+```bash
+sudo kubectl uncordon <node> 
+
+```
+
+# ON EACH NODE
+
+```bash
+
+sudo kubeadm reset 
+```
+
+# HA CLUSTER
+
+
+```bash
+
+sudo apt-get update 
+
+sudo apt-get install haproxy 
+
+ 
+
+sudo vim /etc/haproxy/haproxy.cfg 
+
+```
+
+```bash
+# /etc/haproxy/haproxy.cfg 
+
+
+
+global 
+
+... 
+
+default 
+
+... 
+
+frontend kubernetes 
+
+bind <kube-lb-domain-or-ip>:<kube-lb-port> # *:<kube-lb-port> 
+
+option tcplog 
+
+mode tcp 
+
+#default_backend kubernetes-master-nodes 
+
+ 
+
+ 
+
+#acl kubernetes-master-rule hdr(host) -i k8s.cluster.com 
+
+ 
+
+ 
+
+#use_backend kubernetes-master-nodes if kubernetes-master-rule 
+
+ 
+
+ 
+
+backend kubernetes-master-nodes 
+
+mode tcp 
+
+balance roundrobin 
+
+option tcp-check 
+
+server k8s-master-0 <kube-master-0>:6443 check fall 3 rise 2 
+
+server k8s-master-1 <kube-master-1>:6443 check fall 3 rise 2 
+
+server k8s-master-2 <kube-master-2>:6443 check fall 3 rise 2 
+
+```
+
+```bash
+
+
+sudo systemctl restart haproxy 
+
+ 
+
+ 
+
+# same wj.sh on all nodes 
+
+ 
+
+# different mj.sh on the first master node 
+
+ 
+
+sudo kubeadm init --apiserver-advertise-address=$MASTER_IP --apiserver-cert-extra-sans="$MASTER_IP,$KUBELBADDR" --pod-network-cidr=$POD_CIDR --control-plane-endpoint "$KUBELBADDR:$KUBELBPORT"  --node-name "$NODENAME" --ignore-preflight-errors Swap 
+
+ 
+```
+
+# SCP CERTS
+
+
+```bash
+
+
+USER=<user-on-host> # customizable 
+
+# Set the control_plane_ips to all other master node ips or hostnames 
+
+CONTROL_PLANE_IPS="<addr1> <addr2>" 
+
+for host in ${CONTROL_PLANE_IPS}; do 
+
+    scp /etc/kubernetes/pki/ca.crt "${USER}"@$host: 
+
+    scp /etc/kubernetes/pki/ca.key "${USER}"@$host: 
+
+    scp /etc/kubernetes/pki/sa.key "${USER}"@$host: 
+
+    scp /etc/kubernetes/pki/sa.pub "${USER}"@$host: 
+
+    scp /etc/kubernetes/pki/front-proxy-ca.crt "${USER}"@$host: 
+
+    scp /etc/kubernetes/pki/front-proxy-ca.key "${USER}"@$host: 
+
+    scp /etc/kubernetes/pki/etcd/ca.crt "${USER}"@$host:etcd-ca.crt 
+
+    scp /etc/kubernetes/pki/etcd/ca.key "${USER}"@$host:etcd-ca.key 
+
+    scp /etc/kubernetes/admin.conf "${USER}"@$host: 
+
+done 
+
+ 
+
+
+```
+
+
+# MV CERTS ON EACH MASTER NODE
+
+
+```bash
+
+
+USER=<user-on-host> # customizable 
+
+mkdir -p /etc/kubernetes/pki/etcd 
+
+mv /home/${USER}/ca.crt /etc/kubernetes/pki/ 
+
+mv /home/${USER}/ca.key /etc/kubernetes/pki/ 
+
+mv /home/${USER}/sa.pub /etc/kubernetes/pki/ 
+
+mv /home/${USER}/sa.key /etc/kubernetes/pki/ 
+
+mv /home/${USER}/front-proxy-ca.crt /etc/kubernetes/pki/ 
+
+mv /home/${USER}/front-proxy-ca.key /etc/kubernetes/pki/ 
+
+mv /home/${USER}/etcd-ca.crt /etc/kubernetes/pki/etcd/ca.crt 
+
+mv /home/${USER}/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key 
+
+mv /home/${USER}/admin.conf /etc/kubernetes/admin.conf 
+
+ 
+
+```
+
+
+# JOIN MASTER NODE
+
+
+```bash
+
+
+sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \ 
+
+    --discovery-token-ca-cert-hash sha256:37f94469b58bcc8f26a4aa44441fb17196a585b37288f85e22475b00c36f1c61 \ 
+
+    --control-plane --node-name <name> 
+
+ 
+
+# admin.conf -> .kube/config 
+```
+
+
+# JOIN WORKER NODE
+
+
+```bash
+sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \ 
+
+    --discovery-token-ca-cert-hash sha256:37f94469b58bcc8f26a4aa44441fb17196a585b37288f85e22475b00c36f1c61 \ 
+
+    --node-name <name> 
+
+ 
+
+
+```
+
+# CNIS
+
+
+```bash
+
+kubectl apply -f  <CNI> ex) https://docs.projectcalico.org/manifests/calico.yaml , "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')" , https://raw.githubusercontent.com/aojea/kindnet/master/install-kindnet.yaml 
+
+ 
+```
+
+
+# KIND RUN
+
+
+```yaml
+
+# Kind yaml structure example
+
+
+
+kindcluster.yaml 
+
+ 
+
+kind: Cluster 
+
+ 
+
+apiVersion: kind.x-k8s.io/v1alpha4 
+
+ 
+
+nodes: 
+
+ 
+
+ - role: control-plane 
+
+     kubeadmConfigPatches: 
+
+  - | 
+
+    kind: InitConfiguration 
+
+    nodeRegistration: 
+
+      kubeletExtraArgs: 
+
+        node-labels: "ingress-ready=true" 
+
+  extraPortMappings: 
+
+  - containerPort: 80 
+
+    hostPort: 80 
+
+    protocol: TCP 
+
+  - containerPort: 443 
+
+    hostPort: 443 
+
+    protocol: TCP 
+
+ - role: worker 
+
+ 
+
+ - role: worker
+```
+
+```bash
+kind create cluster --name kindcluster --config ./kindcluster.yaml --image=kindest/node:v1.21.12 
+
+ 
+```
+
+# KUBECTL DEPLOYMENT
+
+
+```bash
+kubectl apply -f <yamls> 
+```
+
+# PORT FORWARD
+
+```bash
+kubectl port-forward resource/name port
+```
+
+
+# KUBECTL INGRESS
+
+
+```bash
+kubectl label node <node> ingress-ready=true 
+
+ 
+
+kubectl apply -f <controller> ex) https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml 
+
+ 
+
+kubectl apply -f ingress.yaml 
+
+
+```
+
+# TLS INGRESS NEED SECRET
+
+
+```bash
+
+
+# self singed certs 
+
+ 
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./tls.key -out ./tls.crt -subj "/CN=localhost" 
+
+ 
+
+kubectl create secret tls --save-config tls-openssl --key ./tls.key --cert ./tls.crt 
+
+ 
+
+# include $HOME .kube config -- remote kubectl and switching 
+
+ 
+
+kubectl config use-context <context-name
+
+```
+
+
+# TURNING OFF
+
+```bash
+
+kubectl delete --all ingress, services, deployments 
+
+ 
+
+kind delete cluster --name NAME 
+
+ 
+
+docker system prune -a  
+
+```
+
+
+# CHECK
+
+
+```bash
+systemctl status docker 
+
+systemctl status kubelet 
+
+```
+
+# SECRET REG
+
+
+```bash
+
+kubectl create secret generic <regcred> \ 
+
+    --from-file=.dockerconfigjson=<path/to/.docker/config.json> \ 
+
+    --type=kubernetes.io/dockerconfigjson 
+
+ 
+
+kubectl create secret docker-registry <pull_secret_name> \ 
+
+    --docker-server=<registry_server> \ 
+
+    --docker-username=<user_name> \ 
+
+    --docker-password=<password> \ 
+
+```
+
+
+# K8S COMPONENTS
+
+```bash
+
+
+ingress controller -> ingress -> svc 
+
+svc -> dpl, stf  
+
+secret -> tls, reg -> cert&key, credentials 
+
+vol -> pv[k8sdiskpath], storageclass -> stf, volmount[containerpath] = volclaim = storageclass 
+
+```
+
+# DEPLOYMENT EXAMPLE
+
+
+```yaml
+apiVersion: apps/v1 
+
+kind: Deployment 
+
+metadata: 
+
+  name: db 
+
+spec: 
+
+  selector: 
+
+    matchLabels: 
+
+      app: db 
+
+  replicas: 1 
+
+  template: 
+
+    metadata: 
+
+      labels: 
+
+        app: db 
+
+    spec: 
+
+      imagePullSecrets: 
+
+        - name: docker-secret 
+
+      containers: 
+
+        - name: db 
+
+          image: seantywork/db 
+
+          ports: 
+
+          - containerPort: 3306 
+
+```
+
+
+# SERVICE EXAMPLE
+
+
+```yaml
+
+apiVersion: v1 
+
+kind: Service 
+
+metadata: 
+
+  name: db 
+
+  labels: 
+
+    app: db 
+
+spec: 
+
+  type: ClusterIP 
+
+  ports: 
+
+  - port: 3306 
+
+    targetPort: 3306 
+
+    protocol: TCP 
+
+  selector: 
+
+    app: db 
+
+```
+
+
+# SERVICE IN DIFFERENT NAMESPACE
+
+
+```bash
+
+<serivce_name>.<namespace_name> 
+```
+
+# NODE SELECTOR & AFFINITY
+
+
+```yaml
+
+
+apiVersion: v1 
+
+kind: Pod 
+
+ 
+
+.... 
+
+ 
+
+spec: 
+
+  nodeSelector:  
+
+    region: east 
+
+    type: user-node 
+
+```
+
+
+```yaml
+
+apiVersion: v1 
+
+kind: Pod 
+
+metadata: 
+
+  name: with-node-affinity 
+
+spec: 
+
+  affinity: 
+
+    nodeAffinity: 
+
+      requiredDuringSchedulingIgnoredDuringExecution: 
+
+        nodeSelectorTerms: 
+
+        - matchExpressions: 
+
+          - key: topology.kubernetes.io/zone 
+
+            operator: In 
+
+            values: 
+
+            - antarctica-east1 
+
+            - antarctica-west1 
+
+ 
+
+
+```
+
+
+# ENV
+
+
+```yaml
+apiVersion: apps/v1 
+
+kind: Deployment 
+
+ 
+
+.... 
+
+ 
+
+ 
+
+    spec: 
+
+      containers: 
+
+        - name: kibana 
+
+          image: docker.elastic.co/kibana/kibana:7.11.0 
+
+          env: 
+
+          - name: ELASTICSEARCH_HOSTS 
+
+            value: http://elasticsearch:9200 
+
+          imagePullPolicy: Always 
+
+          ports: 
+
+          - containerPort: 5601 
+
+
+```
+
+
+# COMMAND
+
+
+```yaml
+
+.... 
+
+ 
+
+containers: 
+
+  - name: mysqldump 
+
+    image: mysql 
+
+    command: ["/bin/sh", "-c"] 
+
+    args: 
+
+      - echo starting; 
+
+        ls -la /backups; 
+
+        mysqldump --host=... -r /backups/file.sql db_name; 
+
+        ls -la /backups; 
+
+        echo done; 
+
+    volumeMounts: 
+
+      - ... 
+
+ 
+
+```
+
+
+# CONFIGMAP
+
+```yaml
+
+
+apiVersion: v1 
+
+kind: ConfigMap 
+
+metadata: 
+
+  namespace: logging 
+
+  name: elasticsearch-data-config 
+
+  labels: 
+
+    app: elasticsearch 
+
+    role: data 
+
+data: 
+
+  elasticsearch.yml: |- 
+
+    cluster.name: ${CLUSTER_NAME} 
+
+    node.name: ${NODE_NAME} 
+
+    discovery.seed_hosts: ${NODE_LIST} 
+
+    cluster.initial_master_nodes: ${MASTER_NODES} 
+
+    network.host: 0.0.0.0 
+
+    node: 
+
+      master: false 
+
+      data: true 
+
+      ingest: false 
+
+    xpack.security.enabled: true 
+
+    xpack.monitoring.collection.enabled: true 
+
+
+```
+
+# NODEPORT
+
+
+```yaml
+kind: Service
+apiVersion: v1
+metadata:
+  name: nodeport-test
+spec:
+  type: NodePort
+  selector:
+    app: tgtraffic
+  ports:
+    - nodePort: 30505
+      port: 5005
+      targetPort: 5005
+
+```
+
+# INGRESS
+
+```yaml
+
+apiVersion: networking.k8s.io/v1 
+
+kind: Ingress 
+
+metadata: 
+
+  name: ingress 
+
+spec: 
+
+  tls: 
+
+  - hosts: 
+
+    - usagecorpus.com 
+
+    secretName: uc-tls-secret 
+
+  - hosts: 
+
+    - www.usagecorpus.com 
+
+    secretName: uc-tls-secret 
+
+  - hosts: 
+
+    - ptt.usagecorpus.com 
+
+    secretName: ptt-tls-secret 
+
+  rules: 
+
+  - host: "usagecorpus.com" 
+
+    http: 
+
+      paths: 
+
+        - path: / 
+
+          pathType: Prefix 
+
+          backend: 
+
+            service: 
+
+              name: traffic 
+
+              port: 
+
+                number: 5005 
+
+  - host: "www.usagecorpus.com" 
+
+    http: 
+
+      paths: 
+
+        - path: / 
+
+          pathType: Prefix 
+
+          backend: 
+
+            service: 
+
+              name: traffic 
+
+              port: 
+
+                number: 5005 
+
+  - host: "ptt.usagecorpus.com" 
+
+    http: 
+
+      paths: 
+
+        - path: / 
+
+          pathType: Prefix 
+
+          backend: 
+
+            service: 
+
+              name: trafficph 
+
+              port: 
+
+                number: 5006 
+
+
+```
+
+
+# CONFIGMAP
+
+
+```yaml
+
+apiVersion: v1
+data:
+  allow-snippet-annotations: "true"
+  use-forwarded-headers: "true"
+  compute-full-forwarded-for: "true"
+  keep-alive: "20"
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"allow-snippet-annotations":"true","use-forwarded-headers":"true"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":"2022-11-23T07:56:59Z","labels":{"app.kubernetes.io/component":"controller","app.kubernetes.io/instance":"ingress-nginx","app.kubernetes.io/name":"ingress-nginx","app.kubernetes.io/part-of":"ingress-nginx","app.kubernetes.io/version":"1.5.1"},"name":"ingress-nginx-controller","namespace":"ingress-nginx","resourceVersion":"383","uid":"08673e9a-bdba-4a5a-9dda-a7f470d6214e"}}
+  creationTimestamp: "2022-11-23T07:56:59Z"
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.5.1
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+  resourceVersion: "24225834"
+  uid: 08673e9a-bdba-4a5a-9dda-a7f470d6214e
+```
+
+
+# SECRET EXAMPLE (TLS)
+
+```bash
+apiVersion: v1 
+
+data: 
+
+  tls.crt: ./tls.crt 
+
+  tls.key: ./tls.key 
+
+kind: Secret 
+
+metadata: 
+
+  name: uc-tls-secret 
+
+  namespace: default 
+
+type: kubernetes.io/tls 
+
+```
+
+# ANNOTATION
+
+```yaml
+
+apiVersion: networking.k8s.io/v1 
+
+kind: Ingress 
+
+metadata: 
+
+  name: minimal-ingress 
+
+  annotations: 
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-http-version : "1.1"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/rewrite-target: / 
+
+spec: 
+
+  ingressClassName: nginx-example 
+
+  rules: 
+
+  - http: 
+
+      paths: 
+
+      - path: /testpath 
+
+        pathType: Prefix 
+
+        backend: 
+
+          service: 
+
+            name: test 
+
+            port: 
+
+              number: 80 
+
+
+```
+
+# DEPLOYMENT EXAMPLE (VOLUME)
+
+
+```yaml
+
+apiVersion: apps/v1 
+
+kind: Deployment 
+
+metadata: 
+
+  name: db 
+
+spec: 
+
+  selector: 
+
+    matchLabels: 
+
+      app: db 
+
+  replicas: 1 
+
+  template: 
+
+    metadata: 
+
+      labels: 
+
+        app: db 
+
+    spec: 
+
+      imagePullSecrets: 
+
+        - name: docker-secret 
+
+      volumes: 
+
+        - name: db-pv-storage 
+
+          persistentVolumeClaim: 
+
+            claimName: dbpvc 
+
+      containers: 
+
+        - name: db 
+
+          image: seantywork/db 
+
+          ports: 
+
+          - containerPort: 3306 
+
+          volumeMounts: 
+
+          - mountPath: "/var/lib/mysql" 
+
+            name: db-pv-storage 
+
+```
+
+# STATEFULSET EXAMPLE
+
+
+```yaml
+apiVersion: apps/v1 
+
+kind: StatefulSet 
+
+metadata: 
+
+  name: dbstf 
+
+spec: 
+
+  selector: 
+
+    matchLabels: 
+
+      app: dbstf 
+
+  serviceName: "dbstf" 
+
+  replicas: 1 
+
+  template: 
+
+    metadata: 
+
+      labels: 
+
+        app: dbstf 
+
+    spec: 
+
+      terminationGracePeriodSeconds: 10 
+
+      containers: 
+
+      - name: dbstf 
+
+        image: seantywork/db 
+
+        ports: 
+
+        - containerPort: 3306 
+
+        volumeMounts: 
+
+        - name: dbpvc 
+
+          mountPath: /var/lib/mysql 
+
+  volumeClaimTemplates: 
+
+  - metadata: 
+
+      name: dbpvc 
+
+    spec: 
+
+      accessModes: ["ReadWriteOnce"] 
+
+      storageClassName: "manual" 
+
+      resources: 
+
+        requests: 
+
+          storage: 3Gi 
+
+
+```
+
+# STORAGECLASS EXAMPLE (DEFAULT)
+
+```bash
+
+kind: StorageClass 
+
+apiVersion: storage.k8s.io/v1 
+
+metadata: 
+
+  annotations: 
+
+    storageclass.kubernetes.io/is-default-class: "true" 
+
+  name: pv2-local-storageclass 
+
+provisioner: kubernetes.io/no-provisioner 
+
+volumeBindingMode: WaitForFirstConsumer 
+
+```
+
+
+# STORAGECLASS EXAMPLE (DEFAULT NFS)
+
+```bash
+
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/ 
+
+ 
+
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \ 
+
+    --set nfs.server=x.x.x.x \ 
+
+    --set nfs.path=/exported/path 
+
+# yaml
+```
+
+```yaml
+kind: StorageClass 
+
+apiVersion: storage.k8s.io/v1 
+
+metadata: 
+
+  annotations: 
+
+    storageclass.kubernetes.io/is-default-class: "true" 
+
+  name: nfs-default-storageclass 
+
+provisioner: k8s-sigs.io/nfs-subdir-external-provisioner # cluster.local/nfs-subdir-external-provisioner 
+
+allowVolumeExpansion: true 
+
+volumeBindingMode: Immediate 
+
+```
+
+# PERSISTENT VOLUME EXAMPLE (HOSTPATH)
+
+```yaml
+
+apiVersion: v1 
+
+kind: PersistentVolume 
+
+metadata: 
+
+  name: dbpv 
+
+  labels: 
+
+    type: local 
+
+spec: 
+
+  storageClassName: manual 
+
+  capacity: 
+
+    storage: 10Gi 
+
+  accessModes: 
+
+    - ReadWriteOnce 
+
+  hostPath: 
+
+    path: "/home/styw/project/k8s/vol_host" 
+
+```
+
+# PERSISTENT VOLUME EXAMPLE (LOCALSTORAGE) 
+
+```yaml
+
+apiVersion: v1 
+
+kind: PersistentVolume 
+
+metadata: 
+
+  name: pv1-local 
+
+spec: 
+
+  capacity: 
+
+    storage: 64Gi 
+
+  accessModes: 
+
+  - ReadWriteOnce 
+
+  persistentVolumeReclaimPolicy: Recycle 
+
+  storageClassName: local-storage 
+
+  local: 
+
+    path: /data/volumes/pv1 
+
+  nodeAffinity: 
+
+    required: 
+
+      nodeSelectorTerms: 
+
+      - matchExpressions: 
+
+        - key: kubernetes.io/hostname 
+
+          operator: In 
+
+          values: 
+
+          - worker1-lw 
+
+```
+
+# PERSISTENT VOLUME EXAMPLE (NFS) 
+
+```yaml
+apiVersion: v1 
+
+kind: PersistentVolume 
+
+metadata: 
+
+  name: dbpv 
+
+spec: 
+
+  capacity: 
+
+    storage: 10Gi 
+
+  volumeMode: Filesystem 
+
+  accessModes: 
+
+    - ReadWriteMany 
+
+  persistentVolumeReclaimPolicy: Recycle 
+
+  storageClassName: nfs 
+
+  mountOptions: 
+
+    - hard 
+
+    - nfsvers=4.1 
+
+  nfs: 
+
+    path: /opt/k8s-pods/data 
+
+    server: 192.168.1.40 
+
+
+```
+
+# PERSISTENT VOLUME CLAIM EXAMPLE (HOSTPATH) 
+
+```yaml
+
+apiVersion: v1 
+
+kind: PersistentVolumeClaim 
+
+metadata: 
+
+  name: dbpvc 
+
+spec: 
+
+  storageClassName: manual 
+
+  accessModes: 
+
+    - ReadWriteOnce 
+
+  resources: 
+
+    requests: 
+
+      storage: 3Gi 
+
+```
+
+# PERSISTENT VOLUME CLAIM EXAMPLE (LOCALSTORAGE) 
+
+```yaml
+kind: PersistentVolumeClaim 
+
+apiVersion: v1 
+
+metadata: 
+
+  name: pv1-local-claim 
+
+spec: 
+
+  accessModes: 
+
+  - ReadWriteOnce 
+
+  storageClassName: local-storage 
+
+  resources: 
+
+    requests: 
+
+      storage: 64Gi 
+
+```
+
+# PERSISTENT VOLUME CLAIM EXAMPLE (NFS) 
+
+```yaml
+
+apiVersion: v1 
+
+kind: PersistentVolumeClaim 
+
+metadata: 
+
+  name: dbpvc 
+
+spec: 
+
+  storageClassName: nfs 
+
+  accessModes: 
+
+    - ReadWriteMany 
+
+  resources: 
+
+    requests: 
+
+      storage: 10Gi 
+
+```
+
+# SYSBOX - FOR DIND 
+
+```bash
+
+
+# install 
+
+wget https://downloads.nestybox.com/sysbox/releases/v0.5.0/sysbox-ce_0.5.0-0.linux_amd64.deb 
+
+ 
+
+apt install jq 
+
+apt install ./sysbox-ce_0.5.0-0.linux_amd64.deb 
+
+ 
+
+systemctl status docker 
+
+systemctl status sysbox 
+
+ 
+
+docker-compose.yaml -- add runtime: sysbox-runc
+
+```
+
+# ON K8S
+
+```bash
+kubectl label node <node-name> sysbox-install=yes 
+
+kubectl apply -f https://raw.githubusercontent.com/nestybox/sysbox/master/sysbox-k8s-manifests/sysbox-install.yaml 
+
+ 
+
+```
+
+# REMOTE KUBECTL
+
+```bash
+
+
+
+kubectl -n kube-system create serviceaccount <service-account-name> 
+
+ 
+
+kubectl create clusterrolebinding <clusterrolebinding-name> --clusterrole=cluster-admin --serviceaccount=kube-system:<service-account-name> 
+
+ 
+
+export TOKENNAME=$(kubectl -n kube-system get serviceaccount/<service-account-name> -o jsonpath='{.secrets[0].name}') 
+
+ 
+
+export TOKEN=$(kubectl -n kube-system get secret $TOKENNAME -o jsonpath='{.data.token}' | base64 --decode) 
+
+ 
+
+curl -k -H "Authorization: Bearer $TOKEN" -X GET "https://<KUBE-API-IP>:6443/api/v1/nodes" | json_pp 
+
+ 
+
+kubectl config set-credentials <service-account-name> --token=$TOKEN 
+
+ 
+
+kubectl config set-context --current --user=<service-account-name> 
+
+ 
+
+# erase TLS auth info and add to cluster the option insecure-skip-tls-verify: true 
+
+ 
+
+# then copy and paste the $HOME .kube config and modify server address 
+
+ 
+
+# or just copy the whole config with a correct API server address 
+
+ 
+
+```
+
+
+# KUBE PROXY
+
+```bash
+
+kubectl proxy --address 0.0.0.0 --accept-hosts '.*' --port=<port> 
+
+ 
+```
+
+# KUBECTL REMOTE WITH TLS AND CUSTOM DOMAIN, IP
+
+```bash
+
+kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > kubeadm.yaml 
+
+ 
+
+# edit certSANS 
+
+ 
+
+# on control plane 
+
+# remove below 
+
+ 
+
+/etc/kubernetes/pki/apiserver.{crt,key} ~ 
+
+ 
+
+kubeadm init phase certs apiserver --config kubeadm.yaml 
+
+ 
+
+docker ps | grep kube-apiserver | grep -v pause 
+
+ 
+
+docker kill <containerID> 
+
+ 
+
+# or 
+
+ 
+
+crictl pods | grep kube-apiserver | cut -d' ' -f1 
+
+ 
+
+crictl stopp <pod-id> 
+
+ 
+
+crictl rmp <pod-id> 
+
+ 
+
+# wait till kube-system pods to restart and accessible by the dns 
+
+# or
+
+# on all master nodes
+
+# remove current apiserver certificates
+sudo rm /etc/kubernetes/pki/apiserver.*
+
+# generate new certificates
+sudo kubeadm init phase certs apiserver --apiserver-cert-extra-sans="ADDR1,ADDR2,ADDR3"
+ 
+
+
+```
+
+# KUBEADM RENEW CERTIFICATE
+
+```bash
+
+# on all control plane nodes
+
+kubeadm certs renew all
+
+# then restart
+
+mv /etc/kubernetes/manifest/* mv /etc/kubernetes/manifest_tmp
+
+# wait 20+ seconds
+
+mv /etc/kubernetes/manifest_tmp/* mv /etc/kubernetes/manifest
+
+
+```
+
+# KUBEADM UPGRADE
+
+```bash
+
+# on the first master nodes
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm=1.27.x-00 && \
+sudo apt-mark hold kubeadm
+
+sudo kubeadm upgrade apply v1.27.x
+
+sudo kubectl drain <node-to-drain> --ignore-daemonsets
+
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet=1.27.x-00 kubectl=1.27.x-00 && \
+sudo apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+sudo kubectl uncordon <node-to-uncordon>
+
+# on other master nodes 
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm=1.27.x-00 && \
+sudo apt-mark hold kubeadm
+
+sudo kubeadm upgrade node
+
+sudo kubectl drain <node-to-drain> --ignore-daemonsets
+
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet=1.27.x-00 kubectl=1.27.x-00 && \
+sudo apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+sudo kubectl uncordon <node-to-uncordon>
+
+# on worker nodes
+
+sudo apt-mark unhold kubeadm && \
+sudo apt-get update && sudo apt-get install -y kubeadm=1.27.x-00 && \
+sudo apt-mark hold kubeadm
+
+sudo kubeadm upgrade node
+
+sudo kubectl drain <node-to-drain> --ignore-daemonsets
+
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y kubelet=1.27.x-00 kubectl=1.27.x-00 && \
+sudo apt-mark hold kubelet kubectl
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+sudo kubectl uncordon <node-to-uncordon>
+
+
+```
+
+# VM 
+
+```bash
+
+# iso 
+
+# processor 
+
+# memory 
+
+# storage 
+
+# network: bridge  
+
+```
+
+
+# CLOUD (AWS)
+
+```bash
+
+# EC2: create EC2 instance  
+
+# instance details: check instace details to get access 
+
+# elastic block store: it has volume, instance info 
+
+# network & security: check network & security  
+
+# network interface: it has vpc, subnet, instance info 
+
+# vpc: EC2 must be created in a same vpc 
+
+# subnet: EC2 must be created in a same subnet under the same vpc 
+
+# security group: each EC2 must share the same security(inbound, outbound) rule 
+
+# instance: take care of firewall 
+
+```
+
+# CLOUD (GCP)
+
+```bash
+
+# api 
+
+# oauth 
+```
+
+# AWS EKS
+
+```bash
+# eksctl version 0.106.0 
+
+# create IAM user and role related to EKS and Adminaccess 
+
+ 
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" 
+
+unzip awscliv2.zip 
+
+sudo ./aws/install 
+
+ 
+
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp 
+
+ 
+
+mv /tmp/eksctl /usr/local/bin 
+
+ 
+
+aws configure 
+
+ 
+
+eksctl create cluster -f ekscluster.yaml 
+
+ 
+```
+
+# CUSTOM REGISTRY - HARBOR 
+
+```bash
+
+ 
+
+curl -s https://api.github.com/repos/goharbor/harbor/releases/latest | grep browser_download_url | cut -d '"' -f 4 | grep '\.tgz$' | wget -i - 
+
+ 
+
+tar xvzf harbor-offline-installer*.tgz 
+
+ 
+
+cp harbor.yml.tmpl harbor.yml 
+
+ 
+
+# change necessary info 
+
+ 
+
+
+```
+
+# HELM
+
+```bash
+
+curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -  
+
+ 
+
+sudo apt install apt-transport-https --yes  
+
+ 
+
+echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list  
+
+ 
+
+sudo apt update  
+
+ 
+
+sudo apt install helm  
+```
+
+# JENKINS
+
+```bash
+
+sudo apt install -y openjdk-11-jdk openjdk-11-jre 
+
+ 
+
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add - 
+
+ 
+
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list' 
+
+ 
+
+sudo apt update 
+
+ 
+
+sudo apt -y install jenkins 
+
+ 
+
+# on k8s 
+
+ 
+
+helm repo add jenkins https://charts.jenkins.io 
+
+ 
+
+helm repo update 
+
+ 
+
+helm install jkns jenkins/jenkins 
+
+```
+
+
+# PROMETHEUS & GRAFANA 
+
+```bash
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts  
+
+  
+
+helm repo add stable https://charts.helm.sh/stable  
+
+ 
+
+helm repo update  
+
+ 
+
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack -f ./kube-prometheus-stack/value.yaml 
+
+
+
+kubectl port-forward deployment/prometheus-grafana 3000 
+
+ 
+
+# Prometheus alone 
+
+ 
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 
+
+ 
+
+helm repo update 
+
+ 
+
+helm install prometheus prometheus-community/prometheus 
+
+ 
+
+# Grafana local 
+
+ 
+
+sudo apt install -y apt-transport-https 
+
+ 
+
+sudo apt install -y software-properties-common wget 
+
+ 
+
+sudo wget -q -O /usr/share/keyrings/grafana.key https://packages.grafana.com/gpg.key 
+
+ 
+
+echo "deb [signed-by=/usr/share/keyrings/grafana.key] https://packages.grafana.com/enterprise/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list 
+
+ 
+
+sudo apt update 
+
+ 
+
+sudo apt install grafana-enterprise 
+
+ 
+
+sudo service grafana-server start 
+
+ 
+
+config -> /etc/grafana/grafana.ini 
+
+ 
+
+# localhost:3000 
+
+ 
+
+username: admin 
+
+password: prom-operator 
+
+ 
+
+```
+
+# OCTANT
+
+```bash
+
+wget https://github.com/vmware-tanzu/octant/releases/download/v0.24.0/octant_0.24.0_Linux-64bit.deb 
+
+ 
+
+dpkg -i octant_0.24.0_Linux-64bit.deb 
+
+
+```
+
+
+# REDIS
+
+```yaml
+
+version: "3"
+
+services:
+
+    redis:
+      image: redis:7.0.8
+      container_name: redis
+      command:
+        - /bin/sh
+        - -c
+        - redis-server --requirepass "youdonthavetoknow"
+      volumes:
+        - ./redis:/var/lib/redis/data
+        - ./redis.conf:/usr/local/etc/redis/redis.conf
+      ports:
+        - "6379:6379"
+```
+
+```bash
+
+# redis.conf
+
+port              6379
+daemonize         yes
+save              60 1
+bind              0.0.0.0
+tcp-keepalive     300
+dbfilename        dump.rdb
+dir               ./
+rdbcompression    yes
+
+```
+
+# KAFKA & ZOOKEEPER
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami 
+
+ 
+
+helm install zookeeper bitnami/zookeeper --set replicaCount=1 --set auth.enabled=false --set allowAnonymousLogin=true 
+
+ 
+
+helm install kafka bitnami/kafka --set zookeeper.enabled=false --set replicaCount=1 --set externalZookeeper.servers=ZOOKEEPER-SERVICE-NAME 
+
+ 
+
+kubectl --namespace default exec -it $POD_NAME -- kafka-console-consumer.sh --bootstrap-server KAFKA-SERVICE-NAME:9092 --topic mytopic 
+
+ 
+
+kubectl --namespace default exec -it $POD_NAME -- kafka-console-producer.sh --broker-list KAFKA-SERVICE-NAME:9092 --topic mytopic 
+
+ 
+
+# or kafkacat like below 
+
+ 
+
+kafkacat -P -b KAFKA-SERVICE-NAME:9092 -t mytopic 
+
+ 
+
+kafkacat -C -b KAFKA-SERVICE-NAME:9092 -t mytopic 
+
+```
+```yaml
+# single node
+
+---
+
+version: "3"
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:3.7'
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - ./zook:/data
+  kafka:
+    image: 'bitnami/kafka:3.3'
+    container_name: kafka
+    ports:
+      - '9092:9092'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://172.17.80.95:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - ./data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+
+
+```
+
+# ELASTIC SEARCH & KIBANA 
+
+```bash
+
+helm repo add bitnami https://charts.bitnami.com/bitnami 
+
+ 
+
+sudo helm install elasticsearch  bitnami/elasticsearch 
+
+ 
+
+sudo helm install kibana bitnami/kibana --set elasticsearch.hosts[0]=elasticsearch --set elasticsearch.port=9200 
+
+ 
+
+```
+
+```yaml
+
+version: "3"
+
+
+
+services:
+
+        elasticsearch:
+
+                image: elasticsearch:8.6.1
+
+                environment:
+
+                        - xpack.security.enabled=true
+
+                        - discovery.type=single-node
+
+                        - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+
+                        - ELASTIC_PASSWORD=youdonthavetoknow
+
+
+                container_name: elasticsearch
+
+                ports:
+
+                        - "9200:9200"
+
+                volumes:
+
+                        - elastic_data:/usr/share/elasticsearch/data
+
+volumes:
+
+        elastic_data:
+
+```
+```bash
+# set password for kibana
+
+docker exec -it elasticsearch /bin/bash
+
+bin/elasticsearch-set-password [ auto | interactive ]
+
+```
+
+```yaml
+
+version: "3"
+services:
+    kibana:
+        image: kibana:8.5.3
+        container_name: kibana
+        restart: always
+        ports:
+            - 5601:5601
+        environment:
+            - ELASTICSEARCH_USERNAME="kibana_system"
+            - ELASTICSEARCH_PASSWORD="youdonthavetoknow"
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - XPACK_MONITORING_ENABLED=true
+            - XPACK_MONITORING_COLLECTION_ENABLED=true
+            - XPACK_SECURITY_ENABLED=true
+        networks:
+            - network1
+
+networks:
+    network1:
+        name: elastic_default
+        external: true
+
+
+```
+
+# GPU
+
+```bash
+
+
+# host driver 
+
+# ubuntu 
+
+sudo apt-get install linux-headers-$(uname -r) 
+
+ 
+
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g') 
+
+ 
+
+wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb 
+
+ 
+
+sudo dpkg -i cuda-keyring_1.0-1_all.deb 
+
+ 
+
+sudo apt-get update 
+
+ 
+
+sudo apt-get -y install cuda-drivers 
+
+ 
+
+#centos 
+
+sudo dnf install -y tar bzip2 make automake gcc gcc-c++ pciutils elfutils-libelf-devel libglvnd-devel iptables firewalld vim bind-utils wget 
+
+ 
+
+sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm 
+
+ 
+
+distribution=rhel7 
+
+ 
+
+ARCH=$( /bin/arch ) 
+
+ 
+
+sudo yum-config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/$distribution/${ARCH}/cuda-$distribution.repo 
+
+ 
+
+sudo yum install -y kernel-devel-$(uname -r) kernel-headers-$(uname -r) 
+
+ 
+
+sudo yum clean expire-cache 
+
+ 
+
+sudo yum install -y nvidia-driver-latest-dkms 
+
+ 
+
+# post install 
+
+ 
+
+export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}} 
+
+ 
+
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64\ 
+
+                         ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}} 
+
+ 
+
+sudo systemctl enable nvidia-persistenced 
+
+ 
+
+ 
+
+/usr/bin/nvidia-persistenced --verbose 
+
+ 
+
+cat /proc/driver/nvidia/version 
+
+ 
+
+ 
+
+# install nvidia container toolkit 
+
+ 
+
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit 
+
+
+```
+
+```toml
+# containerd daemon config /etc/containerd/config.toml
+
+
+version = 2 
+
+[plugins] 
+
+  [plugins."io.containerd.grpc.v1.cri"] 
+
+    [plugins."io.containerd.grpc.v1.cri".containerd] 
+
+      default_runtime_name = "nvidia" 
+
+  
+
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes] 
+
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia] 
+
+          privileged_without_host_devices = false 
+
+          runtime_engine = "" 
+
+          runtime_root = "" 
+
+          runtime_type = "io.containerd.runc.v2" 
+
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options] 
+
+            BinaryName = "/usr/bin/nvidia-container-runtime" 
+
+ 
+```
+
+```bash
+sudo systemctl restart containerd 
+
+``` 
+
+```bash
+# crio daemon
+
+# /etc/crio/crio.conf.d/crio.conf
+
+[crio]
+
+  [crio.runtime]
+    default_runtime = "nvidia"
+
+    [crio.runtime.runtimes]
+
+      [crio.runtime.runtimes.nvidia]
+        runtime_path = "/usr/bin/nvidia-container-runtime"
+        runtime_type = "oci"
+
+# or
+
+# /etc/crio/crio.conf
+
+ hooks_dir = [
+        "/usr/share/containers/oci/hooks.d",
+        "/run/containers/oci/hooks.d",
+        "/etc/containers/oci/hooks.d",
+ ]
+ 
+ ```
+
+```bash
+
+$ sudo mkdir -p /usr/share/containers/oci/hooks.d 
+
+# or
+
+$ sudo mkdir -p /run/containers/oci/hooks.d
+
+  
+
+$ sudo bash -c  
+
+cat > /usr/share/containers/oci/hooks.d/oci-nvidia-hook.json << EOF 
+
+{ 
+
+    "version": "1.0.0", 
+
+    "hook": { 
+
+        "path": "/usr/bin/nvidia-container-toolkit", 
+
+        "args": ["nvidia-container-toolkit", "prestart"] ,
+        
+        "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"]
+
+    }, 
+
+    "when": { 
+
+        "always": true, 
+
+        "commands": [".*"] 
+
+    }, 
+
+    "stages": ["prestart"] 
+
+} 
+
+EOF 
+
+ 
+
+ 
+
+ 
+
+ 
+
+# docker 
+
+ 
+
+sudo docker --gpus all 
+
+ 
+
+# kubernetes 
+
+ 
+
+kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.13.0/nvidia-device-plugin.yml 
+
+ 
+
+# helm 
+
+ 
+
+helm repo add nvdp https://nvidia.github.io/k8s-device-plugin 
+
+ 
+
+helm repo update 
+
+ 
+
+helm upgrade -i nvdp nvdp/nvidia-device-plugin \ 
+
+  --namespace nvidia-device-plugin \ 
+
+  --create-namespace \ 
+
+  --version 0.13.0 
+
+ 
+
+ 
+
+```
+
+```yaml
+# gpu deployment 
+
+apiVersion: apps/v1 
+
+kind: Deployment 
+
+metadata: 
+
+  name: clusterdebuggergpu 
+
+spec: 
+
+  selector: 
+
+    matchLabels: 
+
+      app: clusterdebuggergpu 
+
+  replicas: 1 
+
+  template: 
+
+    metadata: 
+
+      labels: 
+
+        app: clusterdebuggergpu 
+
+    spec: 
+
+      nodeSelector: 
+
+        gpu-ready: ready 
+
+      imagePullSecrets: 
+
+        - name: harbor-secret 
+
+      containers: 
+
+        - name: clusterdebuggergpu 
+
+          image: harbor.mipllab.com/library/clusterdebugger 
+
+          resources: 
+
+            limits: 
+
+              nvidia.com/gpu: 1 
+
+          imagePullPolicy: Always 
+
+          ports: 
+
+          - containerPort: 6700 
+
+
+
+```
+
+# VIRTUAL MACHINE BOX
+
+```bash
+# virtualbox
+
+sudo apt update 
+
+ 
+
+sudo apt install virtualbox 
+
+ 
+
+ 
+
+ 
+
+sudo vboxmanage createvm --ostype Ubuntu_64 --basefolder "/srv/virtualbox" --register --name "ubuntu20" 
+
+ 
+
+sudo vboxmanage modifyvm "ubuntu20" --cpus 2 --memory 2048 --nic1 bridged --bridgeadapter1 wlp2s0 
+
+ 
+
+sudo vboxmanage createhd --filename "/srv/virtualbox/ubuntu20/ubuntu20.vdi" --format VDI --size 32000 
+
+ 
+
+sudo vboxmanage storagectl "ubuntu20" --name "SATA" --add sata 
+
+ 
+
+sudo vboxmanage storageattach "ubuntu20" --storagectl SATA --port 0 --type hdd --medium "/srv/virtualbox/ubuntu20/ubuntu20.vdi" 
+
+ 
+
+sudo vboxmanage storagectl "ubuntu20" --name IDE --add ide 
+
+ 
+
+sudo vboxmanage storageattach "ubuntu20" --storagectl IDE --port 0 --device 0 --type dvddrive --medium /home/seantywork/Downloads/ubuntu-20.04.5-live-server-amd64.iso  
+
+ 
+
+ 
+
+sudo vboxmanage startvm "ubuntu20" --type headless 
+
+ 
+
+sudo vboxmanage list runningvms 
+
+ 
+
+sudo vboxmanage controlvm "ubuntu20" acpipowerbutton 
+
+ 
+# clone 
+
+ 
+
+sudo vboxmanage clonevm "ubuntu20" --name="ol7-dev-002" --register 
+
+
+
+
+```
+
+# VIRTUAL MACHINE QEMU
+
+```bash
+sudo apt install qemu-kvm virt-manager virtinst libvirt-clients bridge-utils libvirt-daemon-system -y
+
+sudo systemctl enable --now libvirtd
+
+sudo systemctl start libvirtd
+
+sudo usermod -aG kvm $USER
+
+sudo usermod -aG libvirt $USER
+
+sudo virt-manager
+
+```
+
+# VIRTUAL CLUSTER
+
+```bash
+
+
+# proxmox
+
+create vm
+
+import vm
+
+import disk
+
+qm importdisk <VM_ID> <OVA_DISK.vmdk> <VOL_NAME> -format qcow2
+
+ex) qm importdisk 101 ubuntu20-disk001.vmdk local-lvm -format qcow2
+
+create cluster
+
+join cluster
+
+```
+
+# VM QEMU NETWORK BRIDGE
+
+```bash
+
+# /etc/sysctl.d/10-bridge.conf
+
+net.bridge.bridge-nf-call-ip6tables=0
+net.bridge.bridge-nf-call-iptables=0
+net.bridge.bridge-nf-call-arptables=0
+
+```
+
+```bash
+
+
+echo "br_netfilter" > /etc/modules-load.d/br_netfilter.conf
+
+reboot
+
+virsh net-destroy default
+virsh net-undefine default
+
+# save /etc/netplan/01-network-manager-all.yaml
+
+```
+
+```yaml
+
+# /etc/netplan/00-installer-config.yaml 
+
+network:
+  ethernets:
+    enx44a92c521758:
+      dhcp4: false
+      dhcp6: false
+  bridges:
+    br0:
+      interfaces: [ enx44a92c521758 ]
+      addresses: [192.168.0.32/24]
+      gateway4: 192.168.0.1
+      mtu: 1500
+      nameservers:
+        addresses: [168.126.63.1,8.8.8.8]
+      parameters:
+        stp: true
+        forward-delay: 4
+      dhcp4: no
+      dhcp6: no
+  version: 2
+
+
+```
+
+```bash
+sudo netplan apply
+
+
+```
+
+```bash
+# host-bridge.xml
+
+<network>
+    <name>host-bridge</name>
+    <bridge name='br0'/>
+    <forward mode="bridge"/>
+</network>
+
+```
+
+```bash
+
+virsh net-define host-bridge.xml
+virsh net-autostart host-bridge
+virsh net-start host-bridge
+virsh net-list --all
+
+```
+
+# VM QEMU GPU PASSTHROUGH
+
+```bash
+
+efibootmgr
+
+# vt-x & vt-d enabled
+
+# or amd-v & amd-iommu
+
+# grub iommu config
+
+/etc/default/grub
+GRUB_CMDLINE_LINUX_DEFAULT="quiet  iommu=pt"
+
+# or
+
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction nofb nomodeset initcall_blacklist=sysfb_init"
+
+update-grub
+
+reboot
+
+dmesg | grep -e IOMMU
+
+# vfio config
+
+echo "vfio" >> /etc/modules
+echo "vfio_iommu_type1" >> /etc/modules
+echo "vfio_pci" >> /etc/modules
+
+update-initramfs -u -k all
+
+systemctl reboot
+
+dmesg | grep -i vfio
+
+dmesg | grep 'remapping'
+
+# in case of no remapping
+
+echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iommu_unsafe_interrupts.conf
+
+
+# nvidia stability
+
+echo "options kvm ignore_msrs=1 report_ignored_msrs=0" > /etc/modprobe.d/kvm.conf
+
+# amd stability
+
+apt install pve-headers-$(uname -r)
+apt install git dkms build-essential
+git clone https://github.com/gnif/vendor-reset.git
+cd vendor-reset
+dkms install .
+echo "vendor-reset" >> /etc/modules
+update-initramfs -u
+shutdown -r now
+
+lspci -nn | grep 'AMD'  # <DEVICE_ID> ex) 01:00.0
+
+cat << EOF >>  /etc/systemd/system/vreset.service
+[Unit]
+Description=AMD GPU reset method to 'device_specific'
+After=multi-user.target
+[Service]
+ExecStart=/usr/bin/bash -c 'echo device_specific > /sys/bus/pci/devices/0000:<DEVICE_ID>/reset_method'
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable vreset.service && systemctl start vreset.service
+
+
+# gpu isolation and drivers
+
+lspci -nn | grep 'NVIDIA' # or 'AMD'
+
+echo "options vfio-pci ids=<ID>,<ID2>,..." > /etc/modprobe.d/vfio.conf
+
+ex)
+
+echo "options vfio-pci ids=1002:67df,1002:aaf0" > /etc/modprobe.d/vfio.conf
+
+
+# AMD drivers
+echo "blacklist radeon" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist amdgpu" >> /etc/modprobe.d/blacklist.conf
+# NVIDIA drivers
+echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist nvidiafb" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist nvidia_drm" >> /etc/modprobe.d/blacklist.conf
+# Intel drivers
+echo "snd_hda_intel" >> /etc/modprobe.d/blacklist.conf
+echo "snd_hda_codec_hdmi" >> /etc/modprobe.d/blacklist.conf
+echo "i915" >> /etc/modprobe.d/blacklist.conf
+
+
+# gpu in vm
+
+# bios ovmf (uefi)
+
+# machine q35
+
+# display vmware compatible
+
+# boot vm without secure boot (esc at proxmox screen)
+
+# check
+
+lspci -nn
+
+# noveau blacklist
+
+sudo nano /etc/modprobe.d/blacklist-nouveau.conf
+
+blacklist nouveau
+options nouveau modeset=0
+
+sudo update-initramfs -u
+
+# turnoff
+
+# add pci device without options
+
+# turnon
+
+# install corresponding gpu drivers
+
+https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html
+
+# or 
+
+https://www.nvidia.com/download/index.aspx
+
+# gpu reset at reboot
+
+```
+
+```bash
+# /root/reset_pci_gpu.sh
+#!/bin/bash
+echo 1 > /sys/bus/pci/devices/0000\:09\:00.0/remove
+echo 1 > /sys/bus/pci/rescan
+
+crontab -e
+
+@reboot /root/reset_pci_gpu.sh
+
+```
+
+# IDA
+
+```bash
+
+
+# download run 
+
+ 
+
+chmod  
+
+ 
+
+sudo ./ida.run 
+
+```
+# GHIDRA
+
+```bash
+
+sudo apt-get install openjdk-17-jdk 
+
+ 
+
+wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.2_build/ghidra_10.2_PUBLIC_20221101.zip 
+
+ 
+
+unzip ghidra_10.2_PUBLIC_20221101.zip -d <target>
+```
+
+# WIRESHARK
+
+```bash
+
+sudo apt install wireshark 
+
+
+```
+
+# TOR
+
+```bash
+
+# download tar or 
+
+ 
+
+wget https://www.torproject.org/dist/torbrowser/11.5.7/tor-browser-linux64-11.5.7_en-US.tar.xz 
+
+ 
+
+tar -xvf tor-browser-linux64-11.5.7_en-US.tar.xz 
+
+ 
+
+
+```
+
+# METASPLOIT AND SECURITY TOOLS 
+
+```bash
+
+
+curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall 
+
+ 
+
+sudo chmod 755 msfinstall 
+
+ 
+
+sudo ./msfinstall 
+
+ 
+
+sudo apt install nmap 
+
+ 
+
+git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev 
+
+ 
+
+sudo apt install nikto -y 
+
+ 
+```
+
+# BURPESUITE
+
+```bash
+
+
+# download .sh 
+
+ 
+
+sudo ./burpsuite_community_linux_v2022_9_5.sh  
+
+ 
+
+```
+
+# OWASP ZAP
+
+```bash
+
+# download .zip 
+
+ 
+
+tar -xzf ZAP_2.12.0_Linux.tar.gz 
+
+
+```
+
+# OLD KEY STORE FIX
+
+```bash
+
+for KEY in $(apt-key --keyring /etc/apt/trusted.gpg list | grep -E "(([ ]{1,2}(([0-9A-F]{4}))){10})" | tr -d " " | grep -E "([0-9A-F]){8}\b" ); do K=${KEY:(-8)}; apt-key export $K | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/imported-from-trusted-gpg-$K.gpg; done
+ 
+
+ 
+
+```
+
+# CLUSTER DEBUGGER
+
+```yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clusterdebugger
+spec:
+  selector:
+    matchLabels:
+      app: clusterdebugger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clusterdebugger
+    spec:
+      containers:
+        - name: clusterdebugger
+          image: seantywork/clusterdebugger
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 6700
+```
+
+
+```yaml
+
+version: "3"
+
+
+services:
+
+        clusterdebugger:
+
+                build: .
+
+
+                container_name: clusterdebugger
+
+                ports:
+
+                        - "6700:6700"
+
+```
+
+```bash
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && apt install -y ca-certificates curl gnupg lsb-release wget iptables supervisor git vim
+
+RUN apt install -y python3-pip
+
+RUN pip3 install gunicorn
+
+RUN pip3 install flask
+
+RUN pip3 install requests
+
+RUN pip3 install Flask-Session
+
+RUN pip3 install mysql-connector-python
+
+CMD ["tail", "-f", "/dev/null"]
+
+```
+
+# CONTAINER DEBUGGER
+
+```bash
+
+FROM ubuntu:20.04
+
+
+RUN apt-get update
+
+RUN apt-get install -y build-essential ca-certificates curl git vim
+
+RUN mkdir -p /workspace
+
+WORKDIR /workspace
+
+CMD ["tail","-f","/dev/null"]
+```
+
+
+```yaml
+version: "3"
+
+services:
+
+    debugger:
+      build: .
+      container_name: debugger
+
+
+```
+
+# ELASTIC SEARCH
+
+```bash
+
+FROM elasticsearch:8.6.1
+
+ENV xpack.security.enabled=true
+ENV discovery.type=single-node
+ENV ES_JAVA_OPTS="-Xms2g -Xmx2g"
+ENV ELASTIC_PASSWORD=estest
+
+EXPOSE 9200
+
+```
+
+```yaml
+
+
+version: "3"
+
+
+services:
+
+        elasticsearch:
+
+                build: ./elasticsearch
+
+
+                container_name: elasticsearch
+
+                ports:
+
+                        - "9200:9200"
+
+                volumes:
+
+                        - ./elasticsearch/data:/usr/share/elasticsearch/data
+
+```
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9200
+    targetPort: 9200
+    protocol: TCP
+  selector:
+    app: elasticsearch
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      volumes:
+        - name: elasticsearch-storage
+          persistentVolumeClaim:
+            claimName: pvc-16g-elasticsearch
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: elasticsearch
+          image: seantywork/elasticsearch
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 9200
+          volumeMounts:
+          - mountPath: /usr/share/elasticsearch/data
+            name: elasticsearch-storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-16g-elasticsearch
+spec:
+  storageClassName: nfs-default-storageclass
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 16Gi
+
+```
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-16g-elasticsearch
+spec:
+  capacity:
+    storage: 16Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-default-storageclass
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data1/nfs-cluster-vol/es-kbn/elastic/elasticsearch/data
+    server: 192.168.0.100
+
+
+```
+
+# GITLAB
+
+```yaml
+
+version: "3"
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:15.4.6-ce.0
+    restart: always
+    container_name: gitlab
+    hostname: 'gitlab.usagecorpus.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.usagecorpus.com'
+    ports:
+      - '9367:80'
+    volumes:
+      - './gitlab-data/config:/etc/gitlab'
+      - './gitlab-data/logs:/var/log/gitlab'
+      - './gitlab-data/data:/var/opt/gitlab'
+    shm_size: '256m'
+
+```
+
+
+# GPU SET
+
+```bash
+
+#!/bin/bash
+
+
+# Adjust versions, or, you might even have to directly download driver installtion script 
+
+sudo apt-get install linux-headers-$(uname -r)
+
+
+
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
+
+
+
+wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
+
+
+
+sudo dpkg -i cuda-keyring_1.0-1_all.deb
+
+
+
+sudo apt-get update
+
+
+
+sudo apt-get -y install cuda-drivers
+
+
+
+export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
+
+
+
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64\
+
+                         ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+
+
+sudo systemctl enable nvidia-persistenced
+
+
+
+/usr/bin/nvidia-persistenced --verbose
+
+
+
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+
+
+
+echo "Now configure container runtime"
+echo "Go to the link below to get detailed guidance"
+echo "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html"
+
+```
+
+# HARBOR
+
+```bash
+
+# get the zip? tar?
+
+# untar
+
+# edit harbor.yml
+
+```
+
+```yaml
+# harbor.yml
+
+...
+
+hostname: harbor.usagecorpus.com
+
+# http related config
+http:
+  # port for http, default is 80. If https enabled, this port will redirect to https port
+  port: 5001
+
+# https related config
+#https:
+#  # https port for harbor, default is 443
+#  port: 443
+#  # The path of cert and key files for nginx
+#  certificate: /your/certificate/path
+#  private_key: /your/private/key/path
+
+# # Uncomment following will enable tls communication between all harbor components
+# internal_tls:
+#   # set enabled to true means internal tls is enabled
+#   enabled: true
+#   # put your cert and key files on dir
+#   dir: /etc/harbor/tls/internal
+
+# Uncomment external_url if you want to enable external proxy
+# And when it enabled the hostname will no longer used
+external_url: https://harbor.usagecorpus.com
+
+# The initial password of Harbor admin
+# It only works in first time to install harbor
+# Remember Change the admin password from UI after launching Harbor.
+harbor_admin_password: Harbor12345
+
+# Harbor DB configuration
+database:
+  # The password for the root user of Harbor DB. Change this before any production use.
+  password: root123
+  # The maximum number of connections in the idle connection pool. If it <=0, no idle connections are retained.
+  max_idle_conns: 100
+  # The maximum number of open connections to the database. If it <= 0, then there is no limit on the number of open connections.
+  # Note: the default number of connections is 1024 for postgres of harbor.
+  max_open_conns: 900
+  # The maximum amount of time a connection may be reused. Expired connections may be closed lazily before reuse. If it <= 0, connections are not closed due to a connection's age.
+  # The value is a duration string. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+  conn_max_lifetime: 5m
+  # The maximum amount of time a connection may be idle. Expired connections may be closed lazily before reuse. If it <= 0, connections are not closed due to a connection's idle time.
+  # The value is a duration string. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+  conn_max_idle_time: 0
+
+# The default data volume
+data_volume: /data2/harbor/harbor_data
+
+...
+
+
+```
+
+
+# JENKINS CONTAINER
+
+```bash
+FROM ubuntu:20.04
+
+RUN apt update
+
+RUN apt install -y openjdk-11-jre openjdk-11-jdk wget gnupg2 curl
+
+RUN wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
+
+RUN sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+
+RUN apt update
+
+RUN apt install -y jenkins
+
+
+RUN curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+RUN chmod +x /usr/local/bin/docker-compose
+
+RUN apt update
+
+RUN apt install -y apt-transport-https ca-certificates curl
+
+RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+
+RUN apt update
+
+RUN apt install -y ca-certificates curl gnupg lsb-release
+
+RUN mkdir -p /etc/apt/keyrings
+
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+RUN echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+RUN apt update
+
+RUN apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+RUN mkdir /root/.ssh
+
+
+EXPOSE 8080
+
+VOLUME /var/run/docker.sock
+VOLUME /root/.jenkins
+VOLUME /root/.ssh
+
+WORKDIR /home
+
+CMD ["jenkins"]
+
+```
+
+```yaml
+
+version: "3"
+
+services:
+        jenkins:
+                build: ./JK
+                container_name: jenkins
+                ports:
+
+                        - "8080:8080"
+             
+
+
+                volumes:
+                        - /var/run/docker.sock:/var/run/docker.sock
+                        - ./JK/jenkins_data:/root/.jenkins
+                        - /home/tomcat/.ssh:/root/.ssh
+
+
+```
+
+
+# JUPYTER LAB
+
+```yaml
+version: "3"
+
+services:
+
+        jupyter:
+                build: ./build_jupyter
+                container_name: jupyter
+                ports:
+                        - "8888:8888"
+                volumes:
+                        - ./jupyter:/root
+
+
+```
+
+```bash
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update
+
+RUN apt install -y git
+
+RUN apt install -y vim
+
+RUN apt install -y curl
+
+RUN apt install -y gnupg
+
+RUN apt install -y python3-pip
+
+RUN pip3 install jupyterlab==3.5.1
+RUN pip3 install gekko==1.0.5
+RUN pip3 install beautifulsoup4==4.11.2
+RUN pip3 install keras==2.11.0
+RUN pip3 install matplotlib==3.6.2
+RUN pip3 install numpy==1.23.5
+RUN pip3 install opencv-python==4.6.0.66
+RUN pip3 install pandas==1.5.2
+RUN pip3 install plotly==5.11.0
+RUN pip3 install torch==1.13.1
+RUN pip3 install torchvision==0.14.1
+RUN pip3 install scikit-learn==1.1.3
+RUN pip3 install scipy==1.9.3
+RUN pip3 install seaborn==0.12.1
+RUN pip3 install statsmodels==0.13.5
+RUN pip3 install tensorflow==2.11.0
+RUN pip3 install xgboost==1.7.1
+RUN pip3 install requests==2.28.1
+RUN pip3 install urllib3==1.26.13
+RUN pip3 install selenium==4.7.2
+RUN pip3 install mysql-connector-python==8.0.31
+RUN pip3 install elasticsearch==8.5.2
+RUN pip3 install kafka-python==2.0.2
+
+
+CMD ["jupyter","lab","--ip","0.0.0.0","--no-browser","--port=8888","--allow-root"]
+
+
+```
+
+```yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-jupyter
+  annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+
+spec:
+  rules:
+  - host: jupyter.usagecorpus.com
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: jupyter
+              port:
+                number: 8888
+```
+
+
+```yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+  labels:
+    app: jupyter
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8888
+    targetPort: 8888
+    protocol: TCP
+  selector:
+    app: jupyter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter
+spec:
+  selector:
+    matchLabels:
+      app: jupyter
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jupyter
+    spec:
+      nodeSelector:
+        gpu-ready1: ready
+      volumes:
+        - name: jupyter-storage-jupyter
+          persistentVolumeClaim:
+            claimName: pvc-8g-jupyter-jupyter
+      imagePullSecrets:
+      - name: harbor-secret
+      containers:
+        - name: jupyter
+          image: seantywork/jupyter
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8888
+          volumeMounts:
+          - mountPath: /root
+            name: jupyter-storage-jupyter
+```
+
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-8g-jupyter-jupyter
+spec:
+  capacity:
+    storage: 8Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-default-storageclass
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data1/nfs-cluster-vol/jupyter/jupyter
+    server: 192.168.0.100
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-8g-jupyter-jupyter
+spec:
+  storageClassName: nfs-default-storageclass
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+
+```
+
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-16g-jupyter-mldldb
+spec:
+  capacity:
+    storage: 16Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-default-storageclass
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data1/nfs-cluster-vol/jupyter/mldldb
+    server: 192.168.0.100
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-16g-jupyter-mldldb
+spec:
+  storageClassName: nfs-default-storageclass
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 16Gi
+
+```
+
+# KUBERNETES K8S
+
+
+```bash
+#!/bin/bash
+
+set -euxo pipefail
+
+
+######## wj
+
+
+HOME="/root" 
+
+
+sudo swapoff -a
+
+
+(crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
+sudo apt-get update -y
+
+
+
+#OS="xUbuntu_20.04"
+
+OS="$2"
+
+#VERSION="1.25"
+
+VERSION="$3"
+
+cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+sudo sysctl --system
+
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /
+EOF
+cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /
+EOF
+
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+
+sudo apt-get update
+sudo apt-get install cri-o cri-o-runc -y
+
+sudo systemctl daemon-reload
+sudo systemctl enable crio --now
+
+echo "Container runtime installed susccessfully"
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+
+sudo mkdir -p /etc/apt/keyrings
+
+
+sudo curl -fsSL "https://pkgs.k8s.io/core:/stable:/v$VERSION/deb/Release.key" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v$VERSION/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update -y
+sudo apt-get install -y kubelet kubectl kubeadm
+sudo apt-get update -y
+sudo apt-get install -y jq
+
+
+
+local_ip=$1
+cat > /etc/default/kubelet << EOF
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip
+EOF
+
+
+MASTER_IP=$local_ip
+LB_IP=$local_ip
+IP_NO_DOT=$(echo "$local_ip" | sed "s/\./-/g")
+PORT="3446"
+NODENAME="$(hostname -s)"
+NODENAME="lead-$NODENAME-$IP_NO_DOT-$(openssl rand -hex 8)"
+POD_CIDR="10.10.0.0/16"
+
+sudo kubeadm config images pull 
+
+echo "Preflight Check Passed: Downloaded All Required Images"
+
+sudo kubeadm init --apiserver-advertise-address=$MASTER_IP --apiserver-cert-extra-sans="$MASTER_IP,$LB_IP" --pod-network-cidr=$POD_CIDR --node-name "$NODENAME" --control-plane-endpoint "$LB_IP:$PORT" --ignore-preflight-errors Swap 
+mkdir -p "$HOME"/.kube
+sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config
+sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config
+
+
+
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
+
+
+kubectl label node $NODENAME ingress-ready=true 
+
+```
+
+
+```bash
+
+#!/bin/bash
+
+
+set -euxo pipefail
+
+
+
+HOME="/root" 
+
+sudo swapoff -a
+
+
+(crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
+sudo apt-get update -y
+
+
+
+OS="$2"
+
+VERSION="$3"
+
+
+cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+sudo sysctl --system
+
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /
+EOF
+cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /
+EOF
+
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
+
+sudo apt-get update
+sudo apt-get install cri-o cri-o-runc -y
+
+sudo systemctl daemon-reload
+sudo systemctl enable crio --now
+
+echo "Container runtime installed susccessfully"
+
+
+sudo apt-get update
+
+sudo apt-get install -y apt-transport-https ca-certificates curl
+
+sudo mkdir -p /etc/apt/keyrings
+
+sudo curl -fsSL "https://pkgs.k8s.io/core:/stable:/v$VERSION/deb/Release.key" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v$VERSION/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update -y
+sudo apt-get install -y kubelet kubectl kubeadm
+sudo apt-get update -y
+sudo apt-get install -y jq
+
+
+
+local_ip=$1
+cat > /etc/default/kubelet << EOF
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip
+EOF
+```
+
+```bash
+
+#!/bin/bash
+
+sudo apt-get update
+
+sudo apt-get install -y  haproxy 
+
+```
+
+```bash
+#!/bin/bash
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+helm repo update
+
+cd ./prom-grafana-charts/charts
+
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack -f ./default-kube-prom-custom-value.yaml --version 42.2.0
+
+
+```
+
+
+```bash
+#!/bin/bash
+
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+
+
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+    --set nfs.server=192.168.0.25 \
+    --set nfs.path=/data
+
+
+```
+
+```bash
+#!/bin/bash
+
+helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
+
+
+
+helm repo update
+
+
+
+helm upgrade -i nvdp nvdp/nvidia-device-plugin \
+
+  --namespace nvidia-device-plugin \
+
+  --create-namespace \
+
+  --version 0.13.0
+
+
+
+
+
+```
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-grafana
+
+spec:
+  rules:
+  - host: grafana.mipllab.com
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kube-prometheus-stack-grafana
+              port:
+                number: 80
+
+```
+
+
+```bash
+...
+
+#---------------------------------------------------------------------
+# main frontend which proxys to the backends
+#---------------------------------------------------------------------
+frontend kubernetes
+    bind *:3446
+    option tcplog
+    mode tcp
+    default_backend kube_master_nodes    
+
+
+#---------------------------------------------------------------------
+# static backend for serving up images, stylesheets and such
+#---------------------------------------------------------------------
+#backend static
+#    balance     roundrobin
+#    server      static 127.0.0.1:4331 check
+
+#---------------------------------------------------------------------
+# round robin balancing between the various backends
+#---------------------------------------------------------------------
+backend kube_master_nodes
+    mode tcp
+    balance     roundrobin
+    option tcp-check
+    server  -> check fall 3 rise 2
+
+
+
+...
+
+
+
+
+```
+
+
+```bash
+
+#!/bin/bash
+
+
+ufw allow from 192.168.0.1/24 
+
+ufw allow from 10.10.0.0/16
+
+
+
+```
+
+
+```bash
+
+#!/bin/bash
+
+firewall-cmd --permanent --add-port=3446/tcp
+
+firewall-cmd --permanent --add-port=6443/tcp
+
+firewall-cmd --permanent --add-port=2379-2380/tcp
+
+firewall-cmd --permanent --add-port=10250/tcp
+
+firewall-cmd --permanent --add-port=10259/tcp
+
+firewall-cmd --permanent --add-port=10257/tcp
+
+firewall-cmd --permanent --add-port=10250/tcp
+
+firewall-cmd --permanent --add-port=30000-32767/tcp
+
+firewall-cmd --permanent --add-port=80/tcp
+
+firewall-cmd --permanent --add-port=443/tcp
+
+firewall-cmd --zone=trusted --add-source=192.168.0.1/24 --permanent
+
+firewall-cmd --zone=trusted --add-source=10.10.0.0/16 --permanent
+
+```
+
+
+```yaml
+
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  name: nfs-default-storageclass
+provisioner: cluster.local/nfs-subdir-external-provisioner
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+
+```
+
+```yaml
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+     volumeClaimTemplate:
+       spec:
+         storageClassName: nfs-default-storageclass
+         accessModes: ["ReadWriteOnce"]
+         resources:
+           requests:
+             storage: 4Gi
+grafana:
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: nfs-default-storageclass
+    accessModes:
+    - ReadWriteOnce
+    size: 4Gi
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nfs-default-storageclass
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 4Gi
+```
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: clusterdebugger
+  labels:
+    app: clusterdebugger
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6700
+    targetPort: 6700
+    protocol: TCP
+  selector:
+    app: clusterdebugger
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clusterdebugger
+spec:
+  selector:
+    matchLabels:
+      app: clusterdebugger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clusterdebugger
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: clusterdebugger
+          image: harbor.mipllab.com/library/clusterdebugger
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 6700
+
+
+```
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: clusterdebuggergpu
+  labels:
+    app: clusterdebuggergpu
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6700
+    targetPort: 6700
+    protocol: TCP
+  selector:
+    app: clusterdebuggergpu
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clusterdebuggergpu
+spec:
+  selector:
+    matchLabels:
+      app: clusterdebuggergpu
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clusterdebuggergpu
+    spec:
+      nodeSelector:
+        gpu-ready1: ready
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: clusterdebuggergpu
+          image: harbor.mipllab.com/library/clusterdebugger
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 6700
+
+
+```
+
+
+```bash
+#!/bin/bash
+
+
+USER=tomcat # customizable
+mkdir -p /etc/kubernetes/pki/etcd
+mv /home/${USER}/ca.crt /etc/kubernetes/pki/
+mv /home/${USER}/ca.key /etc/kubernetes/pki/
+mv /home/${USER}/sa.pub /etc/kubernetes/pki/
+mv /home/${USER}/sa.key /etc/kubernetes/pki/
+mv /home/${USER}/front-proxy-ca.crt /etc/kubernetes/pki/
+mv /home/${USER}/front-proxy-ca.key /etc/kubernetes/pki/
+mv /home/${USER}/etcd-ca.crt /etc/kubernetes/pki/etcd/ca.crt
+mv /home/${USER}/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key
+mv /home/${USER}/admin.conf /etc/kubernetes/admin.conf
+
+
+
+```
+
+```bash
+#!/bin/bash
+
+USER=tomcat # customizable
+# Set the control_plane_ips to all other master node ips or hostnames
+CONTROL_PLANE_IPS="192.168.0.102 192.168.0.103"
+for host in ${CONTROL_PLANE_IPS}; do
+    scp /etc/kubernetes/pki/ca.crt "${USER}"@$host:
+    scp /etc/kubernetes/pki/ca.key "${USER}"@$host:
+    scp /etc/kubernetes/pki/sa.key "${USER}"@$host:
+    scp /etc/kubernetes/pki/sa.pub "${USER}"@$host:
+    scp /etc/kubernetes/pki/front-proxy-ca.crt "${USER}"@$host:
+    scp /etc/kubernetes/pki/front-proxy-ca.key "${USER}"@$host:
+    scp /etc/kubernetes/pki/etcd/ca.crt "${USER}"@$host:etcd-ca.crt
+    scp /etc/kubernetes/pki/etcd/ca.key "${USER}"@$host:etcd-ca.key
+    scp /etc/kubernetes/admin.conf "${USER}"@$host:
+done
+
+
+
+```
+
+# KAFKA
+
+```bash
+#!/bin/bash
+
+
+
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+
+
+
+helm install zookeeper bitnami/zookeeper --set replicaCount=1 --set auth.enabled=false --set allowAnonymousLogin=true
+
+
+
+helm install kafka bitnami/kafka --set zookeeper.enabled=false --set replicaCount=1 --set externalZookeeper.servers=ZOOKEEPER-SERVICE-NAME
+
+
+```
+# KIBANA
+
+
+```yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-kibana
+  annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+
+spec:
+  rules:
+  - host: kibana.usagecorpus.com
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kibana
+              port:
+                number: 5601
+
+
+
+```
+
+```yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  labels:
+    app: kibana
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5601
+    targetPort: 5601
+    protocol: TCP
+  selector:
+    app: kibana
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+spec:
+  selector:
+    matchLabels:
+      app: kibana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: kibana
+          image: seantywork/kibana
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 5601
+
+
+
+```
+
+
+```yaml
+
+version: "3"
+services:
+    kibana:
+        build: ./kibana
+        container_name: kibana
+        restart: always
+        ports:
+            - 5601:5601
+        networks:
+            - network1
+
+networks:
+    network1:
+        name: elastic_default
+        external: true
+```
+
+```bash
+FROM kibana:8.5.3
+
+ENV ELASTICSEARCH_USERNAME="kibana_system"
+ENV ELASTICSEARCH_PASSWORD="estest"
+ENV ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+ENV XPACK_MONITORING_ENABLED=true
+ENV XPACK_MONITORING_COLLECTION_ENABLED=true
+ENV XPACK_SECURITY_ENABLED=true
+
+EXPOSE 5601
+
+
+```
+
+# MONGO DB
+
+```yaml
+version: "3"
+services:
+        mongodb:
+                build: ./mdb
+                container_name: mongodb
+                ports:
+                        - 27017:27017
+                volumes:
+                        - ./mdb/data:/data/db
+
+
+```
+
+
+```bash
+FROM mongo:4.4.19-rc1
+
+ENV MONGO_INITDB_ROOT_USERNAME root
+ENV MONGO_INITDB_ROOT_PASSWORD youdonthavetoknow
+
+EXPOSE 27017
+
+```
+
+# NFS
+
+```bash
+
+#!/bin/bash
+
+sudo dnf install nfs-utils
+
+
+
+sudo systemctl start nfs-server.service
+
+
+sudo systemctl enable --now nfs-server.service
+
+
+## /etc/exports
+
+## exportfs -a
+
+
+```
+
+```bash
+#!/bin/bash
+
+apt update
+
+apt install -y nfs-kernel-server
+
+apt install -y nfs-common
+
+apt install -y jq
+
+mkdir -p /kw_data
+
+chown -R root:root /kw_data
+
+chmod -R 777 /kw_data
+
+
+
+local_ip=$1
+
+IP=$local_ip
+
+cat << EOF > /etc/exports
+
+/kw_data $IP/24(rw,sync,no_subtree_check,no_root_squash) 10.10.0.0/16(rw,sync,no_subtree_check,no_root_squash)
+
+EOF
+
+exportfs -a
+
+systemctl restart nfs-kernel-server
+
+```
+
+
+# NGINX CONF
+
+```bash
+
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+#include /etc/nginx/modules-enabled/*.conf;
+
+events {
+        worker_connections 768;
+        # multi_accept on;
+}
+
+http {
+
+        ##
+        # Basic Settings
+        ##
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        reset_timedout_connection on;
+        client_body_timeout 10;
+        send_timeout 2;
+
+        keepalive_timeout 30;
+        keepalive_requests 100000;
+
+        client_max_body_size 10G;
+
+
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        ##
+        # SSL Settings
+        ##
+
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
+        ssl_prefer_server_ciphers on;
+
+        ##
+        # Logging Settings
+        ##
+
+        access_log /var/log/nginx/access.log;
+        error_log /var/log/nginx/error.log;
+
+        ##
+        # Gzip Settings
+        ##
+
+        #gzip on;
+
+        #gzip_comp_level  2;
+        #gzip_min_length  1000;
+        #gzip_proxied     expired no-cache no-store private auth;
+        #gzip_types       text/plain application/x-javascript text/xml text/css application/xml;
+
+        include /etc/nginx/conf.d/*.conf;
+
+}
+```
+
+```bash
+
+
+
+server
+{
+        
+        listen 80;
+
+        server_name  exhibit-nginx.usagecorpus.com;
+
+        location / {
+             add_header Content-Type text/plain;
+             return 200 'okay';           
+
+        }
+
+
+}
+
+```
+
+```bash
+
+upstream  EXNGINX{
+        ip_hash;
+        #least_conn;
+
+        server  127.0.0.1:8000;
+        server  127.0.0.1:8001;
+
+}
+
+server
+{
+        listen       80;
+        server_name      exhibit-nginx.usagecorpus.com;
+        return 301 https://$host$request_uri;
+}
+
+
+
+server
+{
+        
+        server_name  exhibit-nginx.usagecorpus.com;
+
+        location / {
+             #add_header Content-Type text/plain;
+             #return 200 'okay';           
+
+             proxy_pass http://EXNGINX;
+             proxy_set_header X-Real-IP $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_set_header X-Forwarded-For $remote_addr;
+             proxy_set_header X-Forwarded-Proto $scheme;
+             proxy_set_header Host $http_host;
+
+             proxy_read_timeout 300s;
+             proxy_connect_timeout 75s;
+             
+             proxy_buffering off;
+             proxy_request_buffering off;
+
+             proxy_http_version 1.1;
+             proxy_set_header   Upgrade $http_upgrade;
+             proxy_set_header   Connection "upgrade";
+        }
+
+
+
+
+
+
+
+    #listen 80; # managed by Certbot
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/exhibit-nginx.usagecorpus.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/exhibit-nginx.usagecorpus.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+```
+
+
+```bash
+#!/bin/bash
+
+
+while true; do nc -l 0.0.0.0 8000 < resp; done
+
+```
+
+# JENKINSFILE
+
+
+```bash
+
+pipeline{
+
+    agent any
+
+        environment {
+
+            // Target Path
+
+            TARGET_PATH="/home/target"
+            TARGET_PREFIX="target_"
+
+            // Preparation Stage
+
+            GIT_ADDR="https://${GIT_ID}:${GIT_PW}@github.com/seantywork/nothing.git"
+            GIT_BRANCH="main"
+            
+            // Build Stage
+
+            REG_ADDR="docker.io -u ${REG_ID} -p ${REG_PW}"
+            IMG_1="${TARGET_PREFIX}nothing"
+            TAG_1="docker.io/seantywork/nothing"
+
+
+            // Deployment Stage
+
+            DEPLOYMENT_NODE="${DEPLOYMENT_NODE}"
+
+            APP_PATH_1="${TARGET_PATH}/k8s/app.yaml"
+
+
+            UPDATE_1="deployment/nothing"
+
+
+            
+            // ********* Safe Scripts **********
+
+            // stage Preparation_checkSafe
+            // --> USAGE: ${SAFE_PREP} ${TARGET_PATH} 
+            SAFE_PREP="/home/safe_preparation"
+
+            // stage Termination_checkSafe
+            // --> USAGE: ${SAFE_TERM} ${TAG_1} ${TAG_2} ...
+            SAFE_TERM="/home/safe_termination"
+
+
+        }
+
+    stages{
+
+
+
+        stage ('Preparation'){
+
+            steps {
+
+                sh ''' #!/bin/bash
+
+                    mkdir -p ${TARGET_PATH}
+
+                    git -C ${TARGET_PATH} init
+
+                    git -C ${TARGET_PATH} pull ${GIT_ADDR} ${GIT_BRANCH}
+
+                '''
+
+            }
+
+        }
+
+        stage ('Preparation-safety-check'){
+
+            steps {
+
+                sh ''' #!/bin/bash
+
+                    ${SAFE_PREP} ${TARGET_PATH} 
+
+                '''
+
+            }
+
+        }
+
+        stage ('Build'){
+
+            steps {
+
+                sh ''' #!/bin/bash
+
+                    docker login ${REG_ADDR}
+
+                    docker-compose -f "${TARGET_PATH}/docker-compose.yaml" up -d --build
+
+                    docker-compose -f "${TARGET_PATH}/docker-compose.yaml" down
+
+                    docker tag ${IMG_1} ${TAG_1}
+
+                    docker push ${TAG_1}
+
+                '''
+
+            }
+
+        }
+
+        stage ('Deployment'){
+
+            steps {
+
+                sh ''' #!/bin/bash
+
+                    scp ${APP_PATH_1} "${DEPLOYMENT_NODE}:/home/src"
+
+                    ssh ${DEPLOYMENT_NODE} "kubectl -n operation apply -f app.yaml"
+
+                    ssh ${DEPLOYMENT_NODE} "kubectl -n operatioin rollout restart ${UPDATE_1}"
+
+                    ssh ${DEPLOYMENT_NODE} "rm ./app.yaml"
+
+                '''
+            }
+
+        }
+
+        stage ('Termination'){
+
+            steps {
+
+                sh ''' #!/bin/bash
+
+                    rm -rf ${TARGET_PATH}
+
+                '''
+
+
+            }
+
+        }
+
+        stage ('Termination-safety-check'){
+
+            steps {
+
+                sh ''' #!/bin/bash
+
+                    ${SAFE_TERM} ${TAG_1} 
+
+                '''
+
+            }
+
+
+        }
+
+
+    }
+}
+
+
+```
+
+
+
+# GITHUB WORKFLOW
+
+```yaml
+
+name: self hosted runner
+
+on :
+  push:
+    branches: [ main ]
+
+jobs:
+
+  uc_self_hosted_build:
+    runs-on: self-hosted
+    steps: 
+      - run: mkdir -p /root/uc
+      - run: git -C /root/uc init
+      - run: git -C /root/uc pull https://github.com/seantywork/uc.git 
+      - run: docker-compose -f /root/uc/docker-compose.yaml up -d --build
+      - run: docker-compose -f /root/uc/docker-compose.yaml down
+      - run: docker tag uc_traffic seantywork/traffic
+      - run: docker tag uc_web seantywork/web
+      - run: docker tag uc_db seantywork/db
+      - run: docker push seantywork/traffic
+      - run: docker push seantywork/web
+      - run: docker push seantywork/db
+      - run: rm -r /root/uc
+
+  uc_self_hosted_deployment:
+    needs: uc_self_hosted_build
+    runs-on: self-hosted
+    steps:
+      - run: ssh $SSH_XY "git -C /home/seantywork/uc pull "
+      - run: ssh $SSH_XY "kind delete cluster --name kindcluster"
+      - run: ssh $SSH_XY "kind create cluster --name kindcluster --config /home/seantywork/uc/k8s/kindcluster.yaml --image=kindest/node:v1.27.2"
+      - run: ssh $SSH_XY "kubectl create namespace uc"
+      - run: ssh $SSH_XY "kubectl create secret generic docker-secret --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n uc"
+      - run: ssh $SSH_XY "kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
+      - run: sleep 3
+      - run: echo "waiting...1"
+      - run: sleep 3
+      - run: echo "waiting...2"
+      - run: sleep 3
+      - run: echo "waiting...3"
+      - run: sleep 3
+      - run: echo "waiting...4"
+      - run: sleep 3
+      - run: echo "waiting...5"
+      - run: ssh $SSH_XY "kubectl -n uc apply -f /home/seantywork/uc/k8s/app.yaml"
+ 
+  uc_self_hosted_service:
+    needs: uc_self_hosted_deployment
+    runs-on: self-hosted
+    steps:
+      - run: sleep 3
+      - run: echo "waiting...1"
+      - run: sleep 3
+      - run: echo "waiting...2"
+      - run: sleep 3
+      - run: echo "waiting...3"
+      - run: sleep 3
+      - run: echo "waiting...4"
+      - run: sleep 3
+      - run: echo "waiting...5"
+      - run: ssh $SSH_XY "kubectl -n uc apply -f /home/seantywork/uc/k8s/ingress.yaml"
+  
+
+```
+
+
+# REDIS
+
+```yaml
+version: "3"
+
+services:
+
+    redis:
+      build: ./redis
+      container_name: redis
+      volumes:
+        - ./redis/data:/var/lib/redis/data
+        - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      ports:
+        - "6379:6379"
+
+
+```
+
+
+```bash
+
+FROM redis:7.0.8
+
+EXPOSE 6379
+
+CMD ["/bin/sh","-c","redis-server","--requirepass","youdonthavetoknow"]
+
+
+```
+
+
+```bash
+
+port              6379
+daemonize         yes
+save              60 1
+bind              0.0.0.0
+tcp-keepalive     300
+dbfilename        dump.rdb
+dir               ./
+rdbcompression    yes
+
+```
+
+
+
+
+
+
+

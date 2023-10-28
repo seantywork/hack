@@ -6,7 +6,7 @@ import (
 	"os"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-	"github.com/seantywork/hack/grpc/go/flatbuf/bookmarks"
+	"github.com/seantywork/cc/grpc/go/flatbuf/bookmarks"
 
 	"google.golang.org/grpc"
 )

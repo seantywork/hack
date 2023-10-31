@@ -13,7 +13,13 @@ dep:
 	gcc -c -o cJSON.o cJSON.c
 
 
+
+build:
+
+	gcc -o gh.out main.c cJSON.o -lpthread
+
+
 test:
 
-	gcc -o var.out var.c cJSON.o
+	gcc -o var.out var.c cJSON.o -lpthread
 	

@@ -8,7 +8,7 @@ gh pr edit <num> --add-assignee seantywork
 
 gh pr merge <num> --merge
 
-gh pr view <num> --json state,author,assignees,reviews,reviewRequests
+gh pr view <num> --json state,author,assignees,reviews,reviewRequests,mergeable
 
 ```json
 {
@@ -78,6 +78,7 @@ gh pr view <num> --json state,author,assignees,reviews,reviewRequests
       }
     }
   ],
+  "mergeable": "CONFLICTING",
   "state": "OPEN"
 }
 

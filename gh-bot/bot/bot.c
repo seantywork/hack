@@ -4,9 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
 #include <cjson/cJSON.h>
 
+
 #include "../glob.h"
+#include "../utils.h"
 #include "actions.c"
 #include "checks.c"
 
@@ -98,21 +102,25 @@ int get_pr_list(char *pr_line, char pr_list[MAX_PR_LIST_LEN][MAX_PR_LIST_LEN]){
 
 }
 
-char* branch_by_pr_phase(char* pr_num, int owners_count, char owners[MAX_OWNERS_LEN][MAX_OWNERS_LEN]){
+char* branch_by_pr_phase(char* pr_num, int owners_count, char owners[MAX_OWNERS_LEN][MAX_OWNERS_LEN], char target_author[MAX_OWNERS_LEN]){
 
     FILE *fp;
     char* ret = malloc(MAX_PHASE_FLAG_LEN);
     memset(ret, '\0', MAX_PHASE_FLAG_LEN);
     cJSON *arr;
-    char* prstate;
     char* author;
-
+    
+    int is_open = 0;
     int is_member = 0;
     int is_assigned = 0;
+    int has_review_requests = 0;
+    int has_reviews = 0;
+    int has_change_request = 0;
+    int is_mergeable = 0;
     char json_line[MAX_JSON_STRLEN] = {0};
 
     char dest_command[MAX_COMMAND_LEN] = {0};
-    char* source_command = "gh pr view %s --json state,author,assignees,reviews,reviewRequests";
+    char* source_command = "gh pr view %s --json state,author,assignees,reviews,reviewRequests,mergeable";
 
     sprintf(dest_command, source_command, pr_num);
 
@@ -125,6 +133,8 @@ char* branch_by_pr_phase(char* pr_num, int owners_count, char owners[MAX_OWNERS_
     // while (fgets(tmp_line, sizeof(tmp_line), fp) != NULL) {
     //    strcpy(ret, tmp_line);    
     // }
+
+    printf("  pr number: %s\n",pr_num);
 
     char* P = fgets(json_line, sizeof(json_line), fp);
 
@@ -140,50 +150,98 @@ char* branch_by_pr_phase(char* pr_num, int owners_count, char owners[MAX_OWNERS_
 
     arr = cJSON_Parse(json_line);
 
-    prstate = get_pr_state(arr);
+    is_open = check_if_pr_opened(arr);
 
-    printf("prstate: %s\n", prstate);
-
-    if (strcmp(prstate, "OPEN") != 0) {
-
-        cJSON_Delete(arr);
-
-        pclose(fp);
-
-        strcpy(ret, "CLOSED");
-
-        return ret;
-
-    }
+    printf("  prstate: %d\n", is_open);
 
     author = get_pr_author(arr);
 
-    printf("author: %s\n", author);
-
+    printf("  author: %s\n", author);
 
     is_member = check_if_author_in_owners(author, owners_count, owners);
 
-    printf("is member: %d\n",is_member);
+    printf("  - is member: %d\n",is_member);
 
     is_assigned = check_if_assignee_exists(arr);
 
-    printf("is assigned: %d\n",is_assigned);
+    printf("  - is assigned: %d\n",is_assigned);
+
+    has_review_requests = check_if_review_request_exists(arr);
+
+    printf("  - has review request: %d\n", has_review_requests);
+
+    has_reviews = check_if_review_exists(arr);
+
+    printf("  - has review: %d\n", has_reviews);
+
+    has_change_request = check_if_change_requested(arr);
+
+    printf("  - has change request: %d\n",has_change_request);
+
+    is_mergeable = check_if_mergeable(arr);
+
+    printf("  - is mergeable: %d\n",is_mergeable);
+
+    if (is_open != 1){
+
+        strcpy(ret, "CLOSED");
+
+        printf("  - action: %s\n",ret);
+
+    } else if (is_mergeable != 1){
+
+        strcpy(ret, "MCCLOSE");
+
+        printf("  - action: %s\n",ret);
+
+    } else if (has_change_request == 1){
+
+        strcpy(ret, "CRCLOSE");
+
+        printf("  - action: %s\n",ret);
+
+    } else if (is_assigned != 1 && has_review_requests != 1 && has_reviews != 1){
+
+        if (is_member == 1){
+            strcpy(ret, "REVAS");    
+        } else if (is_member != 1){
+            strcpy(ret, "REVASOUT");    
+        }
+
+        printf("  - action: %s\n",ret);
+    
+    } else if (is_assigned == 1 && has_review_requests != 1 && has_reviews != 1){
 
 
+        if (is_member == 1){
+            strcpy(ret, "REV");    
+        } else if (is_member != 1){
+            strcpy(ret, "REVOUT");    
+        }
+
+        printf("  - action: %s\n",ret);
+
+    } else if (is_assigned != 1 && (has_review_requests == 1 || has_reviews == 1)){
+
+        if (is_member == 1){
+            strcpy(ret, "AS");    
+        } else if (is_member != 1){
+            strcpy(ret, "ASOUT");    
+        }
+
+        printf("  - action: %s\n",ret);
+
+    } else if (is_assigned == 1 && has_review_requests == 0 && has_reviews == 1){
+
+        strcpy(ret, "MERGE");
+
+        printf("  - action: %s\n",ret);
+    }
 
 
-
-
-    //strcpy(ret, "ADDRV");
-
-    //strcpy(ret, "ADDAS");
-
-    strcpy(ret, "MERGE");
-
+    strcpy(target_author, author);
 
     free(author);
-
-    free(prstate);
 
     cJSON_Delete(arr);
 
@@ -198,12 +256,12 @@ char* branch_by_pr_phase(char* pr_num, int owners_count, char owners[MAX_OWNERS_
 void gh_bot_iteration(){
 
     FILE *fp;
-    FILE *fp_owners;
     char line[MAX_LINE_LEN];
     int owners_count = 0;
     int pr_length = 0;
     char owners[MAX_OWNERS_LEN][MAX_OWNERS_LEN] = {{0}};
     char pr_list[MAX_PR_LIST_LEN][MAX_PR_LIST_LEN] = {{0}};
+    char author[MAX_OWNERS_LEN] = {0};
 
     owners_count = get_owners(owners);
 
@@ -238,9 +296,125 @@ void gh_bot_iteration(){
 
     for (int i=0; i<pr_length; i++){
 
-        char* pr_phase = branch_by_pr_phase(pr_list[i], owners_count, owners);
+        char* pr_phase = branch_by_pr_phase(pr_list[i], owners_count, owners, author);
 
-        printf("%s\n",pr_phase);
+        pthread_t thread_id;
+
+        ActionStruct action_struct;
+
+        if (strcmp(pr_phase, "CLOSED")==0) {
+
+//            strcpy(action_struct.PRNumber, pr_list[i]);
+
+//            strcpy(action_struct.Message, pr_phase);
+
+//            pthread_create(&thread_id, NULL, get_and_write, (void *)&action_struct);
+
+            printf("pr %s already closed\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "MCCLOSE") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            pthread_create(&thread_id, NULL, close_pr, (void *)&action_struct);
+
+            printf("pr %s merge conflict, force closed\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "CRCLOSE") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            pthread_create(&thread_id, NULL, close_pr, (void *)&action_struct);
+
+            printf("pr %s reject, force closed\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "REVAS") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            fill_action_struct(&action_struct, owners_count, owners, author);
+
+            pthread_create(&thread_id, NULL, add_pr_request_and_assignee, (void *)&action_struct);
+
+            printf("pr %s needs assignee and reviewer for member\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "REVASOUT") == 0){
+ 
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            fill_action_struct_for_outsider(&action_struct, owners_count, owners);
+       
+            pthread_create(&thread_id, NULL, add_pr_request_and_assignee, (void *)&action_struct);
+
+            printf("pr %s needs assignee and reviewer for outsider\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "REV") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            fill_action_struct(&action_struct, owners_count, owners, author);
+
+            pthread_create(&thread_id, NULL, add_pr_request, (void *)&action_struct);
+
+            printf("pr %s needs reviewer for member\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "REVOUT") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            fill_action_struct_for_outsider(&action_struct, owners_count, owners);
+
+            pthread_create(&thread_id, NULL, add_pr_request, (void *)&action_struct);
+
+            printf("pr %s needs reviewer for outsider\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "AS") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            fill_action_struct(&action_struct, owners_count, owners, author);
+
+            pthread_create(&thread_id, NULL, add_pr_assignee, (void *)&action_struct);
+
+            printf("pr %s needs assignee for member\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "ASOUT") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            fill_action_struct_for_outsider(&action_struct, owners_count, owners);
+
+            pthread_create(&thread_id, NULL, add_pr_assignee, (void *)&action_struct);
+
+            printf("pr %s needs assignee for outsider\n",pr_list[i]);
+
+        } else if (strcmp(pr_phase, "MERGE") == 0){
+
+            strcpy(action_struct.PRNumber, pr_list[i]);
+
+            strcpy(action_struct.Message, pr_phase);
+
+            pthread_create(&thread_id, NULL, merge_pr, (void *)&action_struct);
+
+            printf("pr %s merge\n",pr_list[i]);
+
+        }
 
         free(pr_phase);
 
@@ -249,6 +423,8 @@ void gh_bot_iteration(){
 
 
     pclose(fp);
+
+    sleep(10);
     //pclose(fp_owners);
 
 }

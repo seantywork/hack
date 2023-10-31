@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h>
+#include <time.h>
+#include <stdlib.h>
 
 #include "../glob.h"
 #endif
@@ -83,15 +85,13 @@ int get_pr_assignee(cJSON *arr, char** assignee_line){
 
     int arr_idx = 0;
 
-    char *assignee;
-
     cJSON_ArrayForEach(resolution, assignees){
         
         cJSON *object = cJSON_GetArrayItem(assignees,arr_idx);
 
         cJSON *login = cJSON_GetObjectItemCaseSensitive(object,"login");
 
-        assignee = (char *)malloc(MAX_OWNERS_LEN);
+        char *assignee = (char *)malloc(MAX_OWNERS_LEN);
 
         memset(assignee,'\0',MAX_OWNERS_LEN);
 
@@ -109,24 +109,92 @@ int get_pr_assignee(cJSON *arr, char** assignee_line){
 }
 
 
-char* get_pr_review_request(cJSON *arr){
+int get_pr_review_request(cJSON *arr, char** review_request_line){
 
 
+    cJSON *rev_reqs = cJSON_GetObjectItemCaseSensitive(arr,"reviewRequests");
+
+    cJSON *resolution = NULL;
+
+    int arr_idx = 0;
+
+
+    cJSON_ArrayForEach(resolution, rev_reqs){
+
+        cJSON *object = cJSON_GetArrayItem(rev_reqs,arr_idx);
+
+        cJSON *login = cJSON_GetObjectItemCaseSensitive(object,"login");
+
+        char *rev_req = (char *)malloc(MAX_OWNERS_LEN);
+
+        memset(rev_req,'\0',MAX_OWNERS_LEN);
+
+        sprintf(rev_req, "%s", login->valuestring);
+
+        review_request_line[arr_idx] = rev_req;    
+
+        arr_idx += 1;
+
+    }
+
+    return arr_idx;
 
 
 
 }
 
 
-char* get_pr_reviews(cJSON *arr){
+int get_pr_reviews(cJSON *arr, char** reviews_line){
 
 
+    cJSON *rev_reqs = cJSON_GetObjectItemCaseSensitive(arr,"reviews");
 
+    cJSON *resolution = NULL;
+
+    int arr_idx = 0;
+
+    cJSON_ArrayForEach(resolution, rev_reqs){
+        
+        cJSON *object = cJSON_GetArrayItem(rev_reqs,arr_idx);
+
+        cJSON *state = cJSON_GetObjectItemCaseSensitive(object,"state");
+
+        char *rev = (char *)malloc(MAX_OWNERS_LEN);
+
+        memset(rev,'\0',MAX_OWNERS_LEN);
+
+        sprintf(rev, "%s", state->valuestring);
+
+        reviews_line[arr_idx] = rev;    
+
+        arr_idx += 1;
+
+    }
+
+    return arr_idx;
 
 
 
 }
 
+
+int check_if_pr_opened(cJSON *arr){
+
+    int open = 0;
+
+    char *prstate = get_pr_state(arr);
+
+    if (strcmp(prstate, "OPEN") == 0) {
+
+        open = 1;
+
+    }
+
+    free(prstate);
+
+    return open;
+
+}
 
 
 
@@ -139,7 +207,7 @@ int check_if_assignee_exists(cJSON *arr){
 
     for(int i=0;i < assignee_count;i++){
 
-        printf("assignee: %s\n", assignee_line[i]);
+    //    printf("assignee: %s\n", assignee_line[i]);
 
         free(assignee_line[i]);
 
@@ -156,8 +224,97 @@ int check_if_assignee_exists(cJSON *arr){
 
 }
 
-int check_if_reviewer_exists(){
+int check_if_review_request_exists(cJSON *arr){
 
+    char **review_request_line = (char **)malloc(MAX_OWNERS_LEN);
+
+    int rev_req_count = get_pr_review_request(arr, review_request_line);
+
+    for(int i=0;i < rev_req_count;i++){
+
+    //    printf("reviewer: %s\n", review_request_line[i]);
+
+        free(review_request_line[i]);
+
+    }
+
+    free(review_request_line);
+
+    if (rev_req_count < 1){
+        return 0;
+    } else {
+        return 1;
+    }
 
     
+}
+
+int check_if_review_exists(cJSON *arr){
+
+    char **reviews_line = (char **)malloc(MAX_OWNERS_LEN);
+
+    int rev_count = get_pr_reviews(arr, reviews_line);
+
+    for(int i=0;i < rev_count;i++){
+
+    //    printf("review state: %s\n", reviews_line[i]);
+
+        free(reviews_line[i]);
+
+    }
+
+    free(reviews_line);
+
+    if (rev_count < 1){
+        return 0;
+    } else {
+        return 1;
+    }
+
+    
+}
+
+int check_if_change_requested(cJSON *arr){
+
+    char **reviews_line = (char **)malloc(MAX_OWNERS_LEN);
+
+    int rev_count = get_pr_reviews(arr, reviews_line);
+
+    int change_requested = 0;
+
+    for(int i=0;i < rev_count;i++){
+
+    //    printf("review state: %s\n", reviews_line[i]);
+
+        if(strcmp(reviews_line[i], "CHANGES_REQUESTED")==0){
+            change_requested = 1;
+        }
+
+        free(reviews_line[i]);
+
+    }
+
+    free(reviews_line);
+
+    if (change_requested != 1){
+        return 0;
+    } else {
+        return 1;
+    }
+
+}
+
+int check_if_mergeable(cJSON *arr){
+
+    int mergeable_check = 0;
+
+    cJSON *mergeable = cJSON_GetObjectItemCaseSensitive(arr,"mergeable");
+
+    if(strcmp(mergeable->valuestring,"MERGEABLE") == 0){
+
+        mergeable_check = 1;
+    } 
+
+    return mergeable_check;
+
 }

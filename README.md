@@ -209,6 +209,47 @@ wsl bridge -> netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenp
 
 ```
  
+# ONEDRIVE
+
+```bash
+
+# installing onedrive cmd
+
+sudo apt update 
+
+sudo apt install onedrive -y
+
+
+# custome configuration
+
+wget https://raw.githubusercontent.com/abraunegg/onedrive/master/config -O ~/.config/onedrive/config
+
+
+vim ~/.config/onedrive/config
+
+
+```
+
+```bash 
+
+# ~/.config/onedrive/config
+
+...
+
+sync_dir = "~/c"
+...
+
+```
+
+```bash
+
+# sync single directory
+
+onedrive --synchronize --single-directory "c" 
+
+
+``` 
+ 
 # GIT
 
 ```bash

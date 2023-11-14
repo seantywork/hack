@@ -4830,7 +4830,18 @@ EOF
 
 sudo docker --gpus all 
 
- 
+# docker-compose
+
+services:
+  jupyterlabc:
+    image: seantywork/jupyterlabc
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu] 
 
 # kubernetes 
 

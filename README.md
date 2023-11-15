@@ -8,7 +8,7 @@
 
 # LINUX
 
-```bash
+```shell
 
 # kernel mode
 
@@ -45,7 +45,7 @@ process & memory (arch_mem)
 
 # LINUX BOOT
 
-```bash
+```shell
 boot (firm)
 
 bios | uefi -> grub -> vmlinuz, initramfs -> device and drivers -> rootfs mount -> init (pid 1, systemd, user space) -> log in
@@ -59,7 +59,7 @@ init(systemd)
 
 # GRUB
 
-```bash
+```shell
 # check partition and images
 
 ls
@@ -74,7 +74,7 @@ boot
 
 # LINUX KERNEL BUILD
 
-```bash
+```shell
 
 # packages
 
@@ -189,7 +189,7 @@ sudo isohybrid /bck/<output>.iso
 
 # LINUX DIAGNOSTIC
 
-```bash
+```shell
 journalctl -f
 journalctl -xe
 journalctl -k
@@ -200,7 +200,7 @@ efibootmgr
 
 # ON WINDOWS 
 
-```bash
+```shell
 virtual machine -> bridge  
 
  
@@ -211,7 +211,7 @@ wsl bridge -> netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenp
  
 # ONEDRIVE
 
-```bash
+```shell
 
 # installing onedrive cmd
 
@@ -230,7 +230,7 @@ vim ~/.config/onedrive/config
 
 ```
 
-```bash 
+```shell 
 
 # ~/.config/onedrive/config
 
@@ -241,7 +241,7 @@ sync_dir = "~/c"
 
 ```
 
-```bash
+```shell
 
 # sync single directory
 
@@ -252,7 +252,7 @@ onedrive --synchronize --single-directory "c"
  
 # GIT
 
-```bash
+```shell
 
 # local branch
 
@@ -327,7 +327,7 @@ tar xzf ./actions-runner-linux-x64-2.306.0.tar.gz
 ```
 
 
-```bash
+```shell
 
 # install github cli
 
@@ -347,7 +347,7 @@ sudo apt install gh -y
 # PURCHASE 
 
  
-```bash
+```shell
 Server - AWS EC2 instance, Http, https, ssh inbound setting  
 
 Domain Name - Namecheap - two A RECORD set for host @, www, and link IP  
@@ -358,7 +358,7 @@ openai ready
 
 # OS VERSION 
 
-```bash
+```shell
 
 
 
@@ -369,7 +369,7 @@ AWS EC2 Ubuntu 22
 # INSTALL 
 
  
-```bash
+```shell
 chrome 
 
 virtualbox 
@@ -441,7 +441,7 @@ mysqlclient
 # MYSQL SETTING 
 
  
-```bash
+```shell
 # create user, grant privileges 
 
 python manage.py migrate 
@@ -450,7 +450,7 @@ python manage.py migrate
 
 # GUNICORN
 
-```bash
+```shell
 
 
 mkdir -pv config/gunicorn/ 
@@ -504,7 +504,7 @@ daemon = True
 
 ```
 
-```bash
+```shell
 sudo mkdir -pv /var/{log,run}/gunicorn/ 
 
  
@@ -519,7 +519,7 @@ gunicorn -c config/gunicorn/dev.py
 # NGINX SETTING
 
 
-```bash
+```shell
 sudo mkdir -pv /var/www/<project_name>/static/ 
 
 sudo chown -cR ubuntu:ubuntu /var/www/<project_name>/  
@@ -533,7 +533,7 @@ python manage.py collectstatic
 
 # HTTPS
 
-```bash
+```shell
 
 # Nginx configuration: /etc/nginx/sites-available/<nginx_config_name> 
 
@@ -596,7 +596,7 @@ server {
 
 ```
 
-```bash
+```shell
 
 sudo systemctl restart nginx 
 
@@ -636,7 +636,7 @@ sudo systemctl restart nginx
 
 # AWS RESTART
 
-```bash
+```shell
 # ip and dns check 
 
 # aws new ssh domain and ip check  
@@ -647,7 +647,7 @@ sudo systemctl restart nginx
 
 # DB CHECK
 
-```bash
+```shell
 
 # running
 
@@ -655,7 +655,7 @@ sudo systemctl restart nginx
 
 # GUINCORN CHECK
 
-```bash
+```shell
 sudo mkdir -pv /var/{log,run}/gunicorn/ 
 
 sudo chown -cR ubuntu:ubuntu /var/{log,run}/gunicorn/ 
@@ -669,7 +669,7 @@ gunicorn -c config/gunicorn/dev.py
 
 # NGINX CHECK 
 
-```bash
+```shell
 
 
 
@@ -792,7 +792,7 @@ location
 ```
 
 
-```bash
+```shell
 # or
 
 upstream UC {
@@ -901,7 +901,7 @@ server
 
 ```
 
-```bash
+```shell
 sudo systemctl start nginx 
 
 sudo systemctl restart nginx 
@@ -912,7 +912,7 @@ sudo systemctl restart nginx
 
 # ROUTER/MODEM LAN
 
-```bash
+```shell
 
 
  
@@ -976,16 +976,16 @@ port forward
 
 # DISABLE/ENABLE WIFI IF
 
-```bash
+```shell
 # disable
 ```
 
-```bash
+```shell
 # /etc/network/interfaces
 iface <interface_name> inet manual
 ```
 
-```bash
+```shell
 # enable
 # undo above
 
@@ -995,7 +995,7 @@ iface <interface_name> inet manual
 
 # FIREWALL  
 
-```bash
+```shell
 
 
 # ubuntu 
@@ -1072,7 +1072,7 @@ firewall-cmd --zone=trusted --add-source=10.10.0.0/16 --permanent
 
 # SSH KEY DISTRIBUTE
 
-```bash
+```shell
 ssh-keygen -t rsa 
 
  
@@ -1083,7 +1083,7 @@ ssh-copy-id username@node_name
 
 # NCAT
 
-```bash
+```shell
 
 apt install -y ncat 
 
@@ -1099,13 +1099,13 @@ ncat <addr> <port> -e /bin/bash
 
 # AP
 
-```bash
+```shell
 sudo apt-get install hostapd dnsmasq
 
 sudo vim /etc/hostapd/hostapd.conf
 ```
 
-```bash
+```shell
 # /etc/hostapd/hostapd.conf
 interface=wlan0
 driver=nl80211
@@ -1123,17 +1123,17 @@ wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 ```
 
-```bash
+```shell
 sudo vim /etc/default/hostapd
 ```
 
-```bash
+```shell
 # /etc/default/hostapd
 
 DAEMON_CONF="/etc/hostapd/hostapd.conf"
 ```
 
-```bash
+```shell
 
 sudo systemctl unmask hostapd
 sudo systemctl enable hostapd
@@ -1146,13 +1146,13 @@ sudo vim /etc/dnsmasq.conf
 
 ```
 
-```bash
+```shell
 # /etc/dnsmasq.conf
 port=5353
 interface=wlan0
 dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
 ```
-```bash
+```shell
 
 sudo systemctl enable hostapd
 sudo systemctl start hostapd
@@ -1161,14 +1161,14 @@ sudo systemctl reload dnsmasq
 sudo vim /lib/systemd/system/dnsmasq.service
 ```
 
-```bash
+```shell
 # /lib/systemd/system/dnsmasq.service
 
 After=network-online.target
 Wants=network-online.target
 ```
 
-```bash
+```shell
 sudo vim /etc/netplan/50-cloud-init.yaml
 ```
 
@@ -1185,20 +1185,20 @@ network:
     version: 2
 ```
 
-```bash
+```shell
 sudo reboot
 ```
 
 # SOCKET IO
 
-```bash
+```shell
 # node
 npm install socket.io
 ```
 
 # GRPC
 
-```bash
+```shell
 # golang
 
 apt install -y protobuf-compiler
@@ -1214,7 +1214,7 @@ protoc --go_out=plugins=grpc:. <file>.proto
 
 # FS MOUNT
 
-```bash
+```shell
 
 
 lsblk 
@@ -1248,7 +1248,7 @@ df
 
 # RAID
 
-```bash
+```shell
 
 
 mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc  
@@ -1277,7 +1277,7 @@ df
 
 # LVM DISK EXTENSION
 
-```bash
+```shell
 
 # resize 
 
@@ -1333,7 +1333,7 @@ sudo xfs_growfs /dev/ubuntu-box-1-vg
 
 # NFS
 
-```bash
+```shell
 
 
 # on nfs server 
@@ -1361,7 +1361,7 @@ sudo vim /etc/exports
 
 ```
 
-```bash
+```shell
 # /etc/exports   
 
 
@@ -1373,7 +1373,7 @@ sudo vim /etc/exports
 
 ```
 
-```bash
+```shell
 
 exportfs -a 
 
@@ -1412,7 +1412,7 @@ sudo umount /nfsclient/upload
 
 # API KEY
 
-```bash
+```shell
 
 # apt-key 
 
@@ -1438,7 +1438,7 @@ echo "deb [signed-by=/usr/share/keyrings/<>.gpg] https://packages.cloud.google.c
 
 # DB & SYNC
 
-```bash
+```shell
 
 
 
@@ -1473,7 +1473,7 @@ mysql -u username -p new_database < data-dump.sql
 sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf 
 ```
 
-```bash
+```shell
 bind-address 	 =0.0.0.0 
 
  
@@ -1491,7 +1491,7 @@ relay_log = /var/log/mysql/mysql-relay-bin
 relay_log_index = /var/log/mysql/mysql-relay-bin.index 
 ```
 
-```bash
+```shell
 
 sudo systemctl restart mysql 
 
@@ -1523,7 +1523,7 @@ SHOW MASTER STATUS\G
 sudo vim  /etc/mysql/mysql.conf.d/mysqld.cnf 
 ```
 
-```bash
+```shell
 # /etc/mysql/mysql.conf.d/mysqld.cnf 
 
 bind-address           = 0.0.0.0 
@@ -1545,7 +1545,7 @@ relay_log_index = /var/log/mysql/mysql-relay-bin.index
 
 ```
 
-```bash
+```shell
  
 
 sudo mysql -u root -p 
@@ -1576,7 +1576,7 @@ sudo vim  /etc/mysql/mysql.conf.d/mysqld.cnf
 
 ```
 
-```bash
+```shell
 
 [mysqld] 
 
@@ -1647,7 +1647,7 @@ loose-group_replication_local_address = "" # bind-address:port # port usually 33
 
 ```
 
-```bash
+```shell
 
 
 systemctl restart mysql 
@@ -1723,7 +1723,7 @@ START GROUP_REPLICATION;
 
 # MONGODB
 
-```bash
+```shell
 
 curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add - 
 
@@ -1753,7 +1753,7 @@ sudo mongod --dbpath ~/data/db
 
 # CHROME
 
-```bash
+```shell
 
 # download .deb 
 
@@ -1767,7 +1767,7 @@ sudo apt install ./<file>.deb
 
 # VSCODE
 
-```bash
+```shell
 # download .deb 
 
  
@@ -1777,7 +1777,7 @@ sudo apt install ./<file>.deb
 
 # GOLANG
 
-```bash
+```shell
 curl -OL https://golang.org/dl/go1.16.7.linux-amd64.tar.gz 
 
  
@@ -1791,20 +1791,20 @@ sudo nano ~/.profile
 
 ```
 
-```bash
+```shell
 . . . 
 
 export PATH=$PATH:/usr/local/go/bin 
 ```
 
-```bash
+```shell
 source ~/.profile 
 
 ```
 
 # KOTLIN
 
-```bash
+```shell
 
 
 sudo apt install openjdk-11-jdk 
@@ -1829,7 +1829,7 @@ java -jar outPutFile.jar
 
 # NODEJS
 
-```bash
+```shell
 
 curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh 
 
@@ -1848,7 +1848,7 @@ sudo apt install nodejs
 
 # DJANGO
 
-```bash
+```shell
 
 django-admin startproject mysite
 
@@ -1856,7 +1856,7 @@ django-admin startproject mysite
 
 # EXPRESSJS
 
-```bash
+```shell
 
  npm install -g express-generator
  
@@ -1866,7 +1866,7 @@ django-admin startproject mysite
 
 # JMETER
 
-```bash
+```shell
 
 # install openjdk
 
@@ -1880,7 +1880,7 @@ jmeter -n -t <ThreadGroup.jmx> -l <report.csv> -e -o <report>
 
 # CRYPTO
 
-```bash
+```shell
 
 openssl
 
@@ -1943,7 +1943,7 @@ gpg --output un_encrypted.data --decrypt encrypted.data
 
 # DOCKER & KUBERNETES
 
-```bash
+```shell
 
 
 docker version - 20.10.17 
@@ -1970,7 +1970,7 @@ apt upgrade -y
 
 # DOCKER INSTALL
 
-```bash
+```shell
 
 
 apt remove docker docker-engine docker.io containerd runc 
@@ -2006,7 +2006,7 @@ apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # INSTALL DOCKER-COMPOSE
 
-```bash
+```shell
 
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose 
 
@@ -2018,7 +2018,7 @@ chmod +x /usr/local/bin/docker-compose
 
 # PREPARE DOCKER IMAGE
 
-```bash
+```shell
 
 cat > /etc/docker/daemon.json <<EOF 
 
@@ -2074,7 +2074,7 @@ docker push seantywork/NAME
 
 # DOCKER PRIVATE
 
-```bash
+```shell
 
 docker login <address:port> 
 ```
@@ -2082,7 +2082,7 @@ docker login <address:port>
 
 # DOCKER 
 
-```bash
+```shell
 
 docker image 
 docker container
@@ -2094,7 +2094,7 @@ docker volume
 
 # DOCKER-COMPOSE
 
-```bash
+```shell
 
 # build, name, port,  
 
@@ -2105,7 +2105,7 @@ docker volume
 
 # DOCKER REMOTE
 
-```bash
+```shell
 
 
 
@@ -2132,7 +2132,7 @@ docker -H ssh://user@host <command>
 
 # DOCKER REMOTE CONTEXT
 
-```bash
+```shell
 
 
 docker context create \ 
@@ -2155,7 +2155,7 @@ docker context use default
 # KUBERNETES INSTALL
 
 
-```bash
+```shell
 
 apt update 
 
@@ -2189,7 +2189,7 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # KIND INSTALL
 
-```bash
+```shell
 
 
 curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.14.0/kind-$(uname)-amd64" 
@@ -2208,7 +2208,7 @@ sudo mv ./kind /usr/local/bin/
 # KUBEADM ALL NODES
 
 
-```bash
+```shell
 
 #!/bin/bash 
 
@@ -2386,7 +2386,7 @@ EOF
 # MASTER - ON MASTER NODE
 
 
-```bash
+```shell
 
 set -euxo pipefail 
 
@@ -2480,7 +2480,7 @@ kubectl apply -f calico.yaml
 
 # JOIN TOKEN CREATION
 
-```bash
+```shell
 kubeadm token create --print-join-command 
 
 ```
@@ -2488,7 +2488,7 @@ kubeadm token create --print-join-command
 
 # WORKER NODE JOIN
 
-```bash
+```shell
 
 sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \ 
 
@@ -2502,7 +2502,7 @@ sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \
 # LABEL WORKER
 
 
-```bash
+```shell
 sudo kubectl label node worker-node01  node-role.kubernetes.io/worker=worker 
 
  
@@ -2517,7 +2517,7 @@ sudo kubectl label node worker-node01  ingress-ready=true
 
 # IN CASE OF DNS MESSED UP
 
-```bash
+```shell
 
 
 sudo kubectl -n kube-system rollout restart deployment coredns 
@@ -2530,7 +2530,7 @@ sudo kubectl -n kube-system rollout restart deployment coredns
 # MASTER NODE SCHEDULING
 
 
-```bash
+```shell
 kubectl taint nodes --all node-role.kubernetes.io/master- 
 
  
@@ -2541,7 +2541,7 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 # PREVENT SCHEDULING
 
 
-```bash
+```shell
 sudo kubectl cordon <node> 
 
  
@@ -2552,7 +2552,7 @@ sudo kubectl cordon <node>
 # TEAR DOWN CLUSTER
 
 
-```bash
+```shell
 
 sudo kubectl drain <node> --delete-local-data --force --ignore-daemonsets 
 
@@ -2562,14 +2562,14 @@ sudo kubectl drain <node> --delete-local-data --force --ignore-daemonsets
 
 # RE-SCHEDULE NODE
 
-```bash
+```shell
 sudo kubectl uncordon <node> 
 
 ```
 
 # ON EACH NODE
 
-```bash
+```shell
 
 sudo kubeadm reset 
 ```
@@ -2577,7 +2577,7 @@ sudo kubeadm reset
 # HA CLUSTER
 
 
-```bash
+```shell
 
 sudo apt-get update 
 
@@ -2589,7 +2589,7 @@ sudo vim /etc/haproxy/haproxy.cfg
 
 ```
 
-```bash
+```shell
 # /etc/haproxy/haproxy.cfg 
 
 
@@ -2644,7 +2644,7 @@ server k8s-master-2 <kube-master-2>:6443 check fall 3 rise 2
 
 ```
 
-```bash
+```shell
 
 
 sudo systemctl restart haproxy 
@@ -2669,7 +2669,7 @@ sudo kubeadm init --apiserver-advertise-address=$MASTER_IP --apiserver-cert-extr
 # SCP CERTS
 
 
-```bash
+```shell
 
 
 USER=<user-on-host> # customizable 
@@ -2709,7 +2709,7 @@ done
 # MV CERTS ON EACH MASTER NODE
 
 
-```bash
+```shell
 
 
 USER=<user-on-host> # customizable 
@@ -2742,7 +2742,7 @@ mv /home/${USER}/admin.conf /etc/kubernetes/admin.conf
 # JOIN MASTER NODE
 
 
-```bash
+```shell
 
 
 sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \ 
@@ -2760,7 +2760,7 @@ sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \
 # JOIN WORKER NODE
 
 
-```bash
+```shell
 sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \ 
 
     --discovery-token-ca-cert-hash sha256:37f94469b58bcc8f26a4aa44441fb17196a585b37288f85e22475b00c36f1c61 \ 
@@ -2775,7 +2775,7 @@ sudo kubeadm join 10.128.0.37:6443 --token j4eice.33vgvgyf5cxw4u8i \
 # CNIS
 
 
-```bash
+```shell
 
 kubectl apply -f  <CNI> ex) https://docs.projectcalico.org/manifests/calico.yaml , "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')" , https://raw.githubusercontent.com/aojea/kindnet/master/install-kindnet.yaml 
 
@@ -2843,7 +2843,7 @@ nodes:
  - role: worker
 ```
 
-```bash
+```shell
 kind create cluster --name kindcluster --config ./kindcluster.yaml --image=kindest/node:v1.21.12 
 
  
@@ -2852,13 +2852,13 @@ kind create cluster --name kindcluster --config ./kindcluster.yaml --image=kinde
 # KUBECTL DEPLOYMENT
 
 
-```bash
+```shell
 kubectl apply -f <yamls> 
 ```
 
 # PORT FORWARD
 
-```bash
+```shell
 kubectl port-forward resource/name port
 ```
 
@@ -2866,7 +2866,7 @@ kubectl port-forward resource/name port
 # KUBECTL INGRESS
 
 
-```bash
+```shell
 kubectl label node <node> ingress-ready=true 
 
  
@@ -2883,7 +2883,7 @@ kubectl apply -f ingress.yaml
 # TLS INGRESS NEED SECRET
 
 
-```bash
+```shell
 
 
 # self singed certs 
@@ -2909,7 +2909,7 @@ kubectl config use-context <context-name
 
 # TURNING OFF
 
-```bash
+```shell
 
 kubectl delete --all ingress, services, deployments 
 
@@ -2927,7 +2927,7 @@ docker system prune -a
 # CHECK
 
 
-```bash
+```shell
 systemctl status docker 
 
 systemctl status kubelet 
@@ -2937,7 +2937,7 @@ systemctl status kubelet
 # SECRET REG
 
 
-```bash
+```shell
 
 kubectl create secret generic <regcred> \ 
 
@@ -2960,7 +2960,7 @@ kubectl create secret docker-registry <pull_secret_name> \
 
 # K8S COMPONENTS
 
-```bash
+```shell
 
 
 ingress controller -> ingress -> svc 
@@ -3061,7 +3061,7 @@ spec:
 # SERVICE IN DIFFERENT NAMESPACE
 
 
-```bash
+```shell
 
 <serivce_name>.<namespace_name> 
 ```
@@ -3410,7 +3410,7 @@ metadata:
 
 # SECRET EXAMPLE (TLS)
 
-```bash
+```shell
 apiVersion: v1 
 
 data: 
@@ -3615,7 +3615,7 @@ spec:
 
 # STORAGECLASS EXAMPLE (DEFAULT)
 
-```bash
+```shell
 
 kind: StorageClass 
 
@@ -3638,7 +3638,7 @@ volumeBindingMode: WaitForFirstConsumer
 
 # STORAGECLASS EXAMPLE (DEFAULT NFS)
 
-```bash
+```shell
 
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/ 
 
@@ -3883,7 +3883,7 @@ spec:
 
 # SYSBOX - FOR DIND 
 
-```bash
+```shell
 
 
 # install 
@@ -3910,7 +3910,7 @@ docker-compose.yaml -- add runtime: sysbox-runc
 
 # ON K8S
 
-```bash
+```shell
 kubectl label node <node-name> sysbox-install=yes 
 
 kubectl apply -f https://raw.githubusercontent.com/nestybox/sysbox/master/sysbox-k8s-manifests/sysbox-install.yaml 
@@ -3921,7 +3921,7 @@ kubectl apply -f https://raw.githubusercontent.com/nestybox/sysbox/master/sysbox
 
 # REMOTE KUBECTL
 
-```bash
+```shell
 
 
 
@@ -3970,7 +3970,7 @@ kubectl config set-context --current --user=<service-account-name>
 
 # KUBE PROXY
 
-```bash
+```shell
 
 kubectl proxy --address 0.0.0.0 --accept-hosts '.*' --port=<port> 
 
@@ -3979,7 +3979,7 @@ kubectl proxy --address 0.0.0.0 --accept-hosts '.*' --port=<port>
 
 # KUBECTL REMOTE WITH TLS AND CUSTOM DOMAIN, IP
 
-```bash
+```shell
 
 kubectl -n kube-system get configmap kubeadm-config -o jsonpath='{.data.ClusterConfiguration}' > kubeadm.yaml 
 
@@ -4045,7 +4045,7 @@ sudo kubeadm init phase certs apiserver --apiserver-cert-extra-sans="ADDR1,ADDR2
 
 # KUBEADM RENEW CERTIFICATE
 
-```bash
+```shell
 
 # on all control plane nodes
 
@@ -4064,7 +4064,7 @@ mv /etc/kubernetes/manifest_tmp/* mv /etc/kubernetes/manifest
 
 # KUBEADM UPGRADE
 
-```bash
+```shell
 
 # on the first master nodes
 
@@ -4128,7 +4128,7 @@ sudo kubectl uncordon <node-to-uncordon>
 
 # VM 
 
-```bash
+```shell
 
 # iso 
 
@@ -4145,7 +4145,7 @@ sudo kubectl uncordon <node-to-uncordon>
 
 # CLOUD (AWS)
 
-```bash
+```shell
 
 # EC2: create EC2 instance  
 
@@ -4169,7 +4169,7 @@ sudo kubectl uncordon <node-to-uncordon>
 
 # CLOUD (GCP)
 
-```bash
+```shell
 
 # api 
 
@@ -4178,7 +4178,7 @@ sudo kubectl uncordon <node-to-uncordon>
 
 # AWS EKS
 
-```bash
+```shell
 # eksctl version 0.106.0 
 
 # create IAM user and role related to EKS and Adminaccess 
@@ -4212,7 +4212,7 @@ eksctl create cluster -f ekscluster.yaml
 
 # CUSTOM REGISTRY - HARBOR 
 
-```bash
+```shell
 
  
 
@@ -4237,7 +4237,7 @@ cp harbor.yml.tmpl harbor.yml
 
 # HELM
 
-```bash
+```shell
 
 curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -  
 
@@ -4260,7 +4260,7 @@ sudo apt install helm
 
 # JENKINS
 
-```bash
+```shell
 
 sudo apt install -y openjdk-11-jdk openjdk-11-jre 
 
@@ -4301,7 +4301,7 @@ helm install jkns jenkins/jenkins
 
 # PROMETHEUS & GRAFANA 
 
-```bash
+```shell
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts  
 
@@ -4389,7 +4389,7 @@ password: prom-operator
 
 # OCTANT
 
-```bash
+```shell
 
 wget https://github.com/vmware-tanzu/octant/releases/download/v0.24.0/octant_0.24.0_Linux-64bit.deb 
 
@@ -4423,7 +4423,7 @@ services:
         - "6379:6379"
 ```
 
-```bash
+```shell
 
 # redis.conf
 
@@ -4440,7 +4440,7 @@ rdbcompression    yes
 
 # KAFKA & ZOOKEEPER
 
-```bash
+```shell
 helm repo add bitnami https://charts.bitnami.com/bitnami 
 
  
@@ -4509,7 +4509,7 @@ services:
 
 # ELASTIC SEARCH & KIBANA 
 
-```bash
+```shell
 
 helm repo add bitnami https://charts.bitnami.com/bitnami 
 
@@ -4563,7 +4563,7 @@ volumes:
         elastic_data:
 
 ```
-```bash
+```shell
 # set password for kibana
 
 docker exec -it elasticsearch /bin/bash
@@ -4602,7 +4602,7 @@ networks:
 
 # GPU
 
-```bash
+```shell
 
 
 # host driver 
@@ -4741,12 +4741,12 @@ version = 2
  
 ```
 
-```bash
+```shell
 sudo systemctl restart containerd 
 
 ``` 
 
-```bash
+```shell
 # crio daemon
 
 # /etc/crio/crio.conf.d/crio.conf
@@ -4774,7 +4774,7 @@ sudo systemctl restart containerd
  
  ```
 
-```bash
+```shell
 
 $ sudo mkdir -p /usr/share/containers/oci/hooks.d 
 
@@ -4940,7 +4940,7 @@ spec:
 
 # VIRTUAL MACHINE BOX
 
-```bash
+```shell
 # virtualbox
 
 sudo apt update 
@@ -5009,7 +5009,7 @@ sudo vboxmanage clonevm "ubuntu20" --name="ol7-dev-002" --register
 
 # VIRTUAL MACHINE QEMU
 
-```bash
+```shell
 sudo apt install qemu-kvm virt-manager virtinst libvirt-clients bridge-utils libvirt-daemon-system -y
 
 sudo systemctl enable --now libvirtd
@@ -5026,7 +5026,7 @@ sudo virt-manager
 
 # VIRTUAL CLUSTER
 
-```bash
+```shell
 
 
 # proxmox
@@ -5049,7 +5049,7 @@ join cluster
 
 # VM QEMU NETWORK BRIDGE
 
-```bash
+```shell
 
 # /etc/sysctl.d/10-bridge.conf
 
@@ -5059,7 +5059,7 @@ net.bridge.bridge-nf-call-arptables=0
 
 ```
 
-```bash
+```shell
 
 
 echo "br_netfilter" > /etc/modules-load.d/br_netfilter.conf
@@ -5100,13 +5100,13 @@ network:
 
 ```
 
-```bash
+```shell
 sudo netplan apply
 
 
 ```
 
-```bash
+```shell
 # host-bridge.xml
 
 <network>
@@ -5117,7 +5117,7 @@ sudo netplan apply
 
 ```
 
-```bash
+```shell
 
 virsh net-define host-bridge.xml
 virsh net-autostart host-bridge
@@ -5128,7 +5128,7 @@ virsh net-list --all
 
 # VM QEMU GPU PASSTHROUGH
 
-```bash
+```shell
 
 efibootmgr
 
@@ -5265,7 +5265,7 @@ https://www.nvidia.com/download/index.aspx
 
 ```
 
-```bash
+```shell
 # /root/reset_pci_gpu.sh
 #!/bin/bash
 echo 1 > /sys/bus/pci/devices/0000\:09\:00.0/remove
@@ -5279,7 +5279,7 @@ crontab -e
 
 # IDA
 
-```bash
+```shell
 
 
 # download run 
@@ -5295,7 +5295,7 @@ sudo ./ida.run
 ```
 # GHIDRA
 
-```bash
+```shell
 
 sudo apt-get install openjdk-17-jdk 
 
@@ -5310,7 +5310,7 @@ unzip ghidra_10.2_PUBLIC_20221101.zip -d <target>
 
 # WIRESHARK
 
-```bash
+```shell
 
 sudo apt install wireshark 
 
@@ -5319,7 +5319,7 @@ sudo apt install wireshark
 
 # TOR
 
-```bash
+```shell
 
 # download tar or 
 
@@ -5338,7 +5338,7 @@ tar -xvf tor-browser-linux64-11.5.7_en-US.tar.xz
 
 # METASPLOIT AND SECURITY TOOLS 
 
-```bash
+```shell
 
 
 curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall 
@@ -5368,7 +5368,7 @@ sudo apt install nikto -y
 
 # BURPESUITE
 
-```bash
+```shell
 
 
 # download .sh 
@@ -5383,7 +5383,7 @@ sudo ./burpsuite_community_linux_v2022_9_5.sh
 
 # OWASP ZAP
 
-```bash
+```shell
 
 # download .zip 
 
@@ -5396,7 +5396,7 @@ tar -xzf ZAP_2.12.0_Linux.tar.gz
 
 # OLD KEY STORE FIX
 
-```bash
+```shell
 
 for KEY in $(apt-key --keyring /etc/apt/trusted.gpg list | grep -E "(([ ]{1,2}(([0-9A-F]{4}))){10})" | tr -d " " | grep -E "([0-9A-F]){8}\b" ); do K=${KEY:(-8)}; apt-key export $K | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/imported-from-trusted-gpg-$K.gpg; done
  
@@ -5452,7 +5452,7 @@ services:
 
 ```
 
-```bash
+```shell
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -5477,7 +5477,7 @@ CMD ["tail", "-f", "/dev/null"]
 
 # CONTAINER DEBUGGER
 
-```bash
+```shell
 
 FROM ubuntu:20.04
 
@@ -5508,7 +5508,7 @@ services:
 
 # ELASTIC SEARCH
 
-```bash
+```shell
 
 FROM elasticsearch:8.6.1
 
@@ -5656,7 +5656,7 @@ services:
 
 # GPU SET
 
-```bash
+```shell
 
 #!/bin/bash
 
@@ -5717,7 +5717,7 @@ echo "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-
 
 # HARBOR
 
-```bash
+```shell
 
 # get the zip? tar?
 
@@ -5790,7 +5790,7 @@ data_volume: /data2/harbor/harbor_data
 
 # JENKINS CONTAINER
 
-```bash
+```shell
 FROM ubuntu:20.04
 
 RUN apt update
@@ -5890,7 +5890,7 @@ services:
 
 ```
 
-```bash
+```shell
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -6087,7 +6087,7 @@ spec:
 # KUBERNETES K8S
 
 
-```bash
+```shell
 #!/bin/bash
 
 set -euxo pipefail
@@ -6204,7 +6204,7 @@ kubectl label node $NODENAME ingress-ready=true
 ```
 
 
-```bash
+```shell
 
 #!/bin/bash
 
@@ -6288,7 +6288,7 @@ KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 EOF
 ```
 
-```bash
+```shell
 
 #!/bin/bash
 
@@ -6298,7 +6298,7 @@ sudo apt-get install -y  haproxy
 
 ```
 
-```bash
+```shell
 #!/bin/bash
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -6313,7 +6313,7 @@ helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack -f
 ```
 
 
-```bash
+```shell
 #!/bin/bash
 
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
@@ -6326,7 +6326,7 @@ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs
 
 ```
 
-```bash
+```shell
 #!/bin/bash
 
 helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
@@ -6373,7 +6373,7 @@ spec:
 ```
 
 
-```bash
+```shell
 ...
 
 #---------------------------------------------------------------------
@@ -6412,7 +6412,7 @@ backend kube_master_nodes
 ```
 
 
-```bash
+```shell
 
 #!/bin/bash
 
@@ -6426,7 +6426,7 @@ ufw allow from 10.10.0.0/16
 ```
 
 
-```bash
+```shell
 
 #!/bin/bash
 
@@ -6594,7 +6594,7 @@ spec:
 ```
 
 
-```bash
+```shell
 #!/bin/bash
 
 
@@ -6614,7 +6614,7 @@ mv /home/${USER}/admin.conf /etc/kubernetes/admin.conf
 
 ```
 
-```bash
+```shell
 #!/bin/bash
 
 USER=tomcat # customizable
@@ -6638,7 +6638,7 @@ done
 
 # KAFKA
 
-```bash
+```shell
 #!/bin/bash
 
 
@@ -6749,7 +6749,7 @@ networks:
         external: true
 ```
 
-```bash
+```shell
 FROM kibana:8.5.3
 
 ENV ELASTICSEARCH_USERNAME="kibana_system"
@@ -6781,7 +6781,7 @@ services:
 ```
 
 
-```bash
+```shell
 FROM mongo:4.4.19-rc1
 
 ENV MONGO_INITDB_ROOT_USERNAME root
@@ -6793,7 +6793,7 @@ EXPOSE 27017
 
 # NFS
 
-```bash
+```shell
 
 #!/bin/bash
 
@@ -6814,7 +6814,7 @@ sudo systemctl enable --now nfs-server.service
 
 ```
 
-```bash
+```shell
 #!/bin/bash
 
 apt update
@@ -6852,7 +6852,7 @@ systemctl restart nfs-kernel-server
 
 # NGINX CONF
 
-```bash
+```shell
 
 user www-data;
 worker_processes auto;
@@ -6916,7 +6916,7 @@ http {
 }
 ```
 
-```bash
+```shell
 
 
 
@@ -6938,7 +6938,7 @@ server
 
 ```
 
-```bash
+```shell
 
 upstream  EXNGINX{
         ip_hash;
@@ -7003,7 +7003,7 @@ server
 ```
 
 
-```bash
+```shell
 #!/bin/bash
 
 
@@ -7014,7 +7014,7 @@ while true; do nc -l 0.0.0.0 8000 < resp; done
 # JENKINSFILE
 
 
-```bash
+```shell
 
 pipeline{
 
@@ -7269,7 +7269,7 @@ services:
 ```
 
 
-```bash
+```shell
 
 FROM redis:7.0.8
 
@@ -7281,7 +7281,7 @@ CMD ["/bin/sh","-c","redis-server","--requirepass","youdonthavetoknow"]
 ```
 
 
-```bash
+```shell
 
 port              6379
 daemonize         yes

@@ -7295,6 +7295,27 @@ rdbcompression    yes
 ```
 
 
+# REMOTE DESKTOP
+
+```shell
+
+# remote server
+
+sudo apt install xrdp -y
+
+sudo systemctl restart xrdp
+
+
+# client
+
+sudo apt install remmina remmina-plugin-vnc
+
+
+
+```
+
+
+
 
 
 

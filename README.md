@@ -7314,6 +7314,122 @@ sudo apt install remmina remmina-plugin-vnc
 
 ```
 
+# ROS 2
+
+```shell
+
+# on ubuntu 22.04 ros2 humble hawksbill
+
+# takes up about 2G disk space
+
+locale  # check for UTF-8
+
+sudo apt update && sudo apt install locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+locale  # verify settings
+
+
+
+sudo apt install software-properties-common
+sudo add-apt-repository universe
+
+
+sudo apt update && sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+
+
+
+sudo apt update
+
+
+sudo apt upgrade
+
+
+sudo apt install ros-humble-desktop
+
+
+sudo apt install ros-humble-ros-base
+
+
+sudo apt install ros-dev-tools
+
+
+
+source /opt/ros/humble/setup.bash
+
+
+# check if installation is succeful
+
+
+# terminal 1
+
+source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_cpp talker
+
+
+# terminal 2
+
+source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_py listener
+
+
+```
+
+
+```shell
+
+# cartographer
+
+ros2 pkg list |grep cartographer
+
+# if none
+
+sudo apt install ros-$ROS_DISTRO-cartographer -y
+
+# turtlebot3
+
+sudo apt install ros-$ROS_DISTRO-turtlebot3* -y
+
+# simulation
+
+source /opt/ros/humble/setup.bash
+
+export TURTLEBOT3_MODEL=burger
+
+export GAZEBO_MODEL_PATH=`ros2 pkg \
+prefix turtlebot3_gazebo`/share/turtlebot3_gazebo/models/
+
+
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+# troubleshoot
+# not sure if effective?
+gazebo -s libgazebo_ros_init.so -s libgazebo_ros_factory.so myworld.world
+
+
+# on terminal 2 remote pc: telescope node
+
+source /opt/ros/humble/setup.bash
+
+ros2 run turtlebot3_teleop teleop_keyboard
+
+# on terminal 3 remote pc: cartogrpher
+
+source /opt/ros/humble/setup.bash
+
+ros2 launch turtlebot3_cartographer \
+cartographer.launch.py \
+use_sim_time:=True
+
+```
+
 
 
 

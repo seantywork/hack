@@ -7506,6 +7506,28 @@ install/turtlebot3_cartographer/share/turtlebot3_cartographer\
 ```
 
 
+# ROS DOCKER
+
+```shell
+
+# pyslam v2
+
+nvidiactk
+
+# config.sh work dir 
+
+build.sh <NAME>
+
+xhost +
+
+run.sh <NAME>
+
+# $DISPLAY ?
+
+
+
+```
+
 
 
 

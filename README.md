@@ -7414,13 +7414,13 @@ ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
 gazebo -s libgazebo_ros_init.so -s libgazebo_ros_factory.so myworld.world
 
 
-# on terminal 2 remote pc: telescope node
+# on terminal 2 remote pc: teleoperation node
 
 source /opt/ros/humble/setup.bash
 
 ros2 run turtlebot3_teleop teleop_keyboard
 
-# on terminal 3 remote pc: cartogrpher
+# on terminal 3 remote pc: cartographer
 
 source /opt/ros/humble/setup.bash
 
@@ -7430,6 +7430,57 @@ use_sim_time:=True
 
 ```
 
+
+```shell
+
+# real
+
+# on turtlebot3 do below
+
+source .bashrc
+
+cd turtlebot3_ws
+
+#Set up ROS_DOMAIN_ID
+
+export ROS_DOMAIN_ID="Your Number"
+
+# e.g. export ROS_DOMAIN_ID=11
+
+source install/setup.bash
+
+ros2 launch turtlebot3_bringup robot.launch.py
+
+# on terminal2 : teleoperation node
+
+
+source /opt/ros/humble/setup.bash
+
+export ROS_DOMAIN_ID="Your Number"
+# e.g. export ROS_DOMAIN_ID=11
+
+ros2 run turtlebot3_teleop teleop_keyboard
+
+
+# on terminal3 : cartoprapher
+
+
+
+source /opt/ros/humble/setup.bash
+
+export ROS_DOMAIN_ID="Your Number"
+# e.g. export ROS_DOMAIN_ID=11
+
+ros2 run cartographer_ros occupancy_grid_node -resolution 0.05\
+-publish_period_sec 1.0
+
+ros2 run cartographer_ros cartographer_node\
+-configuration_directory]\ 
+install/turtlebot3_cartographer/share/turtlebot3_cartographer\
+/config -configuration_basename turtlebot3_lds_2d.lua
+
+
+```
 
 
 

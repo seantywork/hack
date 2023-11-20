@@ -7529,7 +7529,103 @@ run.sh <NAME>
 ```
 
 
+# CAN NETWORK
+
+```shell
+
+# using gpio
+
+sudo apt-get install busybox
 
 
+# register up for a test
+
+sudo busybox devmem 0x0c303000 32 0x0000C400
+sudo busybox devmem 0x0c303008 32 0x0000C458
+sudo busybox devmem 0x0c303010 32 0x0000C400
+sudo busybox devmem 0x0c303018 32 0x0000C458
+
+
+sudo modprobe can
+sudo modprobe can_raw
+sudo modprobe mttcan
+
+
+# each second line optional?
+
+sudo ip link set can0 type can bitrate 500000 \
+    dbitrate 2000000 berr-reporting on fd on
+sudo ip link set can1 type can bitrate 500000 \
+    dbitrate 2000000 berr-reporting on fd on
+
+
+sudo ip link set up can0
+sudo ip link set up can1
+
+
+# cron the sh file at reboot
+
+```
+```shell
+
+# vcan
+
+sudo modprobe vcan
+
+ip link add dev vcan0 type vcan
+
+ip link set up vcan0
+
+```
+
+```shell
+# can utils
+
+sudo apt-get install can-utils
+
+# send to if with id
+cansend vcan0 101#41424344
+
+# dump all incoming data
+
+candump -t Absolute vcan0
+
+# send random frame continuously
+
+cangen vcan0
+
+```
+
+# MQTT
+
+```shell
+# docker compose
+
+version: "3.7"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+```
+
+
+```shell
+
+# volume config
+
+listener 1883
+allow_anonymous true
+# password_file /etc/mosquitto/passwd
+
+```
 
 

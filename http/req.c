@@ -1,7 +1,7 @@
 #define _XOPEN_SOURCE 700
 #include <arpa/inet.h>
 #include <assert.h>
-#include <netdb.h> /* getprotobyname */
+#include <netdb.h> 
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    /* Build the socket. */
+
     protoent = getprotobyname("tcp");
     if (protoent == NULL) {
         perror("getprotobyname");
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    /* Build the address. */
+
     hostent = gethostbyname(hostname);
     if (hostent == NULL) {
         fprintf(stderr, "error: gethostbyname(\"%s\")\n", hostname);
@@ -63,13 +63,13 @@ int main(int argc, char** argv) {
     sockaddr_in.sin_family = AF_INET;
     sockaddr_in.sin_port = htons(server_port);
 
-    /* Actually connect. */
+
     if (connect(socket_file_descriptor, (struct sockaddr*)&sockaddr_in, sizeof(sockaddr_in)) == -1) {
         perror("connect");
         exit(EXIT_FAILURE);
     }
 
-    /* Send HTTP request. */
+  
     nbytes_total = 0;
     while (nbytes_total < request_len) {
         nbytes_last = write(socket_file_descriptor, request + nbytes_total, request_len - nbytes_total);
@@ -80,7 +80,6 @@ int main(int argc, char** argv) {
         nbytes_total += nbytes_last;
     }
 
-    /* Read the response. */
     fprintf(stderr, "debug: before first read\n");
     while ((nbytes_total = read(socket_file_descriptor, buffer, BUFSIZ)) > 0) {
         fprintf(stderr, "debug: after a read\n");

@@ -22,12 +22,12 @@ static void respond(int);
 
 static char *buf;
 
-// Client request
-char *method, // "GET" or "POST"
-    *uri,     // "/index.html" things before '?'
-    *qs,      // "a=1&b=2" things after  '?'
-    *prot,    // "HTTP/1.1"
-    *payload; // for POST
+
+char *method, 
+    *uri,     
+    *qs,      
+    *prot,    
+    *payload; 
 
 int payload_size;
 
@@ -40,20 +40,20 @@ void serve_forever(const char *PORT) {
   printf("Server started %shttp://127.0.0.1:%s%s\n", "\033[92m", PORT,
          "\033[0m");
 
-  // create shared memory for client slot array
+
   clients = mmap(NULL, sizeof(*clients) * MAX_CONNECTIONS,
                  PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
 
-  // Setting all elements to -1: signifies there is no client connected
+
   int i;
   for (i = 0; i < MAX_CONNECTIONS; i++)
     clients[i] = -1;
   start_server(PORT);
 
-  // Ignore SIGCHLD to avoid zombie threads
+
   signal(SIGCHLD, SIG_IGN);
 
-  // ACCEPT connections
+
   while (1) {
     addrlen = sizeof(clientaddr);
     clients[slot] = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
@@ -78,11 +78,11 @@ void serve_forever(const char *PORT) {
   }
 }
 
-// start server
+
 void start_server(const char *port) {
   struct addrinfo hints, *res, *p;
 
-  // getaddrinfo for host
+
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
@@ -91,7 +91,7 @@ void start_server(const char *port) {
     perror("getaddrinfo() error");
     exit(1);
   }
-  // socket and bind
+
   for (p = res; p != NULL; p = p->ai_next) {
     int option = 1;
     listenfd = socket(p->ai_family, p->ai_socktype, 0);
@@ -108,14 +108,14 @@ void start_server(const char *port) {
 
   freeaddrinfo(res);
 
-  // listen for incoming connections
+
   if (listen(listenfd, QUEUE_SIZE) != 0) {
     perror("listen() error");
     exit(1);
   }
 }
 
-// get request header by name
+
 char *request_header(const char *name) {
   header_t *h = reqhdr;
   while (h->name) {
@@ -126,20 +126,20 @@ char *request_header(const char *name) {
   return NULL;
 }
 
-// get all request headers
+
 header_t *request_headers(void) { return reqhdr; }
 
-// Handle escape characters (%xx)
+
 static void uri_unescape(char *uri) {
   char chr = 0;
   char *src = uri;
   char *dst = uri;
 
-  // Skip inital non encoded character
+
   while (*src && !isspace((int)(*src)) && (*src != '%'))
     src++;
 
-  // Replace encoded characters with corresponding code.
+
   dst = src;
   while (*src && !isspace((int)(*src))) {
     if (*src == '+')
@@ -157,18 +157,18 @@ static void uri_unescape(char *uri) {
   *dst = '\0';
 }
 
-// client connection
+
 void respond(int slot) {
   int rcvd;
 
   buf = malloc(BUF_SIZE);
   rcvd = recv(clients[slot], buf, BUF_SIZE, 0);
 
-  if (rcvd < 0) // receive error
+  if (rcvd < 0)
     fprintf(stderr, ("recv() error\n"));
-  else if (rcvd == 0) // receive socket closed
+  else if (rcvd == 0) 
     fprintf(stderr, "Client disconnected upexpectedly.\n");
-  else // message received
+  else 
   {
     buf[rcvd] = '\0';
 
@@ -183,9 +183,9 @@ void respond(int slot) {
     qs = strchr(uri, '?');
 
     if (qs)
-      *qs++ = '\0'; // split URI
+      *qs++ = '\0'; 
     else
-      qs = uri - 1; // use an empty string
+      qs = uri - 1; 
 
     header_t *h = reqhdr;
     char *t, *t2;
@@ -209,19 +209,19 @@ void respond(int slot) {
         break;
     }
     t = strtok(NULL, "\r\n");
-    t2 = request_header("Content-Length"); // and the related header if there is
+    t2 = request_header("Content-Length"); 
     payload = t;
     payload_size = t2 ? atol(t2) : (rcvd - (t - buf));
 
-    // bind clientfd to stdout, making it easier to write
+
     int clientfd = clients[slot];
     dup2(clientfd, STDOUT_FILENO);
     close(clientfd);
 
-    // call router
+
     route();
 
-    // tidy up
+
     fflush(stdout);
     shutdown(STDOUT_FILENO, SHUT_WR);
     close(STDOUT_FILENO);

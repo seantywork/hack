@@ -1,6 +1,6 @@
-all: server
+all: server client
 
-debug: server-debug
+debug: server-debug client-debug
 
 clean:
 	@rm -rf *.o
@@ -17,3 +17,9 @@ main.o: main.c httpd.h
 
 httpd.o: httpd.c httpd.h
 	gcc -c -o httpd.o httpd.c
+
+client: req.c
+	gcc -o req.out req.c 
+
+client-debug: req.c
+	gcc -g -o hr.out req.c 

@@ -243,6 +243,16 @@ sync_dir = "~/c"
 
 ```shell
 
+# ~/.config/onedrive/sync_list
+...
+/c
+...
+
+
+```
+
+```shell
+
 # sync single directory
 
 onedrive --synchronize --single-directory "c" 

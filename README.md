@@ -252,9 +252,16 @@ sync_dir = "~/c"
 ```
 
 ```shell
+
+
 # no autostart
 
 sudo rm /etc/systemd/user/default.target.wants/onedrive.service
+
+# autostart
+# symlink
+
+/etc/systemd/user/default.target.wants/onedrive.service → /usr/lib/systemd/user/onedrive.service
 
 ```
 

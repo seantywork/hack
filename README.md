@@ -2637,7 +2637,11 @@ sudo kubectl -n kube-system rollout restart deployment coredns
 ```shell
 kubectl taint nodes --all node-role.kubernetes.io/master- 
 
- 
+# or
+
+sudo kubectl taint node <master> node-role.kubernetes.io/control-plane:NoSchedule-
+
+sudo kubectl taint node <master> node-role.kubernetes.io/master:NoSchedule-
 
 
 ```

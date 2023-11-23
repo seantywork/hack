@@ -1015,9 +1015,30 @@ iface <interface_name> inet manual
 
 ```
 
-# IPTABLES NAT PORT FORWARD
+# IP INTERFACE IPTABLES NAT PORT FORWARD
 
 ```shell
+
+# dummy
+
+sudo modprobe dummy
+
+
+sudo ip link add deth0 type dummy
+
+sudo ip link set dev deth0 address C8:D7:4A:4E:47:50
+
+sudo ip addr add 192.168.1.100/24 brd + dev deth0 # label deth0:0
+
+sudo ip link set dev deth0 up
+
+sudo ip link set dev deth0 down
+
+sudo ip addr del 192.168.1.100/24 brd + dev deth0 # label deth0:0
+
+sudo ip link delete deth0 type dummy
+
+sudo modprobe -r dummy
 
 ```
 

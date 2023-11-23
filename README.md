@@ -4350,7 +4350,7 @@ cp harbor.yml.tmpl harbor.yml
 helm repo add harbor https://helm.goharbor.io
 
 
-helm install go-harbor harbor/harbor --set expose.type=nodePort --set expose.tls.auto.commonName=192.168.50.94 --set externalURL=https://192.168.50.94:30003 --set persistence.enabled=false --set imagePullPolicy=Always # --set persistence.enabled=true
+helm install go-harbor harbor/harbor --set expose.type=nodePort --set expose.tls.auto.commonName=192.168.50.94 --set externalURL=https://192.168.50.94:30003 --set persistence.enabled=false --set imagePullPolicy=Always # --set persistence.enabled=true --set persistence.persistentVolumeClaim.registry.size=10Gi --set persistence.persistentVolumeClaim.chartmuseum.size=5Gi --set persistence.persistentVolumeClaim.jobservice.size=5Gi --set persistence.persistentVolumeClaim.database.size=5Gi --set persistence.persistentVolumeClaim.redis.size=5Gi
 
 
 sudo kubectl exec go-harbor-nginx-9556767d6-tm89q -- cat /etc/nginx/cert/ca.crt > ca.crt 

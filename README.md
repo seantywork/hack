@@ -4633,6 +4633,11 @@ networks:
 
 ```shell
 
+# build prerequisite
+
+sudo apt-get install linux-headers-$(uname -r) build-essential
+
+# curl from https://www.nvidia.com/download/index.aspx 
 
 # host driver 
 
@@ -4723,6 +4728,22 @@ sudo systemctl enable nvidia-persistenced
 cat /proc/driver/nvidia/version 
 
  
+# disable noveau
+
+sudo nano /etc/modprobe.d/blacklist-nouveau.conf
+
+```
+```shell
+# /etc/modprobe.d/blacklist-nouveau.conf
+blacklist nouveau
+options nouveau modeset=0
+```
+```shell
+sudo update-initramfs -u
+sudo reboot
+```
+
+```
 
  
 
@@ -4859,6 +4880,10 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
     
 sudo apt-get install -y nvidia-container-toolkit
 
+
+sudo nvidia-ctk runtime configure --runtime=containerd
+
+sudo systemctl restart docker
 
 
 sudo nvidia-ctk runtime configure --runtime=containerd

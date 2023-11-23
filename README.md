@@ -4339,6 +4339,27 @@ cp harbor.yml.tmpl harbor.yml
 
 ```
 
+```shell
+
+# kubernetes private nodeport
+
+helm repo add harbor https://helm.goharbor.io
+
+
+helm install go-harbor harbor/harbor --set expose.type=nodePort --set expose.tls.auto.commonName=192.168.50.94 --set externalURL=https://192.168.50.94:30003 --set persistence.enabled=false --set imagePullPolicy=Always # --set persistence.enabled=true
+
+
+sudo kubectl exec go-harbor-nginx-9556767d6-tm89q -- cat /etc/nginx/cert/ca.crt > ca.crt 
+
+
+mkdir -p /etc/docker/certs.d/192.168.50.94:30003
+
+/bin/cp -Rf ca.crt /etc/docker/certs.d/192.168.50.94:30003/
+
+
+
+```
+
 # HELM
 
 ```shell

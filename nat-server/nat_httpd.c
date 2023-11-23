@@ -17,7 +17,7 @@
 
 static int listenfd;
 int *clients;
-static void start_server(const char *);
+static void start_server(const char *,const char *);
 static void respond(int);
 
 static char *buf;
@@ -31,13 +31,13 @@ char *method,
 
 int payload_size;
 
-void serve_forever(const char *PORT) {
+void serve_forever(const char *ADDR, const char *PORT) {
   struct sockaddr_in clientaddr;
   socklen_t addrlen;
 
   int slot = 0;
 
-  printf("Server started %shttp://127.0.0.1:%s%s\n", "\033[92m", PORT,
+  printf("Server started %s%s:%s%s\n", "\033[92m", ADDR, PORT,
          "\033[0m");
 
 
@@ -48,7 +48,7 @@ void serve_forever(const char *PORT) {
   int i;
   for (i = 0; i < MAX_CONNECTIONS; i++)
     clients[i] = -1;
-  start_server(PORT);
+  start_server(ADDR, PORT);
 
 
   signal(SIGCHLD, SIG_IGN);
@@ -79,7 +79,7 @@ void serve_forever(const char *PORT) {
 }
 
 
-void start_server(const char *port) {
+void start_server(const char *addr, const char *port) {
   struct addrinfo hints, *res, *p;
 
 
@@ -87,7 +87,7 @@ void start_server(const char *port) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE;
-  if (getaddrinfo(NULL, port, &hints, &res) != 0) {
+  if (getaddrinfo(addr, port, &hints, &res) != 0) {
     perror("getaddrinfo() error");
     exit(1);
   }

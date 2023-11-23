@@ -14,7 +14,7 @@ extern char *method, // "GET" or "POST"
 extern int payload_size;
 
 // Server control functions
-void serve_forever(const char *PORT);
+void serve_forever(const char *ADDR, const char *PORT);
 
 char *request_header(const char *name);
 

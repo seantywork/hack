@@ -9,8 +9,16 @@
 #define NOT_FOUND_HTML "/404.html"
 
 int main(int c, char **v) {
-  char *port = c == 1 ? "8000" : v[1];
-  serve_forever(port);
+
+  if (c != 3) {
+    printf("wrong arguments\n");
+    printf("needs ADDR PORT\n");
+    return 1;
+  }
+
+  char *addr = v[1];
+  char *port = v[2];
+  serve_forever(addr, port);
   return 0;
 }
 

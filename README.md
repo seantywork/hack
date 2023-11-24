@@ -1013,6 +1013,54 @@ port forward
 
 ```
 
+# INTERFACE ADDRESS NETPLAN SYSTEMD-NETWORKD
+
+```shell
+
+# netplan
+
+# below is the default configuration
+
+# craete other ones if needed
+
+```
+```shell
+# /etc/netplan/01-network-manager-all.yaml 
+
+network:
+ version: 2
+ renderer: NetworkManager # or systemd-networkd
+ ethernets:  # or wifis, bridges, modems
+   eth0:
+     dhcp4: no 
+     addresses: [172.23.207.254/20]
+     gateway4: 192.168.1.1
+     nameservers:
+         addresses: [8.8.8.8,8.8.8.4]
+```
+```shell
+sudo netplan try
+
+sudo netplan apply
+```
+
+
+```shell
+
+# disable cloud init network config if necessary
+
+
+
+```
+
+```shell
+
+sudo nano /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+
+network: {config: disabled}
+
+```
+
 # DISABLE/ENABLE WIFI IF
 
 ```shell

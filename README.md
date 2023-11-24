@@ -43,6 +43,21 @@ process & memory (arch_mem)
      rsync
 ```
 
+# LINUX KERNEL MODULE
+
+```shell
+
+lsmod
+
+insmod
+rmmod
+
+modprobe
+
+modprobe -r
+
+```
+
 # LINUX BOOT
 
 ```shell
@@ -5221,6 +5236,16 @@ ex) qm importdisk 101 ubuntu20-disk001.vmdk local-lvm -format qcow2
 create cluster
 
 join cluster
+
+```
+
+# VM QEMU
+
+```shell
+
+sudo virsh shutdown <vm>
+
+sudo virsh start <vm>
 
 ```
 

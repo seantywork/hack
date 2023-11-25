@@ -15,11 +15,9 @@
 process & memory (arch_mem)
    process, hardware interrupt -> kernel -> process -> hardware interrupt, threads
    memory, kernel space, user space, virtual address, physical address, page table, mmu, major fault, minor fault
-   ps, top, lsof, strace, ltrace, renice, uptime
+   ps, top, lsof, strace, ltrace, renice, uptime, trace-cmd, kernelshark
    vmstat, iostat, iotop, pidstat
    cgroup, /proc/self/cgroup, /sys/fs/cgroup
-
-# syscall & user mode (os)
 
 # device (driver)
    rootfs, /bin, /dev, /etc, /home, /lib, /proc, /run, /sys, /sbin, /tmp, /usr, /var, /boot, /media, /opt
@@ -41,6 +39,87 @@ process & memory (arch_mem)
      user process < - > kernel socket (system call) < - > network
      ipc (inter process communication) > unix domain socket > eg) mysql.sock
      rsync
+# syscall & user mode (os)
+```
+
+```shell
+
+harware (interrupt)
+
+kernel vas
+
+  interrupt (hard, soft irq)
+
+  process 
+
+process vas
+
+  user (syscall)
+
+
+```
+
+
+```shell
+
+# process & memory
+
+# procfs : /proc/*
+
+# kernel stacks
+
+cat /proc/$PID/stack
+
+# user stacks
+
+gdb
+
+# both
+
+# use eBPF
+
+sudo stackcount-bpfcc -p $PID -v -d
+
+# device
+
+# sysfs: /sys/*
+
+```
+
+```shell
+# cgroup 
+
+# check cgroup mount location
+
+mount | grep cgroup2
+
+# if not change kernel parameters in grub to see
+
+# cgroup_no_v1=all
+
+cat /proc/cmdline
+
+# check controllers
+
+cat /sys/fs/cgroup/cgroup.controllers
+
+# add controller , here SOMETHING being cpu 
+
+echo "+$SOMETHING" >> /sys/fs/cgroup/cgroup.subtree_control  
+
+# add sub group
+
+mkdir /sys/fs/cgroup/$SOME_GROUP
+
+# give cpu max
+
+echo "$MAX $PERIOD" > /sys/fs/cgroup/$SOME_GROUP/cpu.max
+
+# revoke group
+
+rmdir /sys/fs/cgroup/$SOME_GROUP
+
+
 ```
 
 # LINUX KERNEL MODULE
@@ -52,9 +131,33 @@ lsmod
 insmod
 rmmod
 
+depmod
+
 modprobe
 
 modprobe -r
+
+
+
+```
+```shell
+# auto load:  insert module name to
+
+# /etc/modules-load.d/foo.conf
+# or
+# /etc/modprobe.d/foo.conf
+foo
+
+```
+
+```shell
+
+# blacklist: insert line to
+
+# /etc/modules-load.d/foo.conf
+# or
+# /etc/modprobe.d/foo.conf
+blacklist foo
 
 ```
 

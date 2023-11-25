@@ -1,97 +1,97 @@
-#include "httpd.h"
-#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
 
-#define CHUNK_SIZE 1024 // read 1024 bytes at a time
+#include "HTTP_Server.h"
+#include "Routes.h"
+#include "Response.h"
 
-// Public directory settings
-#define PUBLIC_DIR "./public"
-#define INDEX_HTML "/index.html"
-#define NOT_FOUND_HTML "/404.html"
+int main() {
+	// initiate HTTP_Server
+	HTTP_Server http_server;
+	init_server(&http_server, 6969);
 
-int main(int c, char **v) {
-  char *port = c == 1 ? "8000" : v[1];
-  serve_forever(port);
-  return 0;
-}
+	int client_socket;
+	
+	// registering Routes
+	struct Route * route = initRoute("/", "index.html"); 
+	addRoute(route, "/about", "about.html");
 
-int file_exists(const char *file_name) {
-  struct stat buffer;
-  int exists;
 
-  exists = (stat(file_name, &buffer) == 0);
+	printf("\n====================================\n");
+	printf("=========ALL VAILABLE ROUTES========\n");
+	// display all available routes
+	inorder(route);
 
-  return exists;
-}
+	while (1) {
+		char client_msg[4096] = "";
 
-int read_file(const char *file_name) {
-  char buf[CHUNK_SIZE];
-  FILE *file;
-  size_t nread;
-  int err = 1;
+		client_socket = accept(http_server.socket, NULL, NULL);
 
-  file = fopen(file_name, "r");
+		read(client_socket, client_msg, 4095);
+		printf("%s\n", client_msg);
 
-  if (file) {
-    while ((nread = fread(buf, 1, sizeof buf, file)) > 0)
-      fwrite(buf, 1, nread, stdout);
+		// parsing client socket header to get HTTP method, route
+		char *method = "";
+		char *urlRoute = "";
 
-    err = ferror(file);
-    fclose(file);
-  }
-  return err;
-}
+		char *client_http_header = strtok(client_msg, "\n");
+			
+		printf("\n\n%s\n\n", client_http_header);
 
-void route() {
-  ROUTE_START()
+		char *header_token = strtok(client_http_header, " ");
+		
+		int header_parse_counter = 0;
 
-  GET("/") {
-    char index_html[20];
-    sprintf(index_html, "%s%s", PUBLIC_DIR, INDEX_HTML);
+		while (header_token != NULL) {
 
-    HTTP_200;
-    if (file_exists(index_html)) {
-      read_file(index_html);
-    } else {
-      printf("Hello! You are using %s\n\n", request_header("User-Agent"));
-    }
-  }
+			switch (header_parse_counter) {
+				case 0:
+					method = header_token;
+				case 1:
+					urlRoute = header_token;
+			}
+			header_token = strtok(NULL, " ");
+			header_parse_counter++;
+		}
 
-  /*
-  GET("/test") {
-    HTTP_200;
-    printf("List of request headers:\n\n");
+		printf("The method is %s\n", method);
+		printf("The route is %s\n", urlRoute);
 
-    header_t *h = request_headers();
 
-    while (h->name) {
-      printf("%s: %s\n", h->name, h->value);
-      h++;
-    }
-  }
+		char template[100] = "";
+		
+		if (strstr(urlRoute, "/static/") != NULL) {
+			//strcat(template, urlRoute+1);
+			strcat(template, "static/index.css");
+		}else {
+			struct Route * destination = search(route, urlRoute);
+			strcat(template, "templates/");
 
-  POST("/") {
-    HTTP_201;
-    printf("Wow, seems that you POSTed %d bytes.\n", payload_size);
-    printf("Fetch the data using `payload` variable.\n");
-    if (payload_size > 0)
-      printf("Request body: %s", payload);
-  }
+			if (destination == NULL) {
+				strcat(template, "404.html");
+			}else {
+				strcat(template, destination->value);
+			}
+		}
 
-  GET(uri) {
-    char file_name[255];
-    sprintf(file_name, "%s%s", PUBLIC_DIR, uri);
+		char * response_data = render_static_file(template);
 
-    if (file_exists(file_name)) {
-      HTTP_200;
-      read_file(file_name);
-    } else {
-      HTTP_404;
-      sprintf(file_name, "%s%s", PUBLIC_DIR, NOT_FOUND_HTML);
-      if (file_exists(file_name))
-        read_file(file_name);
-    }
-  }
-  */
+		char http_header[4096] = "HTTP/1.1 200 OK\r\n\r\n";
 
-  ROUTE_END()
+		strcat(http_header, response_data);
+		strcat(http_header, "\r\n\r\n");
+
+
+		send(client_socket, http_header, sizeof(http_header), 0);
+		close(client_socket);
+		free(response_data);
+	}
+	return 0;
 }

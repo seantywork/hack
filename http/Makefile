@@ -1,25 +1,7 @@
-all: server client
+all:
 
-debug: server-debug client-debug
+	@echo "http"
 
-clean:
-	@rm -rf *.o
-	@rm -rf *.out
+build:
 
-server: main.o httpd.o
-	gcc -o server.out $^
-
-server-debug: main.o httpd.o
-	gcc -g -o server.out $^
-
-main.o: main.c httpd.h
-	gcc -c -o main.o main.c
-
-httpd.o: httpd.c httpd.h
-	gcc -c -o httpd.o httpd.c
-
-client: req.c
-	gcc -o req.out req.c 
-
-client-debug: req.c
-	gcc -g -o hr.out req.c 
+	gcc -Icerveur/include -o main.out main.c cerveur/src/HTTP_Server.o cerveur/src/Response.o cerveur/src/Routes.o -lm -ldl

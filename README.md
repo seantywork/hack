@@ -485,6 +485,22 @@ sudo apt install gh -y
 
 ```
 
+```shell
+
+# some commands
+
+gh pr list
+
+gh pr edit <num> --add-reviewer seantywork
+
+gh pr edit <num> --add-assignee seantywork
+
+gh pr merge <num> --merge
+
+gh pr view <num> --json state,author,assignees,reviews,reviewRequests,mergeable
+
+```
+
 
 # PURCHASE 
 

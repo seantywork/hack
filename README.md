@@ -7974,3 +7974,191 @@ allow_anonymous true
 
 ```
 
+# RASPBERRY PI
+
+```shell
+# gpio pins
+
+| #  |           | PIN  |    |    | PIN  |          | #  |
+|----|-----------|------|----|----|------|----------|----|
+| 1  | 3v3 Power | `1`  | 🟧 | 🔴 | `2`  | 5v Power | 20 |
+| 2  | GPIO 2    | `3`  | 🔵 | 🔴 | `4`  | 5v Power | 19 |
+| 3  | GPIO 3    | `5`  | 🔵 | ⚫ | `6`  | *Ground* | 18 |
+| 4  | GPIO 4    | `7`  | 🟢 | 🟣 | `8`  | GPIO 14  | 17 |
+| 5  | *Ground*  | `9`  | ⚫ | 🟣 | `10` | GPIO 15  | 16 |
+| 6  | GPIO 17   | `11` | 🟢 | 🟤 | `12` | GPIO 18  | 15 |
+| 7  | GPIO 27   | `13` | 🟢 | ⚫ | `14` | *Ground* | 14 |
+| 8  | GPIO 22   | `15` | 🟢 | 🟢 | `16` | GPIO 23  | 13 |
+| 9  | 3v3 Power | `17` | 🟠 | 🟢 | `18` | GPIO 24  | 12 |
+| 10 | GPIO 10   | `19` | 🟡 | ⚫ | `20` | *Ground* | 11 |
+| 11 | GPIO 9    | `21` | 🟡 | 🟢 | `22` | GPIO 25  | 10 |
+| 12 | GPIO 11   | `23` | 🟡 | 🟡 | `24` | GPIO 8   | 9  |
+| 13 | *Ground*  | `25` | ⚫ | 🟡 | `26` | GPIO 7   | 8  |
+| 14 | GPIO 0    | `27` | 🔵 | 🔵 | `28` | GPIO 1   | 7  |
+| 15 | GPIO 5    | `29` | 🟢 | ⚫ | `30` | *Ground* | 6  |
+| 16 | GPIO 6    | `31` | 🟢 | 🟢 | `32` | GPIO 12  | 5  |
+| 17 | GPIO 13   | `33` | 🟢 | ⚫ | `34` | *Ground* | 4  |
+| 18 | GPIO 19   | `35` | 🟤 | 🟢 | `36` | GPIO 16  | 3  |
+| 19 | GPIO 26   | `37` | 🟢 | 🟤 | `38` | GPIO 20  | 2  |
+| 20 | *Ground*  | `39` | ⚫ | 🟤 | `40` | GPIO 21  | 1  |
+
+**Legend:**
+
+* 🟢 GPIO (General Purpose IO)
+* 🟡 SPI (Serial Peripheral Interface)
+* 🔵 I2C (Inter-integrated Circuit)
+* 🟣 UART (Universal Asyncronous)
+* 🟤 PCM (Pulse Code Modulation)
+* ⚫ Ground
+* 🔴 5v (Power)
+* 🟠 3.3v (Power)
+
+```
+```shell
+
+# pgpio
+
+# install pigpio
+wget https://github.com/joan2937/pigpio/archive/master.zip
+unzip master.zip
+cd pigpio-master
+make
+sudo make install
+
+
+# ir receiver
+
+# S
+# > OUT
+# > POWER
+# > GND
+# -
+
+# OUT to GPIO 4
+# POWER to PIN 1
+# GND to PIN 9
+```
+```shell
+# lirc
+
+# ir transmitter
+
+# > DAT
+# > VCC
+# > GND
+
+# DAT to GPIO 23
+# VCC to PIN 2
+# GND to PIN 20
+
+# install lirc
+
+sudo apt-get update 
+
+sudo apt-get install lirc -y
+
+
+```shell
+# on xU22.04
+# /boot/firmware/config.txt
+# below last [all]
+
+[all]
+...
+dtoverlay=gpio-ir,gpio_pin=4
+dtoverlay=gpio-ir-tx,gpio_pin=23
+...
+
+# 4 receive < in
+
+# 23 transmit > out
+```
+
+```shell
+# /etc/lirc/hardware.conf
+
+LIRCD_ARGS="--uinput --listen"
+LOAD_MODULES=true
+DRIVER="default"
+DEVICE="/dev/lirc0"
+MODULES="lirc_rpi"
+
+# /etc/lirc/lirc_options.conf
+
+#driver         = devinput
+#device         = auto
+driver          = default
+device          = /dev/lirc0
+```
+```shell
+
+# check incoming infrared signal
+
+sudo systemctl stop lircd
+
+sudo mode2 -m -d /dev/lirc1 > *.lirc.conf
+
+# *.lirc.conf format
+
+begin remote
+
+  name LG_AC
+  flags RAW_CODES|CONST_LENGTH
+  eps 30
+  aeps 100
+
+  gap 513079
+
+      begin raw_codes
+
+  name AC_ON
+
+     3044     9814      495     1569      465      548
+      469      548      469      550      467     1592
+      441      549      525      496      494      520
+      466      551      469      548      469      550
+      467      548      465      577      468      549
+      466      552      465      550      466      550
+      450     1612      468     1566      443     1620
+      418      571      467      550      520      497
+      498      519      494      523      467     1620
+      420     1614      442     1619      464   
+
+  name AC_OFF
+
+     3075     9815      493     1593      442      548
+      470      549      470      546      468     1591
+      441      575      470      547      467      550
+      467     1595      439     1594      439      553
+      468      550      465      573      466      551
+      444      573      443      574      446      570
+      444      572      444      573      443      574
+      444      572      444     1617      440      556
+      462     1593      445      572      445      575
+      468      572      444     1617      418   
+
+      end raw_codes
+
+end remote
+
+
+# cp
+
+sudo cp lgac.lirc.conf /etc/lirc/lircd.conf.d/
+
+
+# mv 
+
+sudo mv /etc/lirc/lircd.conf.d/devinput.lircd.conf /etc/lirc/lircd.conf.d/devinput.lircd.conf.bak
+
+# reboot
+
+# list
+
+sudo irsend LIST LG_AC ""
+
+# send
+
+sudo irsend SEND_ONCE LG_AC AC_ON
+
+```

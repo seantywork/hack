@@ -7378,7 +7378,87 @@ server
 
 while true; do nc -l 0.0.0.0 8000 < resp; done
 
+
 ```
+
+
+# CMakeLists.txt
+
+```shell
+
+cd $PROJECT_DIR
+
+mkdir -p build
+
+cd build
+
+cmake ..
+
+make
+
+# blah blah after that
+
+
+```
+```shell
+# build lib
+
+
+cmake_minimum_required(VERSION 3.2)
+project(dynamiclink_print)
+set(CMAKE_BUILD_TYPE Release)
+
+include_directories(include)
+
+set(SOURCES src/crazything.cc)
+
+
+# target lib for .so
+add_library(crazything SHARED ${SOURCES})
+# target lib for .a
+add_library(something STATIC ${SOURCES})
+
+# for installing lib: sudo make install...
+install(TARGETS crazything DESTINATION /usr/lib)
+
+
+```
+
+
+```shell
+# build target
+
+# min ver
+cmake_minimum_required(VERSION 3.2)
+# project name
+project (main_lib_print)
+
+
+# include
+include_directories(
+    ../2_staticlink_print/include
+    ../3_dynamiclink_print/include
+    )
+
+# set var
+set ( PROJECT_LINK_LIBS libsomething.a libcrazything.so)
+
+# static or dynamic link dirs
+link_directories( 
+    ../2_staticlink_print/build
+    ../3_dynamiclink_print/build 
+    )
+
+
+# target bin
+add_executable(main.out main.cc)
+
+# linking to target bin
+target_link_libraries(main.out ${PROJECT_LINK_LIBS})
+
+```
+
+
 
 # JENKINSFILE
 

@@ -7889,7 +7889,7 @@ source install/local_setup.bash
 
 source /opt/ros/humble/setup.bash
 
-# package dec
+# package dec at ros2_ws/src
 
 ros2 pkg create --build-type ament_cmake --node-name $NODE_NAME $PKG_NAME
 

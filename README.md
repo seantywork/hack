@@ -391,6 +391,16 @@ onedrive --synchronize --single-directory "c"
 
 
 ``` 
+
+# PROFILE PATH PERMANENT
+
+```shell
+
+vim .profile
+
+source .profile
+
+```
  
 # GIT
 
@@ -4915,11 +4925,17 @@ networks:
 
 ```shell
 
+# nvidia cuda driver
+
 # build prerequisite
 
 sudo apt-get install linux-headers-$(uname -r) build-essential
 
+# simple way
+
 # curl from https://www.nvidia.com/download/index.aspx 
+
+# and install run
 
 # host driver 
 
@@ -5025,7 +5041,7 @@ sudo update-initramfs -u
 sudo reboot
 ```
 
-```
+```shell
 
  
 
@@ -5293,6 +5309,51 @@ spec:
 
           - containerPort: 6700 
 
+
+
+```
+
+# GPU DRIVER UNINSTALL
+
+```shell
+
+sudo apt-get --purge remove "*nvidia*"
+
+sudo /usr/bin/nvidia-uninstall
+
+```
+
+# GPU API
+
+```shell
+
+# nvidia cuda toolkit
+
+# check nvidia-smi cuda version
+
+# visit corresponding https://developer.nvidia.com/cuda-downloads 
+
+wget https://developer.download.nvidia.com/compute/cuda/11.5.1/local_installers/cuda_11.5.1_495.29.05_linux.run
+
+sudo sh cuda_11.5.1_495.29.05_linux.run
+
+# add path and ld path
+
+export PATH="/usr/local/cuda-11.4/bin:$PATH"
+
+# /etc/ld.so.conf
+
+...
+include /usr/local/cuda-11.4/lib64
+...
+
+sudo ldconfig
+
+
+# uninstall
+
+
+/usr/local/cuda/bin/<uninstaller>
 
 
 ```

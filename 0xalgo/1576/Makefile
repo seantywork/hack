@@ -4,13 +4,14 @@ all: main.out
 	cat in | ./main.out
 
 
-main.out: s.o
+main.out: 
 
-	g++ -o main.out main.cc s.o
+	g++ -o main.out main.cc 
 
-s.o: s.cc
+test: 
 
-	g++ -c -o s.o s.cc
+	g++ -o test.out main.cc
 
-test:
-	g++ -o test.out test.cc
+clean:
+
+	rm -r *.out 

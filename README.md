@@ -7763,6 +7763,59 @@ sudo apt install remmina remmina-plugin-vnc
 
 ```
 
+# GRPC SET UP
+
+
+```shell
+# install
+
+export MY_gRPC_DIR=$HOME/.local
+
+mkdir -p $MY_gRPC_DIR
+
+export PATH="$MY_gRPC_DIR/bin:$PATH"
+
+# cmake version should be 3.8+
+
+
+sudo apt install -y build-essential autoconf libtool pkg-config
+
+git clone --recurse-submodules -b v1.58.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+
+
+cd grpc
+mkdir -p cmake/build
+pushd cmake/build
+cmake -DgRPC_INSTALL=ON \
+      -DgRPC_BUILD_TESTS=OFF \
+      -DCMAKE_INSTALL_PREFIX=$MY_gRPC_DIR \
+      ../..
+make -j 4
+sudo make install
+popd
+
+
+```
+
+
+```shell
+
+# build
+
+# src CMakeLists.txt and common.cmake update
+
+export MY_gRPC_DIR=$HOME/.local
+
+mkdir -p build
+
+cd build && cmake -DCMAKE_PREFIX_PATH=$MY_gRPC_DIR ..
+
+make -j 4
+
+
+```
+
+
 # ROS 2
 
 ```shell

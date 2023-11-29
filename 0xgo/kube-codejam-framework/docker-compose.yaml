@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+
+        runpayloadsrv:
+                build: ./srv
+                container_name: runpayloadsrv
+                ports:
+                        - "15884:15884"
+
+        runpayloadadm:
+                build: ./adm
+                container_name: runpayloadadm
+                ports:
+                        - "15888:15888"
+                        
+        runpayloaddb:
+                build: ./db
+                container_name: runpayloaddb
+                ports:
+                        - "3306:3306"
+                

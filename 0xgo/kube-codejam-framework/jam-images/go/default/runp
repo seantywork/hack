@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+/workspace/runo go
+
+tail -f /dev/null

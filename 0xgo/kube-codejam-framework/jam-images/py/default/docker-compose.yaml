@@ -1,0 +1,20 @@
+
+version: "3"
+
+
+services:
+
+        jam-py-default:
+
+                build: .
+
+                container_name: jam-py-default
+
+                ports:
+
+                        - "6700:6700"
+
+                volumes:
+                        - "./usercontent.py:/tmp/usercontent.py"
+                        - "./usercontent.input:/tmp/usercontent.input"
+                        - "./home:/home"

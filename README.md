@@ -5339,12 +5339,12 @@ sudo sh cuda_11.5.1_495.29.05_linux.run
 
 # add path and ld path
 
-export PATH="/usr/local/cuda-11.4/bin:$PATH"
+export PATH="/usr/local/cuda-11.5/bin:$PATH"
 
 # /etc/ld.so.conf
 
 ...
-include /usr/local/cuda-11.4/lib64
+include /usr/local/cuda-11.5/lib64
 ...
 
 sudo ldconfig

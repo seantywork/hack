@@ -1,6 +1,6 @@
 # cc
 
-***crap compilation of mostly Linux based C, Shell codes and also C++, Go***
+***crap compilation of mostly Linux and C/C++ stuff***
 
 
 **Disclaimer : I am not liable for any misuse of this code Only use it on machines and in environments that you have explicit permissions and authrizations to do so**

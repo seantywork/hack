@@ -1706,6 +1706,52 @@ sudo umount /nfsclient/upload
 
 ```
 
+# CHECK FILE SYSTEM FS INTEGRITY
+
+```shell
+fsck
+
+```
+
+# DD FORMAT DISK FDISK
+
+```shell
+# check disk
+
+fdisk -l
+
+
+# unmount
+
+umount /dev/sdb
+
+
+# format
+sudo dd if=/dev/zero of=/dev/sdb bs=1m
+
+# create new partition
+
+fdisk
+n
+
+# write save
+
+fdisk
+w
+
+# format iso on usb
+
+sudo dd bs=4M if=filename.iso of=/dev/sdb status=progress
+
+# format fs
+
+sudo mkfs.vfat /dev/sdb1 
+
+# eject
+
+sudo eject /dev/sdb
+```
+
 # API KEY
 
 ```shell

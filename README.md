@@ -5379,18 +5379,18 @@ sudo /usr/bin/nvidia-uninstall
 
 # visit corresponding https://developer.nvidia.com/cuda-downloads 
 
-wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+wget https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda_12.2.0_535.54.03_linux.run
 
-sudo sh cuda_11.8.0_520.61.05_linux.run
+sudo sh cuda_12.2.0_535.54.03_linux.run
 
 # add path and ld path
 
-export PATH="/usr/local/cuda-11.8/bin:$PATH"
+export PATH="/usr/local/cuda-12.2/bin:$PATH"
 
 # /etc/ld.so.conf
 
 ...
-include /usr/local/cuda-11.8/lib64
+include /usr/local/cuda-12.2/lib64
 ...
 
 sudo ldconfig
@@ -5420,7 +5420,7 @@ mv libtorch libtorch-cpu
 
 # gpu
 
-wget https://download.pytorch.org/libtorch/cu118/libtorch-cxx11-abi-shared-with-deps-2.1.1%2Bcu118.zip
+wget https://download.pytorch.org/libtorch/cu121/libtorch-cxx11-abi-shared-with-deps-2.1.1%2Bcu121.zip
 
 
 # build 

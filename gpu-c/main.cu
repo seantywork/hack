@@ -1,4 +1,4 @@
-// CUDA 11.8
+// CUDA 12.1
 
 // System includes
 #include <stdio.h>

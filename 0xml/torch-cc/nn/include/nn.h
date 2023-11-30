@@ -1,3 +1,6 @@
+// torch 2.1.1
+// cuda 12.1
+
 #pragma once
 
 #include <torch/torch.h>

@@ -5333,9 +5333,9 @@ sudo /usr/bin/nvidia-uninstall
 
 # visit corresponding https://developer.nvidia.com/cuda-downloads 
 
-wget https://developer.download.nvidia.com/compute/cuda/11.5.1/local_installers/cuda_11.5.1_495.29.05_linux.run
+wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
 
-sudo sh cuda_11.5.1_495.29.05_linux.run
+sudo sh cuda_11.8.0_520.61.05_linux.run
 
 # add path and ld path
 
@@ -5355,6 +5355,34 @@ sudo ldconfig
 
 /usr/local/cuda/bin/<uninstaller>
 
+
+```
+
+# LIB TORCH
+
+```shell
+
+# https://pytorch.org/get-started/locally/
+
+# cpu
+
+wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.1.1%2Bcpu.zip
+
+unzip 
+
+mv libtorch libtorch-cpu
+
+# gpu
+
+wget https://download.pytorch.org/libtorch/cu118/libtorch-cxx11-abi-shared-with-deps-2.1.1%2Bcu118.zip
+
+
+# build 
+
+mkdir build
+cd build
+cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch .. # cmake -DCMAKE_PREFIX_PATH=/home/seantywork/cc/cc/0xml/libtorch ..
+cmake --build . --config Release
 
 ```
 
@@ -8428,3 +8456,5 @@ sudo irsend LIST LG_AC ""
 sudo irsend SEND_ONCE LG_AC AC_ON
 
 ```
+
+

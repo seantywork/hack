@@ -1,3 +1,5 @@
+// CUDA 11.8
+
 // System includes
 #include <stdio.h>
 #include <assert.h>
@@ -6,8 +8,8 @@
 #include <cuda_runtime.h>
 
 // helper functions and utilities to work with CUDA
-#include <helper_functions.h>
-#include <helper_cuda.h>
+// #include <helper_functions.h>
+//#include <helper_cuda.h>
 /*
 __global__
 void saxpy(int n, float a, float *x, float *y)
@@ -60,11 +62,13 @@ int main(int argc, char **argv)
     cudaDeviceProp props;
 
     // This will pick the best possible CUDA capable device
-    devID = findCudaDevice(argc, (const char **)argv);
+//    devID = findCudaDevice(argc, (const char **)argv);
 
     //Get GPU information
-    checkCudaErrors(cudaGetDevice(&devID));
-    checkCudaErrors(cudaGetDeviceProperties(&props, devID));
+//    checkCudaErrors(cudaGetDevice(&devID));
+//    checkCudaErrors(cudaGetDeviceProperties(&props, devID));
+    cudaGetDevice(&devID);
+    cudaGetDeviceProperties(&props, devID);
     printf("Device %d: \"%s\" with Compute %d.%d capability\n",
             devID, props.name, props.major, props.minor);
 

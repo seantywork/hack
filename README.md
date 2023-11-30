@@ -5339,12 +5339,12 @@ sudo sh cuda_11.8.0_520.61.05_linux.run
 
 # add path and ld path
 
-export PATH="/usr/local/cuda-11.5/bin:$PATH"
+export PATH="/usr/local/cuda-11.8/bin:$PATH"
 
 # /etc/ld.so.conf
 
 ...
-include /usr/local/cuda-11.5/lib64
+include /usr/local/cuda-11.8/lib64
 ...
 
 sudo ldconfig
@@ -5381,7 +5381,11 @@ wget https://download.pytorch.org/libtorch/cu118/libtorch-cxx11-abi-shared-with-
 
 mkdir build
 cd build
-cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch .. # cmake -DCMAKE_PREFIX_PATH=/home/seantywork/cc/cc/0xml/libtorch ..
+cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch .. 
+# cmake -DCMAKE_PREFIX_PATH=/home/seantywork/cc/cc/0xml/libtorch .. (2.1)
+
+
+
 cmake --build . --config Release
 
 ```

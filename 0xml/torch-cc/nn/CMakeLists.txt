@@ -1,25 +1,34 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-project(nn)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+
+project(feedforward-neural-network VERSION 1.0.0 LANGUAGES CXX)
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
-link_directories( 
-    /usr/local/cuda-11.5/lib64
-    )
+set(EXECUTABLE_NAME fnn.out)
 
-add_executable(nn.out nn.cc)
-target_link_libraries(nn.out "${TORCH_LIBRARIES}")
-set_property(TARGET nn.out PROPERTY CXX_STANDARD 17)
+add_executable(${EXECUTABLE_NAME})
+target_sources(${EXECUTABLE_NAME} PRIVATE src/main.cc
+                                          src/nn.cc
+                                          include/nn.h
+)
 
-# The following code block is suggested to be used on Windows.
-# According to https://github.com/pytorch/pytorch/issues/25457,
-# the DLLs need to be copied to avoid memory errors.
-if (MSVC)
-  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  add_custom_command(TARGET example-app
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                     ${TORCH_DLLS}
-                     $<TARGET_FILE_DIR:example-app>)
-endif (MSVC)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE include)
+
+target_link_libraries(${EXECUTABLE_NAME} ${TORCH_LIBRARIES})
+
+set_target_properties(${EXECUTABLE_NAME} PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+)
+
+if(DOWNLOAD_DATASETS)
+    add_dependencies(${EXECUTABLE_NAME} mnist)
+endif()
+
+if(MSVC)
+    set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+    set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
+    include(copy_torch_dlls)
+    copy_torch_dlls(${EXECUTABLE_NAME})
+endif(MSVC)

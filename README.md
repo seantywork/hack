@@ -5840,7 +5840,30 @@ wget https://www.torproject.org/dist/torbrowser/11.5.7/tor-browser-linux64-11.5.
 tar -xvf tor-browser-linux64-11.5.7_en-US.tar.xz 
 
  
+# install command line
 
+apt install apt-transport-https
+
+```
+
+
+```shell
+
+# /etc/apt/sources.list.d/tor.list
+
+   deb     [arch=amd64 signed-by=/usr/share/keyrings/tor-archive-keyring.gpg] https://deb.torproject.org/torproject.org jammy main
+   deb-src [arch=amd64 signed-by=/usr/share/keyrings/tor-archive-keyring.gpg] https://deb.torproject.org/torproject.org jammy main
+
+```
+
+```shell
+
+wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --dearmor | sudo tee /usr/share/keyrings/tor-archive-keyring.gpg >/dev/null
+
+
+apt update
+
+apt install tor deb.torproject.org-keyring
 
 ```
 
@@ -5872,6 +5895,15 @@ git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
 sudo apt install nikto -y 
 
  
+```
+
+# NGROK
+
+```shell
+
+sudo snap install ngrok
+
+ngrok tcp <port>
 ```
 
 # BURPESUITE

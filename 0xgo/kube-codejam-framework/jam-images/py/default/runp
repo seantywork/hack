@@ -1,6 +1,0 @@
-#!/bin/bash
-
-
-/workspace/runo py
-
-tail -f /dev/null

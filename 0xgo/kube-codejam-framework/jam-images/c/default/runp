@@ -1,6 +1,0 @@
-#!/bin/bash
-
-
-/workspace/runo c
-
-tail -f /dev/null

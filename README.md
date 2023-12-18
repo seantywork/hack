@@ -5428,7 +5428,7 @@ wget https://download.pytorch.org/libtorch/cu121/libtorch-cxx11-abi-shared-with-
 mkdir build
 cd build
 cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch .. 
-# cmake -DCMAKE_PREFIX_PATH=/home/seantywork/ph/hack/0xalgo/libtorch .. (2.1)
+# cmake -DCMAKE_PREFIX_PATH=/home/seantywork/main/hack/0xalgo/libtorch .. (2.1)
 
 
 

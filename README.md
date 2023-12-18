@@ -5520,6 +5520,17 @@ sudo usermod -aG libvirt $USER
 
 sudo virt-manager
 
+# aarch64 on x64
+
+# adding to the above first line
+
+sudo apt-get install qemu-system-arm qemu-efi
+
+# and set arch as aarch64 virt
+
+# then set UEFI to aarch64
+
+
 ```
 
 # VIRTUAL CLUSTER

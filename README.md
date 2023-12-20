@@ -141,7 +141,7 @@ modprobe -r
 
 ```
 ```shell
-# auto load:  insert module name to
+# auto load:  insert module load command to
 
 # /etc/modules-load.d/foo.conf
 # or
@@ -158,6 +158,25 @@ foo
 # or
 # /etc/modprobe.d/foo.conf
 blacklist foo
+
+```
+
+```shell
+
+# dkms
+# autobuild when kernel update
+
+# add dkms.conf
+dkms add . -m $MODULE_NAME -v $VERSION
+
+dkms autoinstall
+
+# or
+
+dkms build $MODULE -v $VERSION
+
+dkms install $MODULE -v $VERSION
+
 
 ```
 

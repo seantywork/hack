@@ -8558,3 +8558,106 @@ sudo irsend SEND_ONCE LG_AC AC_ON
 ```
 
 
+
+# JETSON XAVIER NX
+
+```shell
+
+# first flash
+
+# recovery mode
+
+# check if recovery mode
+
+lsusb 
+
+# get jetson linux bsp and rootfs
+
+# 35.4.1 (ubuntu20)
+
+# https://developer.nvidia.com/embedded/jetson-linux-r3541
+
+# un bzip2 un tar both and get the rootfs using sudo tar into BSP/rootfs
+
+sudo ./apply_binaries.sh
+
+sudo ./nvautoflash.sh
+
+# now on jetson
+
+fdisk /dev/nvme0n
+
+mkfs.ext4 /dev/nvme0np1
+
+
+# copy to volume and then switch rootfs when booting
+
+sudo mount /dev/nvme0n1p1 /mnt
+
+sudo rsync -axHAWX --numeric-ids --info=progress2 --exclude={"/dev/","/proc/","/sys/","/tmp/","/run/","/mnt/","/media/*","/lost+found"} / /mnt
+
+
+sudo cp setssdroot.service /etc/systemd/system
+sudo cp setssdroot.sh /sbin
+sudo chmod 777 /sbin/setssdroot.sh
+systemctl daemon-reload
+sudo systemctl enable setssdroot.service
+
+
+sudo cp /etc/systemd/system/setssdroot.service /mnt/etc/systemd/system/setssdroot.service
+sudo cp /sbin/setssdroot.sh /mnt/sbin/setssdroot.sh
+
+
+sudo touch /etc/setssdroot.conf
+
+```
+
+```shell
+# setssdroot.servce
+
+[Unit]
+Description=Change rootfs to SSD in M.2 key M slot (nvme0n1p1)
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=systemd-remount-fs.service
+Before=local-fs-pre.target local-fs.target shutdown.target
+Wants=local-fs-pre.target
+ConditionPathExists=/dev/nvme0n1p1
+ConditionPathExists=/etc/setssdroot.conf
+ConditionVirtualization=!container
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/setssdroot.sh
+[Install]
+WantedBy=default.target
+
+```
+
+```shell
+# setssdroot.sh
+#!/bin/sh
+NVME_DRIVE="/dev/nvme0n1p1"
+CHROOT_PATH="/nvmeroot"
+
+INITBIN=/lib/systemd/systemd
+EXT4_OPT="-o defaults -o errors=remount-ro -o discard"
+
+modprobe ext4
+
+mkdir -p ${CHROOT_PATH}
+mount -t ext4 ${EXT4_OPT} ${NVME_DRIVE} ${CHROOT_PATH}
+
+cd ${CHROOT_PATH}
+/bin/systemctl --no-block switch-root ${CHROOT_PATH}
+```
+
+```shell
+
+# install jetpack
+
+sudo apt update
+sudo apt install nvidia-jetpack
+
+
+```

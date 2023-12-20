@@ -8613,7 +8613,7 @@ sudo touch /etc/setssdroot.conf
 ```
 
 ```shell
-# setssdroot.servce
+# setssdroot.service
 
 [Unit]
 Description=Change rootfs to SSD in M.2 key M slot (nvme0n1p1)

@@ -1,0 +1,20 @@
+
+version: "3"
+
+
+services:
+
+        jam-cc-default:
+
+                build: .
+
+                container_name: jam-cc-default
+
+                ports:
+
+                        - "6700:6700"
+
+                volumes:
+                        - "./usercontent.cc:/tmp/usercontent.cc"
+                        - "./usercontent.input:/tmp/usercontent.input"
+                        - "./home:/home"

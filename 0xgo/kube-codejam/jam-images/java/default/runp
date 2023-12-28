@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+/workspace/runo java
+
+tail -f /dev/null

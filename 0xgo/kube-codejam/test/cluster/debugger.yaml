@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clusterdebugger
+spec:
+  selector:
+    matchLabels:
+      app: clusterdebugger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clusterdebugger
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: clusterdebugger
+          image: harbor.mipllab.com/library/clusterdebugger
+          volumeMounts:
+          - mountPath: /tmp
+            name: debugger-mount
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 6700
+      volumes:
+      - name: debugger-mount
+        configMap: 
+          name: debugger-mount
+          items:
+            - key: usercontent.c
+              path: usercontent.c
+            - key: usercontent.input
+              path: usercontent.input

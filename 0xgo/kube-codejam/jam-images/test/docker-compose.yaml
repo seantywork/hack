@@ -1,0 +1,20 @@
+
+version: "3"
+
+
+services:
+
+        jam-test-default:
+
+                build: .
+
+                container_name: jam-test-default
+
+                ports:
+
+                        - "6700:6700"
+
+                volumes:
+                        - "./usercontent.test:/tmp/usercontent.test"
+                        - "./usercontent.input:/tmp/usercontent.input"
+                        - "./home:/home"

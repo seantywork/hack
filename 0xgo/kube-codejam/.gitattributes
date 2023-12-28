@@ -1,6 +1,0 @@
-*.html linguist-vendored
-*.css linguist-vendored
-*.js linguist-vendored
-*.go linguist-vendored=false
-*.sh linguist-vendored=false
-*.py linguist-vendored=false

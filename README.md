@@ -7988,7 +7988,7 @@ export PATH="$MY_gRPC_DIR/bin:$PATH"
 
 sudo apt install -y build-essential autoconf libtool pkg-config
 
-git clone --recurse-submodules -b v1.58.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+git clone --recurse-submodules -b v1.60.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc
 
 
 cd grpc

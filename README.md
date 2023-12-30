@@ -2268,6 +2268,10 @@ openssl req -key sub_priv.pem -new -sha256 -out sub.csr
 
 openssl  x509 -req -days 180 -in sub.csr -CA ca.crt -CAkey ca_priv.pem -CAcreateserial -sha256 -out sub.crt
 
+# issuer signing with sans
+
+openssl  x509 -req -extfile <(printf "subjectAltName = DNS:some.thing") -days 180 -in sub.csr -CA ca.crt -CAkey ca_priv.pem -CAcreateserial -sha256 -out sub.crt
+
 # read csr, certificate
 
 openssl x509 -in <csr,crt> -text -noout

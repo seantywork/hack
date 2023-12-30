@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"time"
 
-	jambuild "0xgo/kube-codejam/jam/build"
-	jamwatch "0xgo/kube-codejam/jam/watch"
+	jambuild "github.com/seantywork/0xgo/kube-codejam/jam/build"
+	jamwatch "github.com/seantywork/0xgo/kube-codejam/jam/watch"
 )
 
 func RunPayloadJam(flag string, log_run string, log_out *os.File, log_err *os.File) error {

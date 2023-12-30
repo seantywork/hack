@@ -1,4 +1,4 @@
-module 0xgo
+module github.com/seantywork/0xgo
 
 go 1.21
 

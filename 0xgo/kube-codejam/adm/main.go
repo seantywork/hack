@@ -12,7 +12,7 @@ import (
 	_ "os"
 	_ "time"
 
-	"0xgo/kube-codejam/adm/querydb"
+	"github.com/seantywork/0xgo/kube-codejam/adm/querydb"
 
 	"github.com/gorilla/websocket"
 )

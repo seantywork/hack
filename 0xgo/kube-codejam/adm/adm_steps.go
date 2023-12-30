@@ -5,9 +5,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"0xgo/kube-codejam/adm/querydb"
-	"0xgo/kube-codejam/adm/resource"
-	"0xgo/kube-codejam/adm/utils"
+	"github.com/seantywork/0xgo/kube-codejam/adm/querydb"
+	"github.com/seantywork/0xgo/kube-codejam/adm/resource"
+	"github.com/seantywork/0xgo/kube-codejam/adm/utils"
 )
 
 func OperationStepForwarder(STEP *int, stepbin *resource.StepBin) (int, string, error) {

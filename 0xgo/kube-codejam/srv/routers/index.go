@@ -1,7 +1,7 @@
 package routers
 
 import (
-	ctrl "0xgo/kube-codejam/srv/controllers"
+	ctrl "github.com/seantywork/0xgo/kube-codejam/srv/controllers"
 
 	"github.com/gin-gonic/gin"
 )

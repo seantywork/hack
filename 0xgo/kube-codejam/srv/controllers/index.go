@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 
-	"0xgo/kube-codejam/adm/utils"
-	"0xgo/kube-codejam/srv/models"
+	"github.com/seantywork/0xgo/kube-codejam/adm/utils"
+	"github.com/seantywork/0xgo/kube-codejam/srv/models"
 )
 
 func Index(c *gin.Context) {

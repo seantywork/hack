@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"0xgo/kube-codejam/adm/utils"
+	"github.com/seantywork/0xgo/kube-codejam/adm/utils"
 
 	_ "github.com/go-sql-driver/mysql"
 )

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"0xgo/kube-codejam/adm/querydb"
-	"0xgo/kube-codejam/adm/utils"
+	"github.com/seantywork/0xgo/kube-codejam/adm/querydb"
+	"github.com/seantywork/0xgo/kube-codejam/adm/utils"
 )
 
 type RowInterface map[string]interface{}

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"0xgo/kube-codejam/adm/querydb"
-	"0xgo/kube-codejam/adm/resource"
+	"github.com/seantywork/0xgo/kube-codejam/adm/querydb"
+	"github.com/seantywork/0xgo/kube-codejam/adm/resource"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"

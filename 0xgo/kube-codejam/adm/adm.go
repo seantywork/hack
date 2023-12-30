@@ -9,11 +9,11 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"0xgo/kube-codejam/adm/nanny"
-	_ "0xgo/kube-codejam/adm/nanny"
-	"0xgo/kube-codejam/adm/querydb"
-	"0xgo/kube-codejam/adm/resource"
-	"0xgo/kube-codejam/adm/utils"
+	"github.com/seantywork/0xgo/kube-codejam/adm/nanny"
+	_ "github.com/seantywork/0xgo/kube-codejam/adm/nanny"
+	"github.com/seantywork/0xgo/kube-codejam/adm/querydb"
+	"github.com/seantywork/0xgo/kube-codejam/adm/resource"
+	"github.com/seantywork/0xgo/kube-codejam/adm/utils"
 
 	"github.com/gorilla/websocket"
 )

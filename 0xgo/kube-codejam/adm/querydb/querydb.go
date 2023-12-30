@@ -3,7 +3,7 @@ package querydb
 import (
 	"database/sql"
 
-	"0xgo/kube-codejam/adm/utils"
+	"github.com/seantywork/0xgo/kube-codejam/adm/utils"
 
 	"time"
 

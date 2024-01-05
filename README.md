@@ -8859,9 +8859,25 @@ sudo apt install libnginx-mod-rtmp
 ```shell
 # /etc/nginx/nginx.conf
 
+# for ssl
+stream{
+
+        upstream RTMP_SERVER {
+                server 192.168.0.32:1936;
+        }
+
+
+        server {
+                listen 1935 ssl;
+                proxy_pass RTMP_SERVER;
+                ssl_certificate /etc/letsencrypt/live/feebdaed.xyz/fullchain.pem;
+                ssl_certificate_key /etc/letsencrypt/live/feebdaed.xyz/privkey.pem;
+        }
+}
+
 rtmp {
         server {
-                listen 1935;
+                listen 1936;
                 allow publish 192.168.0.32;
 
                 application live {
@@ -8880,8 +8896,11 @@ rtmp {
 server
 {
 
-        listen      8080;
-
+        listen      8080 ssl;
+        ssl_certificate /etc/letsencrypt/live/feebdaed.xyz/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/feebdaed.xyz/privkey.pem; # managed by Certbot
+        include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
         location /hls {
             types {
@@ -8911,7 +8930,7 @@ ffmpeg -f v4l2 -i /dev/video0 \
   -c:v libx264 -pix_fmt yuv420p -framerate 15 -g 30 -b:v 500k \
   -c:a aac -b:a 128k -ar 44100 -ac 2 \
   -f flv -flvflags no_duration_filesize \
-  rtmp://192.168.0.32/live/MyWebCam
+  rtmps://$HOST/live/MyWebCam
 
 #  -preset ultrafast -tune zerolatency                             \
 

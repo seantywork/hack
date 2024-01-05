@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+        vidstream:
+                build: ./srs
+                container_name: vidstream
+                ports:
+                        - "1935:1935"
+                        - "1985:1985"
+                        - "8080:8080"
+                        - "8088:8088"
+                        - "8000:8000/udp"
+                        - "10080:10080/udp"

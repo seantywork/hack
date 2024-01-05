@@ -8844,3 +8844,43 @@ sudo apt install nvidia-jetpack
 
 
 ```
+
+
+# VIDEO LIVE STREAM FFMPEG
+
+```shell
+
+sudo apt install -y ffmpeg v4l-utils
+
+git clone https://github.com/seantywork/srs.git
+
+
+ffmpeg -f v4l2 -i /dev/video0                                   \
+  -f alsa -i hw:0,0                                               \
+  -c:v libx264 -pix_fmt yuv420p -framerate 15 -g 30 -b:v 500k     \
+  -c:a aac -b:a 128k -ar 44100 -ac 2                              \
+  -f flv rtmp://localhost/live/livestream
+#  -preset ultrafast -tune zerolatency                             \
+
+```
+
+```shell
+# client
+
+# ossrs/srs
+
+version: "3"
+
+services:
+        vidstream:
+                build: ./srs
+                container_name: vidstream
+                ports:
+                        - "1935:1935"
+                        - "1985:1985"
+                        - "8080:8080"
+                        - "8088:8088"
+                        - "8000:8000/udp"
+                        - "10080:10080/udp"
+
+```

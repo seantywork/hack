@@ -8854,9 +8854,6 @@ sudo apt install -y ffmpeg v4l-utils
 
 sudo apt install libnginx-mod-rtmp
 
-sudo add-apt-repository ppa:obsproject/obs-studio
-
-sudo apt install obs-studio
 
 ```
 ```shell

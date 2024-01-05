@@ -8852,35 +8852,71 @@ sudo apt install nvidia-jetpack
 
 sudo apt install -y ffmpeg v4l-utils
 
-git clone https://github.com/seantywork/srs.git
+sudo apt install libnginx-mod-rtmp
+
+sudo add-apt-repository ppa:obsproject/obs-studio
+
+sudo apt install obs-studio
+
+```
+```shell
+# /etc/nginx/nginx.conf
+
+rtmp {
+        server {
+                listen 1935;
+                allow publish 192.168.0.32;
+
+                application live {
+                        live on;
+                        interleave on;
+                        record off;
+                        hls on;
+                        hls_path /tmp/hls;
+                        hls_fragment 15s;
+                }
+        }
+}
+
+# /etc/nginx/conf.d/hls.conf
+
+server
+{
+
+        listen      8080;
 
 
-ffmpeg -f v4l2 -i /dev/video0                                   \
-  -f alsa -i hw:0,0                                               \
-  -c:v libx264 -pix_fmt yuv420p -framerate 15 -g 30 -b:v 500k     \
-  -c:a aac -b:a 128k -ar 44100 -ac 2                              \
-  -f flv rtmp://localhost/live/livestream
+        location /hls {
+            types {
+                application/vnd.apple.mpegurl m3u8;
+                video/mp2t ts;
+            }
+            root /tmp;
+            add_header Cache-Control no-cache;
+
+            # for file:// testing only
+            add_header Access-Control-Allow-Origin *;
+
+        }
+}
+
+
+```
+
+
+```shell
+
+# stream to server
+
+
+ffmpeg -f v4l2 -i /dev/video0 \
+  -f alsa -i hw:0,0 \
+  -c:v libx264 -pix_fmt yuv420p -framerate 15 -g 30 -b:v 500k \
+  -c:a aac -b:a 128k -ar 44100 -ac 2 \
+  -f flv -flvflags no_duration_filesize \
+  rtmp://192.168.0.32/live/MyWebCam
+
 #  -preset ultrafast -tune zerolatency                             \
 
 ```
 
-```shell
-# client
-
-# ossrs/srs
-
-version: "3"
-
-services:
-        vidstream:
-                build: ./srs
-                container_name: vidstream
-                ports:
-                        - "1935:1935"
-                        - "1985:1985"
-                        - "8080:8080"
-                        - "8088:8088"
-                        - "8000:8000/udp"
-                        - "10080:10080/udp"
-
-```

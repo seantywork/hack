@@ -8846,7 +8846,7 @@ sudo apt install nvidia-jetpack
 ```
 
 
-# VIDEO LIVE STREAM FFMPEG
+# VIDEO LIVE STREAM FFMPEG RTMP NGINX
 
 ```shell
 
@@ -8880,6 +8880,8 @@ rtmp {
                 listen 1936;
                 allow publish 192.168.0.32;
 
+                # allow publish feebdaed.xyz
+
                 application live {
                         live on;
                         interleave on;
@@ -8887,6 +8889,11 @@ rtmp {
                         hls on;
                         hls_path /tmp/hls;
                         hls_fragment 15s;
+
+                        # external auth server
+                        on_publish http://localhost:5000/auth;
+                        notify_method get;
+
                 }
         }
 }
@@ -8930,7 +8937,7 @@ ffmpeg -f v4l2 -i /dev/video0 \
   -c:v libx264 -pix_fmt yuv420p -framerate 15 -g 30 -b:v 500k \
   -c:a aac -b:a 128k -ar 44100 -ac 2 \
   -f flv -flvflags no_duration_filesize \
-  rtmps://$HOST/live/MyWebCam
+  "rtmps://$HOST/live/MyWebCam?puser=$PUSER"
 
 #  -preset ultrafast -tune zerolatency                             \
 

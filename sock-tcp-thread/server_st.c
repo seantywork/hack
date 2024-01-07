@@ -8,9 +8,6 @@ int main()
     int main_thread = 10;
 
 
-
-
-
     for (int i = 0; i < MAX_CONN; i ++){
 
         CLIENT_SOCKET[i] = 0;
@@ -52,25 +49,69 @@ int main()
         SERVLEN = sizeof(SERVADDR); 
     }
 
-
-
-    sem_init(&TLOCK, 0, 1);
-
-    for (int i = 0; i < MAX_WORKER; i++){
-
-        int err = pthread_create(&(TID[i]), NULL, Worker, (void *)&(i));
-
-        if (err != 0){
-            printf("error creating thread\n");
-            return EXIT_FAILURE;
-        }
+    if(pthread_mutex_init(&TLOCK, NULL) != 0){
+        printf("mutex init failed \n");
+        return EXIT_FAILURE;
     }
 
 
 
 
-    Worker((void *)&main_thread);
+    while(TRUE){
 
+        int new_conn;
+        int sock_added = FALSE;
+        struct WorkerArg warg;
+        int wid;
+
+        printf("waiting for new conn\n");
+
+        new_conn = accept(SOCKFD, (SA* )&SERVADDR, (socklen_t*)&SERVLEN);
+
+        if (new_conn < 0){
+    
+            printf("accpet error\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0 ; i < MAX_CONN; i ++){
+
+            if(CLIENT_SOCKET[i] == 0){
+                pthread_mutex_lock(&TLOCK);
+
+                CLIENT_SOCKET[i] = new_conn;
+                
+                warg.WTHREAD_ID = i;
+                warg.WSOCK_FD = new_conn;
+                
+                printf("added new conn\n");
+                
+                sock_added = TRUE;
+                
+                pthread_mutex_unlock(&TLOCK);
+                
+                wid = i;
+                
+                break;
+            }
+        }
+
+
+        int perr = pthread_create(&(TID[wid]), NULL, Worker, (void *)&warg);
+
+        if(perr != 0){
+            printf("thread creation failed\n");
+            return EXIT_FAILURE;
+        }else {
+
+            printf("thread created\n");
+            
+        }
+
+    }
+
+
+    pthread_mutex_destroy(&TLOCK);
 
     return EXIT_SUCCESS;
 }

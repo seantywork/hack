@@ -7754,7 +7754,7 @@ while true; do nc -l 0.0.0.0 8000 < resp; done
 ```
 
 
-# CMakeLists.txt
+# CMAKELISTS TXT CMAKE
 
 ```shell
 
@@ -7830,6 +7830,41 @@ target_link_libraries(main.out ${PROJECT_LINK_LIBS})
 
 ```
 
+```shell
+
+# include another one
+
+include(another/cmakelists.txt)
+
+
+
+# source all
+file(
+  GLOB somefile
+  "${SRC_DIR}/*.c"
+)
+
+# -pthread
+
+Threads::Threads
+
+# export (when included in another CMakeLists.txt)
+install(
+  TARGETS thethinghere
+  EXPORT thethinghere
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
+
+install(
+  EXPORT thethinghere
+  DESTINATION lib
+  FILE agvcancomm-Config.cmake
+)
+
+
+
+```
 
 
 # JENKINSFILE

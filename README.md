@@ -5541,13 +5541,45 @@ spec:
 
 ```
 
-# GPU DRIVER UNINSTALL
+# GPU DRIVER INSTALL UNINSTALL
+
 
 ```shell
+
+sudo ubuntu-drivers list
+
+# or, for servers:
+
+sudo ubuntu-drivers list --gpgpu
+
+# install
+sudo ubuntu-drivers install nvidia:525
+
+# or for servers:
+
+sudo ubuntu-drivers install --gpgpu nvidia:525-server
+
+# or install GPU API
+
+sudo sh cuda_<VERSION>_linux.run
+
+# or run file
+
+sudo NVIDIA_<VERSION>.run 
+
+```
+
+
+```shell
+# uninstall
 
 sudo apt-get --purge remove "*nvidia*"
 
 sudo /usr/bin/nvidia-uninstall
+
+# or runfile
+
+sudo NVIDIA_<VERSION>.run --uninstall
 
 ```
 

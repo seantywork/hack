@@ -8462,6 +8462,26 @@ ros2 run $PKG_NAME $NODE_NAME
 
 
 ```
+# ROS COLCON BUILD LAUNCH
+
+```shell
+# term 1
+
+source /opt/ros/directory/setup.bash
+
+colcon build --symlink-install
+
+```
+
+```shell
+# term 2
+
+source install/setup.bash
+
+ros2 launch $PAKCAGE_NAME $LAUNCHFILE_NAME
+
+
+```
 
 
 # ROS DOCKER

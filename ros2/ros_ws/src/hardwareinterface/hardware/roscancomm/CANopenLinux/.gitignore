@@ -1,0 +1,14 @@
+/html
+/canopend
+/cocomm/cocomm
+*.o
+*.persist
+*.persist.old
+
+#eclipse
+.cproject
+.project
+.settings/
+
+#kdevelop
+*.kdev4

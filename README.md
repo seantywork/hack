@@ -5269,9 +5269,91 @@ sudo update-initramfs -u
 sudo reboot
 ```
 
+
+# GPU DRIVER INSTALL UNINSTALL
+
+
 ```shell
 
- 
+sudo ubuntu-drivers list
+
+# or, for servers:
+
+sudo ubuntu-drivers list --gpgpu
+
+# install
+sudo ubuntu-drivers install nvidia:525
+
+# or for servers:
+
+sudo ubuntu-drivers install --gpgpu nvidia:525-server
+
+# or install GPU API
+
+sudo sh cuda_<VERSION>_linux.run
+
+# or run file
+
+sudo NVIDIA_<VERSION>.run 
+
+```
+
+
+```shell
+# uninstall
+
+sudo apt-get --purge remove "*nvidia*"
+
+sudo /usr/bin/nvidia-uninstall
+
+# or runfile
+
+sudo NVIDIA_<VERSION>.run --uninstall
+
+```
+
+# GPU API
+
+```shell
+
+# nvidia cuda toolkit
+
+# check nvidia-smi cuda version
+
+# visit corresponding https://developer.nvidia.com/cuda-downloads 
+
+wget https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda_12.2.0_535.54.03_linux.run
+
+sudo sh cuda_12.2.0_535.54.03_linux.run
+
+# add path and ld path
+
+export PATH="/usr/local/cuda-12.2/bin:$PATH"
+
+# /etc/ld.so.conf
+
+...
+include /usr/local/cuda-12.2/lib64
+...
+
+sudo ldconfig
+
+
+# uninstall
+
+
+/usr/local/cuda/bin/<uninstaller>
+
+
+```
+
+
+# GPU CONTAINER
+
+
+
+```shell
+
 
 # install nvidia container toolkit 
 
@@ -5541,82 +5623,7 @@ spec:
 
 ```
 
-# GPU DRIVER INSTALL UNINSTALL
 
-
-```shell
-
-sudo ubuntu-drivers list
-
-# or, for servers:
-
-sudo ubuntu-drivers list --gpgpu
-
-# install
-sudo ubuntu-drivers install nvidia:525
-
-# or for servers:
-
-sudo ubuntu-drivers install --gpgpu nvidia:525-server
-
-# or install GPU API
-
-sudo sh cuda_<VERSION>_linux.run
-
-# or run file
-
-sudo NVIDIA_<VERSION>.run 
-
-```
-
-
-```shell
-# uninstall
-
-sudo apt-get --purge remove "*nvidia*"
-
-sudo /usr/bin/nvidia-uninstall
-
-# or runfile
-
-sudo NVIDIA_<VERSION>.run --uninstall
-
-```
-
-# GPU API
-
-```shell
-
-# nvidia cuda toolkit
-
-# check nvidia-smi cuda version
-
-# visit corresponding https://developer.nvidia.com/cuda-downloads 
-
-wget https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda_12.2.0_535.54.03_linux.run
-
-sudo sh cuda_12.2.0_535.54.03_linux.run
-
-# add path and ld path
-
-export PATH="/usr/local/cuda-12.2/bin:$PATH"
-
-# /etc/ld.so.conf
-
-...
-include /usr/local/cuda-12.2/lib64
-...
-
-sudo ldconfig
-
-
-# uninstall
-
-
-/usr/local/cuda/bin/<uninstaller>
-
-
-```
 
 # LIB TORCH
 

@@ -3806,57 +3806,6 @@ containers:
 
 ```
 
-
-# CONFIGMAP
-
-```yaml
-
-
-apiVersion: v1 
-
-kind: ConfigMap 
-
-metadata: 
-
-  namespace: logging 
-
-  name: elasticsearch-data-config 
-
-  labels: 
-
-    app: elasticsearch 
-
-    role: data 
-
-data: 
-
-  elasticsearch.yml: |- 
-
-    cluster.name: ${CLUSTER_NAME} 
-
-    node.name: ${NODE_NAME} 
-
-    discovery.seed_hosts: ${NODE_LIST} 
-
-    cluster.initial_master_nodes: ${MASTER_NODES} 
-
-    network.host: 0.0.0.0 
-
-    node: 
-
-      master: false 
-
-      data: true 
-
-      ingest: false 
-
-    xpack.security.enabled: true 
-
-    xpack.monitoring.collection.enabled: true 
-
-
-```
-
 # NODEPORT
 
 
@@ -4004,6 +3953,107 @@ metadata:
   resourceVersion: "24225834"
   uid: 08673e9a-bdba-4a5a-9dda-a7f470d6214e
 ```
+
+```yaml
+
+
+apiVersion: v1 
+
+kind: ConfigMap 
+
+metadata: 
+
+  namespace: logging 
+
+  name: elasticsearch-data-config 
+
+  labels: 
+
+    app: elasticsearch 
+
+    role: data 
+
+data: 
+
+  elasticsearch.yml: |- 
+
+    cluster.name: ${CLUSTER_NAME} 
+
+    node.name: ${NODE_NAME} 
+
+    discovery.seed_hosts: ${NODE_LIST} 
+
+    cluster.initial_master_nodes: ${MASTER_NODES} 
+
+    network.host: 0.0.0.0 
+
+    node: 
+
+      master: false 
+
+      data: true 
+
+      ingest: false 
+
+    xpack.security.enabled: true 
+
+    xpack.monitoring.collection.enabled: true 
+
+
+```
+
+
+```shell
+
+# create
+
+
+kubectl create configmap ${CONFIGMAP_NAME} --from-file=${FILE} --from-file=${FILE}
+
+
+```
+
+
+```shell
+# mount
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clusterdebugger
+spec:
+  selector:
+    matchLabels:
+      app: clusterdebugger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clusterdebugger
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: clusterdebugger
+          image: harbor.mipllab.com/library/clusterdebugger
+          volumeMounts:
+          - mountPath: /tmp
+            name: debugger-mount
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 6700
+      volumes:
+      - name: debugger-mount
+        configMap: 
+          name: debugger-mount
+          items:
+            - key: usercontent.c
+              path: usercontent.c
+            - key: usercontent.input
+              path: usercontent.input
+
+```
+
 
 
 # SECRET EXAMPLE (TLS)

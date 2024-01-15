@@ -7029,7 +7029,7 @@ mkdir -p "$HOME"/.kube
 sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config
 sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config
 
-if [ ! -z ${INSTALL_CALICO+x} ]
+if [ -z ${INSTALL_CALICO+x} ]
 then
   # cilium
   CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)

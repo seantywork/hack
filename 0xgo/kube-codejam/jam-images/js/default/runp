@@ -1,6 +1,0 @@
-#!/bin/bash
-
-
-/workspace/runo js
-
-tail -f /dev/null

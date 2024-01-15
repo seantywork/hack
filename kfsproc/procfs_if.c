@@ -358,7 +358,7 @@ static int __init procfs_if_init(void)
 
  out_fail_3:
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 5, 0)
 	kzfree(gdrvctx);
 #else
     kfree_sensitive(gdrvctx);
@@ -373,12 +373,12 @@ static void __exit procfs_if_cleanup(void)
 {
 	gdrvctx->power = 0;
 	remove_proc_subtree(OURMODNAME, NULL);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 5, 0)
 	kzfree(gdrvctx);
 #else
     kfree_sensitive(gdrvctx);
 #endif
-    // kzfree(gdrvctx);
+
 	pr_info("removed\n");
 }
 

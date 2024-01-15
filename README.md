@@ -180,6 +180,13 @@ dkms install $MODULE -v $VERSION
 
 ```
 
+```shell
+# manually create dev without using udev
+
+sudo mknod "${DEVNM}" c ${MAJOR} ${MINOR}
+
+```
+
 # LINUX BOOT
 
 ```shell

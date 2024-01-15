@@ -682,6 +682,18 @@ git config --global credential.helper store
 
 # then clone or pull or whatever to store
 
+# git submodule
+
+git submodule add <repository.git>
+
+# git submodule clone
+
+git clone <repository.git>
+
+git submodule init
+
+git submodule update
+
 # private repo
 # automatic with go
 

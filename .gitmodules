@@ -10,3 +10,6 @@
 [submodule "kwifi-rtl8852au"]
 	path = kwifi-rtl8852au
 	url = https://github.com/seantywork/kwifi-rtl8852au.git
+[submodule "0xgo/no-kube-in-the-a-s"]
+	path = 0xgo/no-kube-in-the-a-s
+	url = https://github.com/seantywork/no-kube-in-the-a-s.git

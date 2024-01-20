@@ -341,6 +341,52 @@ journalctl -b
 dmesg
 efibootmgr
 ```
+
+# GCC G++ CLANG COMPILE
+
+```shell
+
+
+--std=c99 
+
+--std=c++11
+
+--std=c++14
+
+-g  # for gdb
+
+-Wall
+
+-l # for linking
+
+-c # for unlinked object file
+
+-I # inlcude dir
+
+-L # library directory
+
+-Wl,-rpath=  # library directory (for dynamic loader)
+
+-c -fPIC # for .so
+
+-shared # for .so
+
+# ex) 
+# gcc -c -Wall -o solimod.o -fpic lib/sorrylinusmod/mod/solimod.c
+# gcc -shared -o libsolimod.so solimod.o
+
+ar rcs # for .a
+
+# ex)
+# gcc -c -o out.o out.c
+# ar rcs libout.a out.o
+
+-D  # define variable
+
+
+```
+
+
 # GDB DEBUGGER C C++ GO BINARY DEBUG
 
 ```shell

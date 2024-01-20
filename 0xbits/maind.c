@@ -19,6 +19,12 @@ int main(){
 
 #endif
 
+#ifdef TARGET_STREAM_TO_2D
+
+    StreamTo2dInterface();
+
+#endif
+
 
     return 0;
 }

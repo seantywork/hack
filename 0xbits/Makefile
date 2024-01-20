@@ -104,5 +104,31 @@ arr-as-arg-lib:
 	gcc -shared -o lib$(BT)d.so $(BT).o
 
 
+.PHONY: stream-to-2d
+stream-to-2d:
+
+	test $(BT)
+
+	gcc $(GCC_FLAGS) -c -I. $(BT).o $(BT)/$(BT).c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o $(BT)/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D=y -I. -o main.out maind.c $(BT).o interface.o
+
+	cp $(BT)/test.txt . && ./main.out
+
+
+stream-to-2d-lib:
+
+	test $(BT)
+
+	gcc $(GCC_FLAGS) -c -I. $(BT).o $(BT)/$(BT).c
+
+	gcc $(GCC_FLAGS) -c -fPIC $(BT)d.o $(BT)/$(BT).c
+
+	ar rcs lib$(BT).a $(BT).o
+
+	gcc -shared -o lib$(BT)d.so $(BT).o
+
 clean:
 	rm -r *.txt *.o *.a *.so *.out

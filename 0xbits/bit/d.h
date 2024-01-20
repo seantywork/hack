@@ -45,7 +45,12 @@ void ReceiveCharArr(char arg[MAX_CHAR_ARR_LEN]);
 void ReceiveCharPtr(char* arg);
 
 
+#define MAX_STREAM_LEN 1024 * 1024 
+#define MAX_ROW_LEN 1024 
 
+void StreamTo2dInterface();
+
+void Print2dBufferFromStream(char* source);
 
 
 #ifdef __cplusplus

@@ -546,6 +546,47 @@ Miscellaneous
 
 ```
 
+# SYSTEMCTL SYSTEMD
+
+```shell
+# /root/1234.sh
+
+nc -lv 1234
+
+```
+
+```shell
+
+/etc/systemd/system/nc1234.service
+```
+
+
+```shell
+# /etc/systemd/system/nc1234.service
+
+[Unit]
+Description=nc1234 demo service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/root/1234.sh
+
+[Install]
+WantedBy=multi-user.target
+
+```
+
+```shell
+systemctl enable nc1234
+
+systemctl start nc1234
+
+```
+
 
 # LINUX EBPF LIBBPF
 
@@ -730,7 +771,12 @@ git config --global credential.helper store
 
 # git submodule
 
+
 git submodule add <repository.git>
+
+# git submodule pull all
+
+git submodule update --recursive
 
 # git submodule clone
 

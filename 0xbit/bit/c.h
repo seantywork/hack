@@ -20,12 +20,19 @@ int maxArea(int* height, int heightSize);
 
 
 
-#define 
+#define MAX_LONGEST_PALINDROMIC_SUBSTR_LENGTH 1000
+
+
 
 
 void LongestPalindromicSubstrInterface();
 
-char* longestPalindrome(char* s) 
+char* longestPalindrome(char* s) ;
+
+int IterateFromMiddle(char* s);
+
+int ExpansionCounter(char*s, int at, int head, int tail, int odd);
+
 
 #ifdef __cplusplus
 }

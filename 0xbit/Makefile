@@ -28,3 +28,7 @@ longest-palindromic-substr:
 	gcc $(GCC_FLAGS) -DTARGET_LONGEST_PALINDROMIC_SUBSTR=y -I. -o main.out mainc.c longest-palindromic-substr.o interface.o
 
 	cat longest-palindromic-substr/input | ./main.out
+
+
+clean:
+	rm -r *.txt *.o *.a *.so *.out

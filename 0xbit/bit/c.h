@@ -14,11 +14,18 @@ extern "C" {
 
 void MaxAreaInterface();
 
-int GetMaxAreaPerHead(int* height, int head, int tail);
+int GetMaxAreaHeadToTail(int* height, int head, int tail);
 
 int maxArea(int* height, int heightSize);
 
 
+
+#define 
+
+
+void LongestPalindromicSubstrInterface();
+
+char* longestPalindrome(char* s) 
 
 #ifdef __cplusplus
 }

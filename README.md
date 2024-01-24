@@ -551,7 +551,7 @@ Miscellaneous
 ```shell
 # /root/1234.sh
 
-nc -lv 1234
+ncat -lv 1234
 
 ```
 

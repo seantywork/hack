@@ -23,6 +23,12 @@ int main(){
 #endif
 
 
+#ifdef TARGET_REVERSE_INT32
+
+    ReverseInt32Interface();
+
+#endif
+
 
     return 0;
 }

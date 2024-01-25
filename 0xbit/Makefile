@@ -30,5 +30,18 @@ longest-palindromic-substr:
 	cat longest-palindromic-substr/input | ./main.out
 
 
+
+.PHONY: reverse-int32
+reverse-int32:
+
+	gcc $(GCC_FLAGS) -c -I. reverse-int32.o reverse-int32/reverse-int32.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o reverse-int32/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_REVERSE_INT32=y -I. -o main.out mainc.c reverse-int32.o interface.o
+
+	cat reverse-int32/input | ./main.out
+
+
 clean:
 	rm -r *.txt *.o *.a *.so *.out

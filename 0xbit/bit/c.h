@@ -29,9 +29,9 @@ void LongestPalindromicSubstrInterface();
 
 char* longestPalindrome(char* s) ;
 
-int IterateFromMiddle(char* s);
+void PollMaxTowardsRight(char* s, int* at, int* longest);
 
-int ExpansionCounter(char*s, int at, int head, int tail, int odd);
+int ExpansionWidthCounter(char*s, int start, int end, int total_len);
 
 
 #ifdef __cplusplus

@@ -2,44 +2,86 @@
 
 
 
-int ExpansionCounter(char* s, int at, int head, int tail, int odd){
+int ExpansionWidthCounter(char* s, int start, int end, int total_len){
 
 
-    int counter = 0;
-
-    int distance = 1;
-
-    while(1){
+    int counter = 1;
 
 
+    while(start >= 0 && end < total_len){
 
 
+        char at_start = s[start];
+
+        char at_end = s[end];
 
 
+        if (at_start != at_end){
+
+            break;
+
+        }
+
+
+        start -= 1;
+        end += 1;
     }
+    
 
+    counter = end - start -1;
 
     return counter;
 
 }
 
 
-int IterateFromMiddle(char* s){
+void PollMaxTowardsRight(char* s, int* at, int* longest){
 
-    int counter = 0;
 
     int total_len = strlen(s);
 
-    int tail = total_len - 1;
+    for(int i = 0; i < total_len; i ++){
 
-    int head = 0;
+        int start = i;
 
-    int jump = 1;
+        int odd_end = i;
 
-    int direction = 1;
+        int even_end = i + 1;
 
-    int middle = total_len / 2;
+        int tmp_ret1 = ExpansionWidthCounter(s, start, odd_end, total_len);
 
+        int tmp_ret2 = ExpansionWidthCounter(s, start, even_end, total_len);
+
+        int max_ret;
+
+        if(tmp_ret1 > tmp_ret2){
+
+            max_ret = tmp_ret1;
+
+        }else{
+
+            max_ret = tmp_ret2;
+
+        }
+
+        if(max_ret > *longest){
+
+            if(tmp_ret1 > tmp_ret2){
+
+                *at = i - tmp_ret1 / 2;
+            
+            } else{
+
+                *at = i - tmp_ret2 / 2 + 1;
+
+            }
+
+            *longest = max_ret;
+
+        }
+
+    }
+    
 
 
 
@@ -54,14 +96,21 @@ char* longestPalindrome(char* s) {
 
     char* ret;
 
+    int at = 0;
+
+    int longest = 0;
 
 
+    PollMaxTowardsRight(s, &at, &longest);
 
-    ret = (char*)malloc(strlen(s) * sizeof(char) + 1);
+    ret = (char*)malloc(( longest + 1 ) * sizeof(char));
 
-    memset(ret, 0, strlen(s) * sizeof(char) + 1);
 
-    strcpy(ret, s);
+    char* from = &s[at];
+
+    memset(ret, 0, ( longest + 1 ) * sizeof(char));
+
+    strncpy(ret, from, longest);
 
     return ret;
 

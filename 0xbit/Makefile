@@ -13,7 +13,7 @@ maxarea:
 
 	gcc $(GCC_FLAGS) -c -I. interface.o maxarea/interface.c
 
-	gcc $(GCC_FLAGS) -DTARGET_MAXAREA=y -I. -o main.out mainc.c maxarea.o interface.o
+	gcc $(GCC_FLAGS) -DTARGET_MAXAREA=y -I. -o main.out main.c maxarea.o interface.o
 
 	cat maxarea/input | ./main.out
 
@@ -25,7 +25,7 @@ longest-palindromic-substr:
 
 	gcc $(GCC_FLAGS) -c -I. interface.o longest-palindromic-substr/interface.c
 
-	gcc $(GCC_FLAGS) -DTARGET_LONGEST_PALINDROMIC_SUBSTR=y -I. -o main.out mainc.c longest-palindromic-substr.o interface.o
+	gcc $(GCC_FLAGS) -DTARGET_LONGEST_PALINDROMIC_SUBSTR=y -I. -o main.out main.c longest-palindromic-substr.o interface.o
 
 	cat longest-palindromic-substr/input | ./main.out
 
@@ -38,9 +38,49 @@ reverse-int32:
 
 	gcc $(GCC_FLAGS) -c -I. interface.o reverse-int32/interface.c
 
-	gcc $(GCC_FLAGS) -DTARGET_REVERSE_INT32=y -I. -o main.out mainc.c reverse-int32.o interface.o
+	gcc $(GCC_FLAGS) -DTARGET_REVERSE_INT32=y -I. -o main.out main.c reverse-int32.o interface.o
 
 	cat reverse-int32/input | ./main.out
+
+
+
+
+.PHONY: struct-copy-thread
+struct-copy-thread:
+
+	gcc $(GCC_FLAGS) -c -I. struct-copy-thread.o struct-copy-thread/struct-copy-thread.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o struct-copy-thread/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_STRUCT_COPY_THREAD=y -I. -o main.out main.c struct-copy-thread.o interface.o
+
+	./main.out
+
+
+
+.PHONY: arr-as-arg
+arr-as-arg:
+
+
+	gcc $(GCC_FLAGS) -c -I. arr-as-arg.o arr-as-arg/arr-as-arg.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o arr-as-arg/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_ARR_AS_ARG=y -I. -o main.out main.c arr-as-arg.o interface.o
+
+	./main.out
+
+
+.PHONY: stream-to-2d
+stream-to-2d:
+
+	gcc $(GCC_FLAGS) -c -I. stream-to-2d.o stream-to-2d/stream-to-2d.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o stream-to-2d/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D=y -I. -o main.out main.c stream-to-2d.o interface.o
+
+	cp stream-to-2d/test.txt . && ./main.out
 
 
 clean:

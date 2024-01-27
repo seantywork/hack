@@ -1,4 +1,4 @@
-#include "bit/c.h"
+#include "bit/d.h"
 
 int GetMaxAreaPerHead(int* height, int head, int tail){
 

@@ -11,6 +11,37 @@ extern "C" {
 #include <string.h>
 #include <pthread.h>
 
+
+
+void MaxAreaInterface();
+
+int GetMaxAreaHeadToTail(int* height, int head, int tail);
+
+int maxArea(int* height, int heightSize);
+
+
+
+#define MAX_LONGEST_PALINDROMIC_SUBSTR_LENGTH 1000
+
+void LongestPalindromicSubstrInterface();
+
+char* longestPalindrome(char* s) ;
+
+void PollMaxTowardsRight(char* s, int* at, int* longest);
+
+int ExpansionWidthCounter(char*s, int start, int end, int total_len);
+
+
+void ReverseInt32Interface();
+
+int reverse(int x);
+
+int ReverseInt32WithOverflowCheck(char* x_str);
+
+int CheckInt32StrValidity(char* a);
+
+
+
 #define MAX_MEMBER_ARR_LEN 1024
 
 

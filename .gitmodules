@@ -1,0 +1,20 @@
+[submodule "ap4ko"]
+	path = ap4ko
+	url = https://github.com/seantywork/ap4ko.git
+	branch = main
+[submodule "gh-bot"]
+	path = gh-bot
+	url = https://github.com/seantywork/gh-bot.git
+	branch = main
+[submodule "0xgo/kube-codejam"]
+	path = 0xgo/kube-codejam
+	url = https://github.com/seantywork/kube-codejam.git
+	branch = main
+[submodule "rpi/sorrylinus"]
+	path = rpi/sorrylinus
+	url = https://github.com/seantywork/sorrylinus.git
+	branch = main
+[submodule "grpc/multi-terminal-games"]
+	path = grpc/multi-terminal-games
+	url = https://github.com/seantywork/multi-terminal-games.git
+	branch = main

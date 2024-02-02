@@ -10,6 +10,6 @@
 [submodule "gh-bot"]
 	path = gh-bot
 	url = https://github.com/seantywork/gh-bot.git
-[submodule "kcrack-rtl8852au"]
-	path = kcrack-rtl8852au
-	url = https://github.com/seantywork/kcrack-rtl8852au.git
+[submodule "ap2ko"]
+	path = ap2ko
+	url = https://github.com/seantywork/ap2ko.git

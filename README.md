@@ -9315,3 +9315,85 @@ ffmpeg -f v4l2 -i /dev/video0 \
 
 ```
 
+# LINUXCNC
+
+```shell
+
+# download linuxcnc image
+
+# https://linuxcnc.org/iso/
+
+# unzip and flash image
+
+dd sudo dd if=2021-01-20-linuxcnc-pi4.img of=/dev/sda bs=1M status=progress
+
+# modify if needed as follow
+
+
+```
+
+```shell
+# if needed on pi3
+
+[pi4]
+kernel=vmlinuz-4.19.71-rt24-v7l+
+force_turbo=1
+
+to this:
+
+[pi3b]
+kernel=vmlinuz-4.19.71-rt24-v7l+
+force_turbo=1
+
+
+```
+
+```shell
+# on newly installed rpi
+
+uname -a
+sudo apt update
+sudo apt upgrade
+sudo reboot
+
+
+# etherlab master
+
+uname -a
+apt-cache search 4.19.71
+sudo apt install linux-headers-4.19.71-rt24-v7l
+
+sudo apt install mercurial build-essential automake tree dkms bison flex
+
+
+git clone github.com/icshwi/etherlabmaster
+cd etherlabmaster
+make init
+echo "ENABLE_CYCLES = NO" > configure/CONFIG_OPTIONS.local
+make build
+make install
+echo "ETHERCAT_MASTER0=eth0" > ethercatmaster.local
+make dkms_add
+make dkms_build
+make dkms_install
+make setup
+
+sudo mkdir -p /usr/include/linuxcnc
+sudo ln -s /opt/etherlab/include/*.h /usr/include/linuxcnc/
+sudo ln -s /opt/etherlab/lib/lib* /usr/lib/
+
+sudo reboot
+
+
+# linuxcnc ethercat
+
+sudo apt install linuxcnc-uspace-dev
+
+git clone github.com/sittner/linuxcnc-ethercat
+cd linuxcnc-ethercat
+make configure
+make
+sudo make install
+
+linuxcnc
+```

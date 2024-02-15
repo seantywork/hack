@@ -331,6 +331,57 @@ sudo isohybrid /bck/<output>.iso
 
 ```
 
+# LINUX REAL TIME KERNEL PATCH BUILD DEB PKG
+
+```shell
+
+
+sudo apt install build-essential git libssl-dev libelf-dev flex bison
+
+
+wget https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.143.tar.xz
+
+wget https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/5.4/patch-5.4.143-rt64.patch.xz
+
+
+tar -xf linux-5.4.143.tar.xz
+cd linux-5.4.143
+xzcat ../patch-5.4.143-rt64-rc2.patch.xz | patch -p1
+
+cp /boot/config-5.4.0-81-generic .config
+make oldconfig
+
+# Preempt rt > Y
+
+vim .config
+
+# delete value as below
+
+CONFIG_SYSTEM_TRUSTED_KEYS=""
+CONFIG_MODULE_SIG_KEY=""
+CONFIG_SYSTEM_REVOCATION_KEYS=""
+
+# comment out
+
+CONFIG_MODULE_SIG_FORCE
+CONFIG_DEBUG_INFO_BTF
+
+
+CONFIG_MODULE_SIG_ALL < not this maybe
+
+# build kernel
+
+make -j4 deb-pkg
+
+# install
+
+sudo dpkg -i ../linux-headers-5.4.143-rt64-rc2_5.4.143-rt64-1_amd64.deb ../linux-image-5.4.143-rt64_5.4.143-rt64-1_amd64.deb ../linux-libc-dev_5.4.143-rt64-1_amd64.deb
+
+
+reboot
+
+```
+
 # LINUX DIAGNOSTIC
 
 ```shell

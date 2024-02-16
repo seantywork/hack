@@ -9319,6 +9319,8 @@ ffmpeg -f v4l2 -i /dev/video0 \
 
 ```shell
 
+# 2.8
+
 # download linuxcnc image
 
 # https://linuxcnc.org/iso/
@@ -9396,4 +9398,51 @@ make
 sudo make install
 
 linuxcnc
+```
+
+```shell
+# 2.9
+# download linuxcnc image
+
+# https://linuxcnc.org/iso/
+
+# unzip and flash iso
+
+sudo apt update
+sudo apt install  linuxcnc-ethercat
+
+sudo apt install ethercat-master libethercat-dev  linuxcnc-ethercat
+
+sudo geany /etc/ethercat.conf
+
+MASTER0_DEVICE="xx:aa:yy:zz:bb:cc"
+DEVICE_MODULES="generic"
+
+sudo systemctl enable ethercat.service
+sudo systemctl start ethercat.service
+sudo systemctl status ethercat.service
+sudo chmod 666 /dev/EtherCAT0
+
+
+# check
+
+ethercat slaves
+
+sudo geany /etc/udev/rules.d/99-ethercat.rules
+
+KERNEL=="EtherCAT[0-9]", MODE="0777"
+
+sudo udevadm control --reload-rules
+
+reboot
+
+
+# cia402
+
+git clone https://github.com/dbraun1981/hal-cia402
+cd hal-cia402
+sudo halcompile --install cia402.comp
+
+
+
 ```

@@ -331,7 +331,7 @@ sudo isohybrid /bck/<output>.iso
 
 ```
 
-# LINUX REAL TIME KERNEL PATCH BUILD DEB PKG
+# LINUX KERNEL BUILD DEB PKG PATCH REAL TIME
 
 ```shell
 
@@ -351,7 +351,7 @@ xzcat ../patch-5.4.143-rt64-rc2.patch.xz | patch -p1
 cp /boot/config-5.4.0-81-generic .config
 make oldconfig
 
-# Preempt rt > Y
+# preempt_rt > Y
 
 vim .config
 

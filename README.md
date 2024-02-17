@@ -338,6 +338,8 @@ sudo isohybrid /bck/<output>.iso
 
 sudo apt install build-essential git libssl-dev libelf-dev flex bison
 
+# first find the closest available rt patch for current kernel(uname -a)
+# then get
 
 wget https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.143.tar.xz
 
@@ -365,9 +367,7 @@ CONFIG_SYSTEM_REVOCATION_KEYS=""
 
 CONFIG_MODULE_SIG_FORCE
 CONFIG_DEBUG_INFO_BTF
-
-
-CONFIG_MODULE_SIG_ALL < not this maybe
+CONFIG_MODULE_SIG_ALL
 
 # build kernel
 

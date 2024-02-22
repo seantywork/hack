@@ -9315,7 +9315,7 @@ ffmpeg -f v4l2 -i /dev/video0 \
 
 ```
 
-# LINUXCNC
+# ETHERCAT
 
 ```shell
 
@@ -9346,6 +9346,12 @@ to this:
 [pi3b]
 kernel=vmlinuz-4.19.71-rt24-v7l+
 force_turbo=1
+
+# free prevention
+
+# add to cmdline.txt
+
+dwc_otg.fiq_fsm_enable=0 dwc_otg.fiq_enable=0 dwc_otg.nak_holdoff=0
 
 
 ```
@@ -9436,13 +9442,18 @@ sudo udevadm control --reload-rules
 
 reboot
 
-
-# cia402
-
-git clone https://github.com/dbraun1981/hal-cia402
-cd hal-cia402
-sudo halcompile --install cia402.comp
+```
 
 
+```shell
+# after the above
+
+# get servo motor xml from vendor site
+
+# pdo mapping
+
+# sdo mapping (set parameters)
+
+# logic...
 
 ```

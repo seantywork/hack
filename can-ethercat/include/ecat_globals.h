@@ -50,9 +50,9 @@ const uint32_t  g_kNumberOfServoDrivers = 4;
  /// set this to 1 if you want to use it in velocity mode (and set other modes 0)
 #define VELOCITY_MODE          0
 /// set this to 1 if you want to use it in position mode (and set other modes 0)  
-#define POSITION_MODE          1    
+#define POSITION_MODE          0    
 /// set this to 1 if you want to use it in cyclic synchronous position mode (and set other modes 0)
-#define CYCLIC_POSITION_MODE   0    
+#define CYCLIC_POSITION_MODE   1    
 /// set this to 1 if you want to use it in cyclic synchronous velocity mode (and set other modes 0)
 #define CYCLIC_VELOCITY_MODE   0    
 /// set this to 1 if you want to use it in cyclic synchronous torque mode (and set other modes 0)
@@ -165,7 +165,7 @@ typedef struct DataReceived
     uint16_t  com_status;
 
     // for Syncronous Cyclic Position mode
-    /*     
+#if CYCLIC_POSITION_MODE
     std::vector<int32_t>  actual_pos ;
     std::vector<uint16_t> status_word ;
     std::vector<uint16_t> error_code ;
@@ -173,8 +173,9 @@ typedef struct DataReceived
     std::vector<uint16_t> touch_probe_stat;
     std::vector<int32_t>  touch_probe_1_pval;
     std::vector<int32_t>  touch_probe_2_pval;
-     */
+#endif
 
+#if POSITION_MODE
     // for position mode
     std::vector<uint16_t> status_word ;
     std::vector<int32_t>  actual_pos ;
@@ -183,6 +184,8 @@ typedef struct DataReceived
     std::vector<uint16_t> error_code ;
     std::vector<int8_t>   op_mode_display ;
 
+#endif
+
     DataReceived(){};
 };
 
@@ -190,11 +193,15 @@ typedef struct DataReceived
 typedef struct DataSent
 {
     // for Syncronous Cyclic Position mode
-    /*
+#if CYCLIC_POSITION_MODE
     std::vector<int32_t>   target_pos ;
     std::vector<uint16_t>  control_word ;
     std::vector<uint16_t>   touch_probe_func;
-    */
+    std::vector<uint32_t>  digital_out;
+#endif 
+
+
+#if POSITION_MODE
 
     // for position mode
     std::vector<uint16_t>  control_word ;
@@ -202,7 +209,7 @@ typedef struct DataSent
     std::vector<uint32_t>  profile_vel;
     std::vector<uint32_t>  digital_out;
     std::vector<int8_t>    op_mode ;
-
+#endif
 
 //    std::vector<int32_t>   target_vel ;
 //    std::vector<int16_t>   target_tor ;

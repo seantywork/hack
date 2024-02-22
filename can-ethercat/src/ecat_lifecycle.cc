@@ -7,7 +7,7 @@ EthercatLifeCycle::EthercatLifeCycle()
 
     ecat_node_ = std::make_unique<EthercatNode>();
     // for syncronous cyclic position mode
-    /*
+#if CYCLIC_POSITION_MODE
     sent_data_.control_word.resize(g_kNumberOfServoDrivers);
     sent_data_.target_pos.resize(g_kNumberOfServoDrivers);
     sent_data_.digital_out.resize(g_kNumberOfServoDrivers);
@@ -20,8 +20,9 @@ EthercatLifeCycle::EthercatLifeCycle()
     received_data_.touch_probe_stat.resize(g_kNumberOfServoDrivers);
     received_data_.touch_probe_1_pval.resize(g_kNumberOfServoDrivers);
     received_data_.touch_probe_2_pval.resize(g_kNumberOfServoDrivers);
-    */
+#endif
 
+#if POSITION_MODE
     // for position mode
     sent_data_.control_word.resize(g_kNumberOfServoDrivers);
     sent_data_.target_pos.resize(g_kNumberOfServoDrivers);
@@ -35,6 +36,7 @@ EthercatLifeCycle::EthercatLifeCycle()
     received_data_.digital_in.resize(g_kNumberOfServoDrivers);
     received_data_.error_code.resize(g_kNumberOfServoDrivers);
     received_data_.op_mode_display.resize(g_kNumberOfServoDrivers);
+#endif
 }
 
 EthercatLifeCycle::~EthercatLifeCycle()
@@ -681,7 +683,7 @@ void EthercatLifeCycle::ReadFromSlaves()
     for (int i = 0; i < g_kNumberOfServoDrivers; i++)
     {
         // for syncronous cyclic position mode
-        /*
+#if CYCLIC_POSITION_MODE
         received_data_.status_word[i] = EC_READ_S16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.status_word);
         received_data_.actual_pos[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.actual_pos);
         received_data_.digital_in[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.digital_in);
@@ -689,8 +691,9 @@ void EthercatLifeCycle::ReadFromSlaves()
         received_data_.touch_probe_stat[i] = EC_READ_S16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.touch_probe_stat);
         received_data_.touch_probe_1_pval[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.touch_probe_1_pval);
         received_data_.touch_probe_2_pval[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.touch_probe_2_pval);
-        */
+#endif
 
+#if POSITION_MODE
         // for position mode
         received_data_.status_word[i] = EC_READ_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.status_word);
         received_data_.actual_pos[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.actual_pos);
@@ -698,6 +701,7 @@ void EthercatLifeCycle::ReadFromSlaves()
         received_data_.digital_in[i] = EC_READ_U32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.digital_in);
         received_data_.error_code[i] = EC_READ_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.error_code);
         received_data_.op_mode_display[i] = EC_READ_U8(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.op_mode_display);
+#endif
     }
     received_data_.com_status = al_state_;
 #if CUSTOM_SLAVE

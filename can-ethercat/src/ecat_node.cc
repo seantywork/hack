@@ -69,10 +69,10 @@ int EthercatNode::MapDefaultPdos()
      * Product code:    0x61500000
      * Revision number: 0x01600000
      */
-
+#if CYCLIC_POSITION_MODE
     ec_pdo_entry_info_t maxon_epos_pdo_entries[11] = {
         // for syncronous cyclic position mode
-        /*
+
         {OD_CONTROL_WORD, 16},      
         {OD_TARGET_POSITION, 32},
         {OD_DIGITAL_OUTPUTS, 32},
@@ -85,8 +85,10 @@ int EthercatNode::MapDefaultPdos()
         {OD_TOUCH_PROBE_STATUS, 16},
         {OD_TOUCH_PROBE_1_POS_VAL, 32},
         {OD_TOUCH_PROBE_2_POS_VAL, 32}
-        */
-
+    };
+#endif
+#if POSITION_MODE
+    ec_pdo_entry_info_t maxon_epos_pdo_entries[11] = {
         // for position mode
         {OD_CONTROL_WORD, 16},
         {OD_TARGET_POSITION, 32},
@@ -102,20 +104,21 @@ int EthercatNode::MapDefaultPdos()
         {OD_OPERATION_MODE_DISPLAY, 8}
 
     };
-
+#endif
     // for syncronous cyclic position mode
-    /*
+#if CYCLIC_POSITION_MODE
     ec_pdo_info_t maxon_pdos[2] = {
         {0x1600, 4, maxon_epos_pdo_entries + 0},    // - RxPDO index of the EPOS4
         {0x1a00, 7, maxon_epos_pdo_entries + 4}     // - TxPDO index of the EPOS4
     };
-    */
+#endif
+#if POSITION_MODE
     // for position mode
     ec_pdo_info_t maxon_pdos[2] = {
         {0x1601, 5, maxon_epos_pdo_entries + 0},    // - RxPDO index of the EPOS4
         {0x1a01, 6, maxon_epos_pdo_entries + 5}     // - TxPDO index of the EPOS4
     };
-
+#endif
     // Sync manager configuration of the EPOS4. 0,1 is reserved for SDO communications
     // EC_WD_ENABLE means that the sync manager of the slave will throw error 
     // if it does not synchronize within certain interval
@@ -177,7 +180,7 @@ int EthercatNode::MapDefaultPdos()
     for(int i = 0; i < g_kNumberOfServoDrivers ; i++){
 
         // for syncronous cyclic position mode
-        /*
+#if CYCLIC_POSITION_MODE
         this->slaves_[i].offset_.control_word     = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
                                                                                   OD_CONTROL_WORD,g_master_domain,NULL);
         this->slaves_[i].offset_.target_pos       = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
@@ -216,7 +219,7 @@ int EthercatNode::MapDefaultPdos()
             printf( "Failed to configure  PDOs for motors.!");
             return -1;
         }
-        */
+#if POSITION_MODE
 
         // for position mode
         this->slaves_[i].offset_.control_word     = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
@@ -258,6 +261,7 @@ int EthercatNode::MapDefaultPdos()
             return -1;
         }
 
+#endif
     }
     #if CUSTOM_SLAVE
         slaves_[FINAL_SLAVE].offset_.r_limit_switch = ecrt_slave_config_reg_pdo_entry(slaves_[FINAL_SLAVE].slave_config_,

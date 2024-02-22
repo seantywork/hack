@@ -219,6 +219,7 @@ int EthercatNode::MapDefaultPdos()
             printf( "Failed to configure  PDOs for motors.!");
             return -1;
         }
+#endif
 #if POSITION_MODE
 
         // for position mode

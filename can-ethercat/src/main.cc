@@ -1,7 +1,7 @@
 /****************************************************************************/
-#include "ecat_node.hpp"
+#include "ecat_node.h"
 /****************************************************************************/
-#include "ecat_lifecycle.hpp"
+#include "ecat_lifecycle.h"
 
 void signalHandler();
 void SetRealTimeSettings();

@@ -1,7 +1,7 @@
 
 #pragma once
-#include "ecat_node.hpp"
-#include "timing.hpp"
+#include "ecat_node.h"
+#include "timing.h"
 /******************************************************************************/
 
 using namespace EthercatCommunication ; 

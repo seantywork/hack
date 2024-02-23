@@ -29,7 +29,7 @@
 #include "ecrt.h"  
      
 // Object dictionary paramaters PDO index and default values in here.
-#include "object_dictionary.hpp"  
+#include "object_dictionary.h"  
 
 /****************************************************************************/
                 /*** USER SHOULD DEFINE THIS AREAS ***/

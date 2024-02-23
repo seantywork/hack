@@ -1,4 +1,4 @@
-#include <ecat_lifecycle.hpp>
+#include <ecat_lifecycle.h>
 
 using namespace EthercatLifeCycleNode;
 

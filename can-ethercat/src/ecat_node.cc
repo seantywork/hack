@@ -1,4 +1,4 @@
-#include "ecat_node.hpp"
+#include "ecat_node.h"
 
 using namespace EthercatCommunication ; 
 

@@ -1,4 +1,4 @@
-#include "ecat_node.h"
+#include "ecat_node.hpp"
 
 using namespace EthercatCommunication ; 
 
@@ -86,10 +86,12 @@ int EthercatNode::MapDefaultPdos()
         {OD_TOUCH_PROBE_1_POS_VAL, 32},
         {OD_TOUCH_PROBE_2_POS_VAL, 32}
     };
+
 #endif
+
 #if POSITION_MODE
-    ec_pdo_entry_info_t maxon_epos_pdo_entries[11] = {
         // for position mode
+    ec_pdo_entry_info_t maxon_epos_pdo_entries[11] = {
         {OD_CONTROL_WORD, 16},
         {OD_TARGET_POSITION, 32},
         {OD_PROFILE_VELOCITY, 32},
@@ -112,6 +114,7 @@ int EthercatNode::MapDefaultPdos()
         {0x1a00, 7, maxon_epos_pdo_entries + 4}     // - TxPDO index of the EPOS4
     };
 #endif
+
 #if POSITION_MODE
     // for position mode
     ec_pdo_info_t maxon_pdos[2] = {
@@ -163,7 +166,7 @@ int EthercatNode::MapDefaultPdos()
     };
 #endif
 
-    //Connect sync_manager to corresponding slaves.
+    // Connect sync_manager to corresponding slaves.
     for(int i = 0 ; i < g_kNumberOfServoDrivers ; i++){
         if(ecrt_slave_config_pdos(slaves_[i].slave_config_,EC_END,maxon_syncs)){
             printf( "Slave PDO configuration failed... ");
@@ -178,9 +181,9 @@ int EthercatNode::MapDefaultPdos()
     #endif
     // Registers a PDO entry for process data exchange in a domain. Obtain offsets
     for(int i = 0; i < g_kNumberOfServoDrivers ; i++){
-
-        // for syncronous cyclic position mode
 #if CYCLIC_POSITION_MODE
+        // for syncronous cyclic position mode
+
         this->slaves_[i].offset_.control_word     = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
                                                                                   OD_CONTROL_WORD,g_master_domain,NULL);
         this->slaves_[i].offset_.target_pos       = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
@@ -219,9 +222,10 @@ int EthercatNode::MapDefaultPdos()
             printf( "Failed to configure  PDOs for motors.!");
             return -1;
         }
+ 
 #endif
-#if POSITION_MODE
 
+#if POSITION_MODE
         // for position mode
         this->slaves_[i].offset_.control_word     = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
                                                                                   OD_CONTROL_WORD,g_master_domain,NULL);
@@ -261,8 +265,8 @@ int EthercatNode::MapDefaultPdos()
             printf( "Failed to configure  PDOs for motors.!");
             return -1;
         }
-
 #endif
+
     }
     #if CUSTOM_SLAVE
         slaves_[FINAL_SLAVE].offset_.r_limit_switch = ecrt_slave_config_reg_pdo_entry(slaves_[FINAL_SLAVE].slave_config_,
@@ -394,6 +398,7 @@ int EthercatNode::SetProfilePositionParametersAll(ProfilePosParam& P)
             printf( "Set profile deceleration failed ! ");
             return -1;
         }
+
         // quick stop deceleration 
 //       if(ecrt_slave_config_sdo32(slaves_[i].slave_config_,OD_QUICK_STOP_DECELERATION,P.quick_stop_dec) < 0) {
  //           printf( "Set quick stop deceleration failed !");
@@ -870,4 +875,3 @@ uint8_t EthercatNode::SdoWrite(SDO_data &pack)
     }
     return 0;
 }
-

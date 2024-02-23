@@ -1,4 +1,4 @@
-#include "ecat_slave.h"
+#include "ecat_slave.hpp"
 
 EthercatSlave::EthercatSlave() // : variable {assigned value} for initialization.
 {

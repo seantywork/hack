@@ -1,7 +1,7 @@
-/*******************************************************************************/
+
 #pragma once
-#include "ecat_node.h"
-#include "timing.h"
+#include "ecat_node.hpp"
+#include "timing.hpp"
 /******************************************************************************/
 
 using namespace EthercatCommunication ; 
@@ -181,14 +181,14 @@ class EthercatLifeCycle
          */
         void WriteToSlavesInCyclicTorqueMode();
         /**
-         * @brief CKim - This function checks status word and returns
+         * @brief This function checks status word and returns
          *        state of the motor driver
          * 
          */
         int GetDriveState(const int& statusWord);
 
         /**
-         * @brief CKim - This function checks status word, clears
+         * @brief This function checks status word, clears
          *        any faults and enables torque of the motor driver
          * 
          */
@@ -196,7 +196,7 @@ class EthercatLifeCycle
 
 
         /**
-         * @brief CKim - This function checks status word, clears
+         * @brief This function checks status word, clears
          *        any faults and enables torque of the motor driver
          * 
          */
@@ -218,7 +218,23 @@ class EthercatLifeCycle
         int32_t err_;
         /// Application layer of slaves seen by master.(INIT/PREOP/SAFEOP/OP)
         uint8_t al_state_ = 0; 
+        
         uint32_t motor_state_[g_kNumberOfServoDrivers];
+
+
+
+        int mv_dir = 1;
+        int seed = 1;
+
+        uint32_t target_reached_[g_kNumberOfServoDrivers];
+        uint32_t new_set_pos_[g_kNumberOfServoDrivers];
+        int last_actual_vel_max = 0;
+        int k_fault = 0;
+        int k_switchondisabled = 0;
+        int k_readytoswitchon = 0;
+        int k_switchedon = 0;
+      
+
         uint32_t command_ = 0x004F;
         /// Structure for Xbox Controller values
         uint8_t emergency_status_ = 1 ;
@@ -226,6 +242,7 @@ class EthercatLifeCycle
         std::int32_t measurement_time = 0 ; 
         /// Timing measurement information instance
         Timing timer_info_ ; 
+
 
         // TODO: delete - temporary variables for testing
         std::vector<int> min_pos_ = {-10000, -10000, -10000, -10000};

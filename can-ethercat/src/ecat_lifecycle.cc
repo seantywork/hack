@@ -1,4 +1,4 @@
-#include <ecat_lifecycle.h>
+#include <ecat_lifecycle.hpp>
 
 using namespace EthercatLifeCycleNode;
 
@@ -6,8 +6,9 @@ EthercatLifeCycle::EthercatLifeCycle()
 {
 
     ecat_node_ = std::make_unique<EthercatNode>();
-    // for syncronous cyclic position mode
 #if CYCLIC_POSITION_MODE
+    // for syncronous cyclic position mode
+    
     sent_data_.control_word.resize(g_kNumberOfServoDrivers);
     sent_data_.target_pos.resize(g_kNumberOfServoDrivers);
     sent_data_.digital_out.resize(g_kNumberOfServoDrivers);
@@ -342,7 +343,7 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
     int status_check_counter = 1000;
 
     // ------------------------------------------------------- //
-    // CKim - Initialization loop before entring control loop.
+    // initialization loop before entring control loop.
     // Switch On and Enable Driver
     printf("Enabling motors...\n");
     // get current time
@@ -351,26 +352,26 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
     {
 
 
-        // CKim - Sleep for 1 ms
+        // Sleep for 1 ms
         wake_up_time = timespec_add(wake_up_time, g_cycle_time);
         
         clock_nanosleep(CLOCK_TO_USE, TIMER_ABSTIME, &wake_up_time, NULL);
         
         ecrt_master_application_time(g_master, TIMESPEC2NS(wake_up_time));
         
-        // CKim - Receive process data
+        // Receive process data
         ecrt_master_receive(g_master);
         ecrt_domain_process(g_master_domain);
         ReadFromSlaves();
 
-        // CKim - Initialize target pos and vel
+        // Initialize target pos and vel
         for (int i = 0; i < g_kNumberOfServoDrivers; i++)
         {
             sent_data_.target_pos[i] = received_data_.actual_pos[i];
             //sent_data_.target_vel[i] = 0;
         }
-        printf("got c\n");
-        // CKim - Check status and update control words to enable drivers
+
+        // check status and update control words to enable drivers
         // Returns number of enabled drivers
         if (EnableDrivers() == g_kNumberOfServoDrivers)
 
@@ -379,7 +380,7 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
             break;
         }
 
-        // CKim - Periodic printout
+        // Periodic printout
         if (status_check_counter)
         {
             status_check_counter--;
@@ -427,7 +428,7 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
 #if CYCLIC_TORQUE_MODE
         WriteToSlavesInCyclicTorqueMode();
 #endif
-        // CKim - Sync Timer
+        // Sync Timer
         if (sync_ref_counter)
         {
             sync_ref_counter--;
@@ -442,13 +443,13 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
         ecrt_master_sync_slave_clocks(g_master);
 
         ecrt_domain_queue(g_master_domain);
-        // CKim - Send process data
+        // Send process data
         ecrt_master_send(g_master);
     } // while(sig)
     printf("All motors enabled, entering control loop\n");
 
 // ------------------------------------------------------- //
-// CKim - All motors enabled. Start control loop
+// all motors enabled. Start control loop
 #if MEASURE_TIMING
     struct timespec start_time, end_time, last_start_time = {};
     uint32_t period_ns = 0, exec_ns = 0, latency_ns = 0,
@@ -628,6 +629,7 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
         WriteToSlavesInCyclicTorqueMode();
 #endif
         ecrt_domain_queue(g_master_domain);
+
         if (sync_ref_counter)
         {
             sync_ref_counter--;
@@ -650,7 +652,7 @@ void EthercatLifeCycle::StartPdoExchange(void *instance)
     } // while(1/sig) //Ctrl+C signal
 
     // ------------------------------------------------------- //
-    // CKim - Disable drivers before exiting
+    // Disable drivers before exiting
     wake_up_time = timespec_add(wake_up_time, g_cycle_time);
     clock_nanosleep(CLOCK_TO_USE, TIMER_ABSTIME, &wake_up_time, NULL);
     ecrt_master_application_time(g_master, TIMESPEC2NS(wake_up_time));
@@ -682,8 +684,9 @@ void EthercatLifeCycle::ReadFromSlaves()
 {
     for (int i = 0; i < g_kNumberOfServoDrivers; i++)
     {
-        // for syncronous cyclic position mode
 #if CYCLIC_POSITION_MODE
+        // for syncronous cyclic position mode
+        
         received_data_.status_word[i] = EC_READ_S16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.status_word);
         received_data_.actual_pos[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.actual_pos);
         received_data_.digital_in[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.digital_in);
@@ -701,6 +704,7 @@ void EthercatLifeCycle::ReadFromSlaves()
         received_data_.digital_in[i] = EC_READ_U32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.digital_in);
         received_data_.error_code[i] = EC_READ_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.error_code);
         received_data_.op_mode_display[i] = EC_READ_U8(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.op_mode_display);
+
 #endif
     }
     received_data_.com_status = al_state_;
@@ -740,9 +744,12 @@ int EthercatLifeCycle::GetComState()
     return al_state_;
 }
 
+#if POSITION_MODE
 void EthercatLifeCycle::UpdatePositionModeParameters()
 {
     printf("Updating position mode parameters\n");
+
+    UpdateMotorStatePositionMode();
 
     /// WRITE YOUR CUSTOM CONTROL ALGORITHM, VARIABLES DECLARATAION HERE, LIKE IN EXAMPLE BELOW.
     /// KEEP IN MIND THAT YOU WILL HAVE TO WAIT FOR THE MOTION TO FINISH IN POSITION MODE, THEREFORE
@@ -752,11 +759,41 @@ void EthercatLifeCycle::UpdatePositionModeParameters()
         if (motor_state_[i] == kOperationEnabled ||
             motor_state_[i] == kTargetReached || motor_state_[i] == kSwitchedOn)
         {
-            sent_data_.control_word[i] = SM_EXPEDITE;
-            sent_data_.target_pos[i] = 0;
+
+            printf("recv: ap: %d\n", received_data_.actual_pos[i]);
+            printf("recv: av: %d\n", received_data_.actual_vel[i]);
+            printf("recv: di: %d\n", received_data_.digital_in[i]);
+            printf("recv: ec: %d\n", received_data_.error_code[i]);
+            printf("recv: pd: %d\n", received_data_.op_mode_display[i]);
+            printf("recv: sw: %d\n", received_data_.status_word[i]);
+            printf("stat: fault         : %d\n", k_fault);
+            printf("stat: switchdisable : %d\n", k_switchondisabled);
+            printf("stat: switchready   : %d\n", k_readytoswitchon);
+            printf("stat: switchon      : %d\n", k_switchedon);
+            printf("ctrl: target reached: %d\n", target_reached_[i]);
+            printf("ctrl: new postion   : %d\n", new_set_pos_[i]);
+            printf("seed: %d\n", seed);
+
+            //uint32_t tp = seed * -1000;
+
+            uint32_t tp = mv_dir * 100000;
+
+            sent_data_.target_pos[i] = tp;
+            sent_data_.profile_vel[i] = 1000000;
+            sent_data_.op_mode[i] = 1;
+
+            printf("received error code: %d\n", received_data_.error_code[2]);
+            GetErrorMessage(received_data_.error_code[2]);
+
+        } else {
+            printf("skipped due to motor stata\n");
         }
     }
+
+
 }
+
+#endif
 
 void EthercatLifeCycle::UpdateMotorStatePositionMode()
 {
@@ -768,8 +805,9 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
             command_ = 0X04F;
             sent_data_.control_word[i] = SM_FULL_RESET;
             motor_state_[i] = kFault;
+            k_fault = 1;
         }
-        if (motor_state_[i] != kSwitchedOn)
+        if (motor_state_[i] != kOperationEnabled)
         {
             sent_data_.control_word[i] = SM_GO_READY_TO_SWITCH_ON;
             if ((received_data_.status_word[i] & command_) == 0x0040)
@@ -779,6 +817,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                 sent_data_.control_word[i] = SM_GO_READY_TO_SWITCH_ON;
                 command_ = 0x006f;
                 motor_state_[i] = kSwitchOnDisabled;
+                k_switchondisabled = 1;
             }
             else if ((received_data_.status_word[i] & command_) == 0x0021)
             {
@@ -787,6 +826,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                 sent_data_.control_word[i] = SM_GO_SWITCH_ON;
                 command_ = 0x006f;
                 motor_state_[i] = kReadyToSwitchOn;
+                k_readytoswitchon = 1;
             }
             else if ((received_data_.status_word[i] & command_) == 0x0023)
             {
@@ -794,6 +834,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                 sent_data_.control_word[i] = SM_GO_ENABLE;
                 command_ = 0x006f;
                 motor_state_[i] = kSwitchedOn;
+                k_switchedon = 1;
             }
             else if ((received_data_.status_word[i] & command_) == 0X08)
             {
@@ -802,14 +843,19 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
 
                 sent_data_.control_word[i] = SM_FULL_RESET;
                 motor_state_[i] = kFault;
+                k_fault = 2;
             }
         }
         else
         {
-            sent_data_.control_word[i] = SM_RUN;
-            if (TEST_BIT(received_data_.status_word[i], 10) == 1)
-            {
-                sent_data_.control_word[i] = SM_RELATIVE_POS;
+            sent_data_.control_word[i] = SM_EXPEDITE;
+           
+            target_reached_[i] = TEST_BIT(received_data_.status_word[i], 10);
+
+            new_set_pos_[i] = TEST_BIT(received_data_.status_word[i],12);
+
+            if(new_set_pos_[i] == 1){
+                sent_data_.control_word[i] = 0x2F;
             }
         }
     }
@@ -915,6 +961,8 @@ int EthercatLifeCycle::EnableDrivers()
         {
             cnt++;
         }
+
+        target_reached_[i] = 1;
     }
     return cnt;
 }
@@ -923,8 +971,20 @@ void EthercatLifeCycle::WriteToSlavesInPositionMode()
 {
     for (int i = 0; i < g_kNumberOfServoDrivers; i++)
     {
+
+#if CYCLIC_POSITION_MODE
         EC_WRITE_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.control_word, sent_data_.control_word[i]);
         EC_WRITE_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.target_pos, sent_data_.target_pos[i]);
+#endif
+#if POSITION_MODE     
+        
+
+        EC_WRITE_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.control_word, sent_data_.control_word[i]);
+        EC_WRITE_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.target_pos, sent_data_.target_pos[i]);
+        EC_WRITE_U32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.profile_vel, sent_data_.profile_vel[i]);
+        EC_WRITE_S8(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.op_mode, sent_data_.op_mode[i]);                   
+
+#endif
     }
 }
 
@@ -952,7 +1012,7 @@ void EthercatLifeCycle::WriteToSlavesInCyclicTorqueMode()
     }
 }
 
-// CKim - Modifications
+#if CYCLIC_POSITION_MODE
 void EthercatLifeCycle::UpdateCyclicPositionModeParameters()
 {
 
@@ -970,7 +1030,7 @@ void EthercatLifeCycle::UpdateCyclicPositionModeParameters()
             //     move_dir_[i] = -1;
             // }
 
-            sent_data_.target_pos[i] = received_data_.actual_pos[i] + 100;
+            sent_data_.target_pos[i] = seed * 1000;
 
             // sent_data_.target_pos[i] = 0;
 
@@ -982,6 +1042,8 @@ void EthercatLifeCycle::UpdateCyclicPositionModeParameters()
         }
     }
 }
+
+#endif
 /*
 void EthercatLifeCycle::UpdateCyclicVelocityModeParameters()
 {

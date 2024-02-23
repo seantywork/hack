@@ -1,4 +1,4 @@
-/*******************************************************************************/
+
 #pragma once
 
 #include <iostream>
@@ -21,13 +21,15 @@
 #include <chrono>
 #include <memory>
 #include <vector>
+#include <chrono>
+#include <thread>
 /****************************************************************************/
 // IgH EtherCAT library header file the user-space real-time interface library.
 // IgH, EtherCAT related functions and data types.
 #include "ecrt.h"  
      
 // Object dictionary paramaters PDO index and default values in here.
-#include "object_dictionary.h"  
+#include "object_dictionary.hpp"  
 
 /****************************************************************************/
                 /*** USER SHOULD DEFINE THIS AREAS ***/
@@ -37,6 +39,8 @@
 /// Number of connected servo drives. 
 /// @note If you are using custom slaves (not servo drives) this value must be different than NUM_OF_SLAVES.
 const uint32_t  g_kNumberOfServoDrivers = 4;   
+
+const uint32_t  g_kNumberOfServoDriversTarget = 1;   
 
 /// If you have EtherCAT slave different than CiA402 supported motor drive, set this macro to 1
 /// @note  That you'll have to manually specify PDO mapping for your custom slave.
@@ -50,9 +54,9 @@ const uint32_t  g_kNumberOfServoDrivers = 4;
  /// set this to 1 if you want to use it in velocity mode (and set other modes 0)
 #define VELOCITY_MODE          0
 /// set this to 1 if you want to use it in position mode (and set other modes 0)  
-#define POSITION_MODE          0    
+#define POSITION_MODE          1    
 /// set this to 1 if you want to use it in cyclic synchronous position mode (and set other modes 0)
-#define CYCLIC_POSITION_MODE   1    
+#define CYCLIC_POSITION_MODE   0    
 /// set this to 1 if you want to use it in cyclic synchronous velocity mode (and set other modes 0)
 #define CYCLIC_VELOCITY_MODE   0    
 /// set this to 1 if you want to use it in cyclic synchronous torque mode (and set other modes 0)
@@ -62,7 +66,7 @@ const uint32_t  g_kNumberOfServoDrivers = 4;
 /*****************************************************************************/
 /// If you are using geared motor define ratio
 /// @note If you have different types of motors in your system you may need to create different macros for them.
-#define GEAR_RATIO          1
+#define GEAR_RATIO          40
 /// Motor encoder resolution
 #define ENCODER_RESOLUTION  10000
 
@@ -163,9 +167,9 @@ typedef enum OpMode
 typedef struct DataReceived
 {
     uint16_t  com_status;
-
+#if CYCLIC_POSITION_MODE 
     // for Syncronous Cyclic Position mode
-#if CYCLIC_POSITION_MODE
+        
     std::vector<int32_t>  actual_pos ;
     std::vector<uint16_t> status_word ;
     std::vector<uint16_t> error_code ;
@@ -173,6 +177,7 @@ typedef struct DataReceived
     std::vector<uint16_t> touch_probe_stat;
     std::vector<int32_t>  touch_probe_1_pval;
     std::vector<int32_t>  touch_probe_2_pval;
+    
 #endif
 
 #if POSITION_MODE
@@ -183,9 +188,7 @@ typedef struct DataReceived
     std::vector<uint32_t>  digital_in;
     std::vector<uint16_t> error_code ;
     std::vector<int8_t>   op_mode_display ;
-
 #endif
-
     DataReceived(){};
 };
 
@@ -193,16 +196,14 @@ typedef struct DataReceived
 typedef struct DataSent
 {
     // for Syncronous Cyclic Position mode
-#if CYCLIC_POSITION_MODE
+#if CYCLIC_POSITION_MODE 
     std::vector<int32_t>   target_pos ;
     std::vector<uint16_t>  control_word ;
     std::vector<uint16_t>   touch_probe_func;
     std::vector<uint32_t>  digital_out;
-#endif 
-
+#endif
 
 #if POSITION_MODE
-
     // for position mode
     std::vector<uint16_t>  control_word ;
     std::vector<int32_t>   target_pos ;
@@ -664,4 +665,3 @@ static std::string GetErrorMessage(const int& err_code)
             return "Unknown error";
     }
 }
-

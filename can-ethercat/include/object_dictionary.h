@@ -1,3 +1,41 @@
+/******************************************************************************
+ *
+ *  $Id$
+ *
+ *  Copyright (C) 2021 Veysi ADIN, UST KIST
+ *
+ *  This file is part of the Wrapped IgH EtherCAT master userspace program 
+ * for control applications.
+ *
+ *  The Wrapped IgH EtherCAT master userspace program for control application
+ *  in userspace is free software; you canredistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the 
+ * Free Software Foundation; version 2 of the License.
+ *
+ *  The Wrapped IgH EtherCAT master userspace program for control application
+ *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+ *  PURPOSE.  
+ *  See the  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with the Wrapped IgH EtherCAT master userspace program for control application. 
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  ---
+ *
+ *  The license mentioned above concerns the source code only. Using the
+ *  EtherCAT technology and brand is only permitted in compliance with the
+ *  industrial property and similar rights of Beckhoff Automation GmbH.
+ *
+ *  Contact information: veysi.adin@kist.re.kr
+ *****************************************************************************/
+/*******************************************************************************
+ * \file  object_dictionary.hpp
+ * \brief Contains object dictionary and state machine definitions based on CIA402
+ * 		  Some index and subindexes might be specific to Maxon EPOS4.
+ * 		  Check indexes if you're using different slave.
+ *******************************************************************************/
 
 #pragma once
 
@@ -223,4 +261,3 @@ xxxx xxxx x0xx 1000 | Fault
 
 /* CiA402 statemachine definition end */
 /*****************************************************************/
-

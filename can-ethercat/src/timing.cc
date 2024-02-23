@@ -1,4 +1,4 @@
-#include "timing.h"
+#include "timing.hpp"
 
 void Timing::GetTime()
 {

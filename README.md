@@ -382,6 +382,25 @@ reboot
 
 ```
 
+# LINUX KERNEL MODULE DRIVER CHANGE
+
+```shell
+
+# net example
+
+sudo mv /lib/modules/$(uname -r)/kernel/drivers/net/igb/igb.ko{,.bak}
+
+echo 'blacklist igb' > /etc/modprobe.d/blacklist.conf
+
+# build and install new driver module
+
+depmod
+
+sudo update-initramfs -c -k $(uname -r)
+
+```
+
+
 # LINUX DIAGNOSTIC
 
 ```shell
@@ -9441,6 +9460,55 @@ KERNEL=="EtherCAT[0-9]", MODE="0777"
 sudo udevadm control --reload-rules
 
 reboot
+
+```
+
+
+```shell
+# direct from etherlab
+
+
+sudo apt install -y autoconf automake libtool
+
+git clone https://gitlab.com/etherlab.org/ethercat.git
+
+cd ethercat
+
+git switch -c stable-1.5 origin/stable-1.5
+
+# may have to set proper ethercat compatible driver
+
+./bootstrap
+
+# on intel
+
+./configure --enable-cycles --enable-8139too=no --sysconfdir=/etc
+
+# on others
+
+./configure --sysconfdir=/etc
+
+
+make -j$(nproc) all modules
+
+sudo make modules_install install
+
+sudo depmod
+
+sudo vim /etc/ethercat.conf
+
+MASTER0_DEVICE="xx:aa:yy:zz:bb:cc"
+DEVICE_MODULES="generic"
+
+sudo systemctl enable ethercat.service
+
+sudo systemctl start ethercat.service
+
+sudo vim /etc/udev/rules.d/99-ethercat.rules
+
+KERNEL=="EtherCAT[0-9]", MODE="0777"
+
+sudo udevadm control --reload-rules
 
 ```
 

@@ -1697,6 +1697,31 @@ sudo iptables -L --line-numbers
 sudo iptables -D INPUT $LINE_NUM
 
 ```
+```shell
+
+# route
+
+# to NAT
+
+ip addr add 192.168.10.1/24 dev enp3s0
+
+ip link set dev enp3s0 up
+
+# enp3s0 being the interface the router is connected to
+# router WAN IP being 192.168.10.2/24 or something
+# router default gateway 192.168.10.1
+# router LAN IP being 192.168.100.1/24 or something
+
+# from NAT
+
+ip route add 192.168.10.0/24 via 192.168.100.1 dev eth0
+
+# eth0 being an interface with a connection to the router
+# using eth0 gateway router (192.168.100.1) to route to 192.168.10.0/24 network
+
+
+```
+
 
 
 # FIREWALL  

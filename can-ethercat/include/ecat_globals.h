@@ -47,7 +47,7 @@ const uint32_t  g_kNumberOfServoDriversTarget = 1;
 #define CUSTOM_SLAVE     0
 
 /// Ethercat PDO exchange loop frequency in Hz    
-#define FREQUENCY       1000        
+#define FREQUENCY       500        
 
 /// If you want to measure timings leave it as one, otherwise make it 0.
 #define MEASURE_TIMING         1    
@@ -70,7 +70,9 @@ const uint32_t  g_kNumberOfServoDriversTarget = 1;
 /// Motor encoder resolution
 #define ENCODER_RESOLUTION  10000
 
+#define PREEMPT_RT_MODE 1
 
+#define HOMING_AT_START 1
 
 #define INC_PER_ROTATION      GEAR_RATIO*ENCODER_RESOLUTION*4
 #define FIVE_DEGREE_CCW      int(INC_PER_ROTATION/72)
@@ -210,6 +212,8 @@ typedef struct DataSent
     std::vector<uint32_t>  profile_vel;
     std::vector<uint32_t>  digital_out;
     std::vector<int8_t>    op_mode ;
+
+    std::vector<int8_t> homing_method;
 #endif
 
 //    std::vector<int32_t>   target_vel ;
@@ -295,6 +299,9 @@ typedef struct
     uint32_t digital_out;
     uint32_t touch_probe_func;
 
+    uint32_t homing_method;
+
+
     uint32_t actual_pos ;
     uint32_t pos_fol_err ;
     uint32_t actual_vel ;
@@ -343,6 +350,12 @@ typedef struct
     uint32_t max_profile_vel ; 
     uint32_t quick_stop_dec ;
     uint16_t motion_profile_type ; 
+
+    uint32_t homing_speed_zero;
+    uint32_t homing_speed_switch;
+
+    int32_t homing_offset_switch[g_kNumberOfServoDrivers];
+
     uint32_t p_gain;
     uint32_t i_gain;
     uint32_t d_gain;
@@ -368,7 +381,7 @@ typedef struct
     uint32_t max_profile_vel ; 
     uint32_t quick_stop_dec ;
     uint32_t interpolation_time_period ;
-} CSPositionModeParam ;
+} CSPositionModeParam;
 
 /**
  * @brief Struct containing 'velocity control parameter set' 0x30A2

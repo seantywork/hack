@@ -1,5 +1,7 @@
 
-#pragma once
+#ifndef _ECAT_LIFECYCLE_H_
+#define _ECAT_LIFECYCLE_H_
+
 #include "ecat_node.h"
 #include "timing.h"
 /******************************************************************************/
@@ -173,6 +175,14 @@ class EthercatLifeCycle
          * @brief Updates cylic torque mode parameters based on controller inputs.
          * 
          */
+
+
+        void UpdateHomeStatePositionMode();
+
+
+        void UpdateMoveStatePositionMode();
+
+
         void UpdateCyclicTorqueModeParameters();
         
         /**
@@ -222,18 +232,28 @@ class EthercatLifeCycle
         uint32_t motor_state_[g_kNumberOfServoDrivers];
 
 
+        uint32_t zeroed_all_ = 0;
+        uint32_t homed_all_ = 0;
 
-        int mv_dir = 1;
-        int seed = 1;
+
+        uint32_t zeroed_[g_kNumberOfServoDrivers];
+        uint32_t shifted_[g_kNumberOfServoDrivers];
+        uint32_t homed_[g_kNumberOfServoDrivers];
+ 
+
+        int32_t shift_param_[g_kNumberOfServoDrivers];
+        uint32_t shift_set_pos_[g_kNumberOfServoDrivers];
+
 
         uint32_t target_reached_[g_kNumberOfServoDrivers];
         uint32_t new_set_pos_[g_kNumberOfServoDrivers];
-        int last_actual_vel_max = 0;
-        int k_fault = 0;
-        int k_switchondisabled = 0;
-        int k_readytoswitchon = 0;
-        int k_switchedon = 0;
       
+        int32_t posted_home_shift_[g_kNumberOfServoDrivers];
+        int32_t posted_position_[g_kNumberOfServoDrivers];
+      
+        
+
+
 
         uint32_t command_ = 0x004F;
         /// Structure for Xbox Controller values
@@ -250,3 +270,20 @@ class EthercatLifeCycle
         std::vector<int> move_dir_ = {1, 1, 1, 1};
 };
 }
+
+
+extern std::shared_ptr<EthercatLifeCycleNode::EthercatLifeCycle> ECAT_LIFECYCLE_NODE;
+
+
+
+int GetHomeStatByAxis(char* res, int axis);
+
+
+int PostHomeShiftByAxis(char* res, int axis, int shift);
+
+
+int PostPositionByAxis(char* res, int axis, int pos);
+
+
+
+#endif

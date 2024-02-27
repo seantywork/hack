@@ -31,6 +31,8 @@ EthercatLifeCycle::EthercatLifeCycle()
     sent_data_.digital_out.resize(g_kNumberOfServoDrivers);
     sent_data_.op_mode.resize(g_kNumberOfServoDrivers);
 
+    sent_data_.homing_method.resize(g_kNumberOfServoDrivers);
+
     received_data_.status_word.resize(g_kNumberOfServoDrivers);
     received_data_.actual_pos.resize(g_kNumberOfServoDrivers);
     received_data_.actual_vel.resize(g_kNumberOfServoDrivers);
@@ -250,11 +252,12 @@ int EthercatLifeCycle::InitEthercatCommunication()
     {
         return -1;
     }
-
+#if PREEMPT_RT_MODE
     if (SetComThreadPriorities())
     {
         return -1;
     }
+#endif
     printf("Initialization succesfull...\n");
     return 0;
 }
@@ -278,8 +281,17 @@ int EthercatLifeCycle::SetConfigurationParameters()
     P.profile_acc = 1000000; //1e6;
     P.profile_dec = 1000000; //1e6;
     P.max_profile_vel = 2500000; //1e5;
+    P.homing_speed_switch = 10000;
+    P.homing_speed_zero = 10000;
+
+    P.homing_offset_switch[0] = 65000; 
+    P.homing_offset_switch[1] = 301000; 
+    P.homing_offset_switch[2] = 392520; 
+    P.homing_offset_switch[3] = 260000; 
+
     P.quick_stop_dec = 3e4;
     P.motion_profile_type = 0;
+    
     return ecat_node_->SetProfilePositionParametersAll(P);
 #endif
 
@@ -698,12 +710,14 @@ void EthercatLifeCycle::ReadFromSlaves()
 
 #if POSITION_MODE
         // for position mode
+
         received_data_.status_word[i] = EC_READ_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.status_word);
         received_data_.actual_pos[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.actual_pos);
         received_data_.actual_vel[i] = EC_READ_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.actual_vel);
         received_data_.digital_in[i] = EC_READ_U32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.digital_in);
         received_data_.error_code[i] = EC_READ_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.error_code);
         received_data_.op_mode_display[i] = EC_READ_U8(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.op_mode_display);
+
 
 #endif
     }
@@ -754,42 +768,18 @@ void EthercatLifeCycle::UpdatePositionModeParameters()
     /// WRITE YOUR CUSTOM CONTROL ALGORITHM, VARIABLES DECLARATAION HERE, LIKE IN EXAMPLE BELOW.
     /// KEEP IN MIND THAT YOU WILL HAVE TO WAIT FOR THE MOTION TO FINISH IN POSITION MODE, THEREFORE
     /// YOU HAVE TO CHECK 10th BIT OF STATUS WORD TO CHECK WHETHER TARGET IS REACHED OR NOT.
-    for (int i = 0; i < g_kNumberOfServoDrivers; i++)
-    {
-        if (motor_state_[i] == kOperationEnabled ||
-            motor_state_[i] == kTargetReached || motor_state_[i] == kSwitchedOn)
-        {
 
-            printf("recv: ap: %d\n", received_data_.actual_pos[i]);
-            printf("recv: av: %d\n", received_data_.actual_vel[i]);
-            printf("recv: di: %d\n", received_data_.digital_in[i]);
-            printf("recv: ec: %d\n", received_data_.error_code[i]);
-            printf("recv: pd: %d\n", received_data_.op_mode_display[i]);
-            printf("recv: sw: %d\n", received_data_.status_word[i]);
-            printf("stat: fault         : %d\n", k_fault);
-            printf("stat: switchdisable : %d\n", k_switchondisabled);
-            printf("stat: switchready   : %d\n", k_readytoswitchon);
-            printf("stat: switchon      : %d\n", k_switchedon);
-            printf("ctrl: target reached: %d\n", target_reached_[i]);
-            printf("ctrl: new postion   : %d\n", new_set_pos_[i]);
-            printf("seed: %d\n", seed);
+    if(homed_all_ != 1){
 
-            //uint32_t tp = seed * -1000;
 
-            uint32_t tp = mv_dir * 100000;
+        UpdateHomeStatePositionMode();
 
-            sent_data_.target_pos[i] = tp;
-            sent_data_.profile_vel[i] = 1000000;
-            sent_data_.op_mode[i] = 1;
 
-            printf("received error code: %d\n", received_data_.error_code[2]);
-            GetErrorMessage(received_data_.error_code[2]);
+    } else{
 
-        } else {
-            printf("skipped due to motor stata\n");
-        }
+        UpdateMoveStatePositionMode();
+
     }
-
 
 }
 
@@ -805,7 +795,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
             command_ = 0X04F;
             sent_data_.control_word[i] = SM_FULL_RESET;
             motor_state_[i] = kFault;
-            k_fault = 1;
+
         }
         if (motor_state_[i] != kOperationEnabled)
         {
@@ -817,7 +807,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                 sent_data_.control_word[i] = SM_GO_READY_TO_SWITCH_ON;
                 command_ = 0x006f;
                 motor_state_[i] = kSwitchOnDisabled;
-                k_switchondisabled = 1;
+     
             }
             else if ((received_data_.status_word[i] & command_) == 0x0021)
             {
@@ -826,7 +816,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                 sent_data_.control_word[i] = SM_GO_SWITCH_ON;
                 command_ = 0x006f;
                 motor_state_[i] = kReadyToSwitchOn;
-                k_readytoswitchon = 1;
+  
             }
             else if ((received_data_.status_word[i] & command_) == 0x0023)
             {
@@ -834,7 +824,7 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                 sent_data_.control_word[i] = SM_GO_ENABLE;
                 command_ = 0x006f;
                 motor_state_[i] = kSwitchedOn;
-                k_switchedon = 1;
+      
             }
             else if ((received_data_.status_word[i] & command_) == 0X08)
             {
@@ -843,24 +833,200 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
 
                 sent_data_.control_word[i] = SM_FULL_RESET;
                 motor_state_[i] = kFault;
-                k_fault = 2;
+
             }
         }
         else
         {
-            sent_data_.control_word[i] = SM_EXPEDITE;
-           
-            target_reached_[i] = TEST_BIT(received_data_.status_word[i], 10);
 
-            new_set_pos_[i] = TEST_BIT(received_data_.status_word[i],12);
+            /*
+            if(homed_all_ != 1){
 
-            if(new_set_pos_[i] == 1){
-                sent_data_.control_word[i] = 0x2F;
+                if(zeroed_[i] != 1){
+
+                    sent_data_.control_word[i] = 0x1F;
+                
+                    zeroed_[i] = TEST_BIT(received_data_.status_word[i], 10);
+
+
+                } else if (shifted_[i] != 1){
+
+                    sent_data_.control_word[i] = SM_EXPEDITE;
+
+                    shift_set_pos_[i] = TEST_BIT(received_data_.status_word[i],10);
+
+                } else if (homed_[i] != 1){
+
+                    sent_data_.control_word[i] = 0x1F;
+                
+                    homed_[i] = TEST_BIT(received_data_.status_word[i], 10);                    
+
+                }
+
+            */
+
+
+            if(homed_all_ != 1){
+                int hit = 0;
+
+                for (int i = 0; i < g_kNumberOfServoDrivers; i++){
+                    if(homed_[i] == 1){
+                        hit += 1;
+                    }
+                }
+
+                if(hit == g_kNumberOfServoDrivers){
+                    homed_all_ =1;
+                }        
             }
+
+
+
+
+            if (homed_all_ != 1){
+
+                sent_data_.control_word[i] = 0x1F;
+                
+                int bit_10 = TEST_BIT(received_data_.status_word[i], 10);
+                
+                int bit_12 = TEST_BIT(received_data_.status_word[i], 12);
+
+                int bit_13 = TEST_BIT(received_data_.status_word[i], 13);
+
+
+                if(
+                    bit_10 == 1 
+                    && bit_12 == 1
+                    && bit_13 == 0
+                ){
+                    homed_[i] = 1;
+                } else {
+                    homed_[i] = 0;
+                }
+
+            } else {
+
+                sent_data_.control_word[i] = SM_EXPEDITE;
+            
+                target_reached_[i] = TEST_BIT(received_data_.status_word[i], 10);
+
+                new_set_pos_[i] = TEST_BIT(received_data_.status_word[i],12);
+
+                if(new_set_pos_[i] == 1){
+                    sent_data_.control_word[i] = 0x2F;
+                }
+
+
+            }
+
         }
     }
+
+
     return;
 }
+
+
+
+void EthercatLifeCycle::UpdateHomeStatePositionMode(){
+
+
+
+
+        for (int i = 0; i < g_kNumberOfServoDrivers; i++)
+        {
+            if (motor_state_[i] == kOperationEnabled ||
+                motor_state_[i] == kTargetReached || motor_state_[i] == kSwitchedOn)
+            {
+
+                printf("home: ap: %d\n", received_data_.actual_pos[i]);
+                printf("home: av: %d\n", received_data_.actual_vel[i]);
+                printf("home: di: %d\n", received_data_.digital_in[i]);
+                printf("home: ec: %d\n", received_data_.error_code[i]);
+                printf("home: pd: %d\n", received_data_.op_mode_display[i]);
+                printf("home: sw: %d\n", received_data_.status_word[i]);
+            //    printf("home: zero : %d\n", zeroed_[i]);
+            //    printf("home: shift: %d\n", shifted_[i]);
+                printf("home: homed: %d\n", homed_[i]);
+
+                /*
+                if(zeroed_[i] != 1){
+
+                    sent_data_.op_mode[i] = 6;
+                    sent_data_.homing_method[i] = 24;
+
+                } else if(shifted_[i] != 1){
+
+                    sent_data_.target_pos[i] = shift_param_[i];
+                    sent_data_.profile_vel[i] = 10000;
+                    sent_data_.op_mode[i] = 1;
+
+                } else if (homed_[i] != 1){
+
+                    sent_data_.op_mode[i] = 6;
+                    sent_data_.homing_method[i] = 24;
+
+
+                }
+                */
+
+
+
+
+                sent_data_.op_mode[i] = 6;
+                sent_data_.homing_method[i] = 24;
+
+
+
+
+                printf("received error code: %d\n", received_data_.error_code[2]);
+                GetErrorMessage(received_data_.error_code[2]);
+
+            } else {
+                printf("skipped due to motor stata\n");
+            }
+        }
+
+
+    return;
+
+}
+
+
+
+void EthercatLifeCycle::UpdateMoveStatePositionMode(){
+
+    for (int i = 0; i < g_kNumberOfServoDrivers; i++)
+    {
+        if (motor_state_[i] == kOperationEnabled ||
+            motor_state_[i] == kTargetReached || motor_state_[i] == kSwitchedOn)
+        {
+
+            printf("move: ap: %d\n", received_data_.actual_pos[i]);
+            printf("move: av: %d\n", received_data_.actual_vel[i]);
+            printf("move: di: %d\n", received_data_.digital_in[i]);
+            printf("move: ec: %d\n", received_data_.error_code[i]);
+            printf("move: pd: %d\n", received_data_.op_mode_display[i]);
+            printf("move: sw: %d\n", received_data_.status_word[i]);
+            printf("move: hd: %d\n", homed_[i]);
+
+            sent_data_.target_pos[i] = posted_position_[i];
+            sent_data_.profile_vel[i] = 1000000;
+            sent_data_.op_mode[i] = 1;
+
+            printf("received error code: %d\n", received_data_.error_code[2]);
+            GetErrorMessage(received_data_.error_code[2]);
+
+        } else {
+            printf("skipped due to motor stata\n");
+        }
+    }
+
+
+    return;
+
+}
+
 
 int EthercatLifeCycle::GetDriveState(const int &statusWord)
 {
@@ -962,7 +1128,7 @@ int EthercatLifeCycle::EnableDrivers()
             cnt++;
         }
 
-        target_reached_[i] = 1;
+
     }
     return cnt;
 }
@@ -978,11 +1144,12 @@ void EthercatLifeCycle::WriteToSlavesInPositionMode()
 #endif
 #if POSITION_MODE     
         
-
         EC_WRITE_U16(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.control_word, sent_data_.control_word[i]);
         EC_WRITE_S32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.target_pos, sent_data_.target_pos[i]);
         EC_WRITE_U32(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.profile_vel, sent_data_.profile_vel[i]);
         EC_WRITE_S8(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.op_mode, sent_data_.op_mode[i]);                   
+
+        EC_WRITE_S8(ecat_node_->slaves_[i].slave_pdo_domain_ + ecat_node_->slaves_[i].offset_.homing_method, sent_data_.homing_method[i]); 
 
 #endif
     }
@@ -1241,4 +1408,39 @@ void EthercatLifeCycle::UpdateMotorStateVelocityMode()
         }
     }
     return;
+}
+
+
+#include "ecat_lifecycle.h"
+
+
+
+
+
+int GetHomeStatByAxis(char* res, int axis){
+
+
+
+    return 0;
+}
+
+
+int PostHomeShiftByAxis(char* res, int axis, int shift){
+
+
+
+
+    return 0;
+}
+
+
+int PostPositionByAxis(char* res, int axis, int pos){
+
+    int32_t pos_32 = (int32_t)pos;
+
+    ECAT_LIFECYCLE_NODE->posted_position_[axis] = pos_32;
+
+    strcpy(res, "0");
+
+    return 0;
 }

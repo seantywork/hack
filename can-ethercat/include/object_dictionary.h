@@ -153,6 +153,12 @@
 #define OD_DIGITAL_INPUTS			   0x60FD,0x00
 #define OD_DIGITAL_OUTPUTS 		       0x60FE,0x01
 
+#define OD_HOMING_METHOD               0x6098,0x00
+
+#define OD_HOMING_SPEED_ZERO           0x6099,0x02
+#define OD_HOMING_SPEED_SWITCH         0x6099,0x01
+#define OD_HOMING_OFFSET_SWITCH        0x607C,0x00
+
 #define OD_TOUCH_PROBE_FUNCTION        0x60B8,0x00
 
 #define OD_TOUCH_PROBE_STATUS          0x60B9,0x00

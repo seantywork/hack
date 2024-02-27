@@ -3,6 +3,8 @@
 /****************************************************************************/
 #include "ecat_lifecycle.h"
 
+//#include "control_logic_of_yours.h"
+
 void signalHandler();
 void SetRealTimeSettings();
 
@@ -19,7 +21,21 @@ int main(int argc, char **argv)
 
   ECAT_LIFECYCLE_NODE = ecat_lifecycle_node;
 
-  if(ecat_lifecycle_node ->on_configure())
+#if HOMING_AT_START
+
+  ecat_lifecycle_node->zeroed_all_ = 0;
+  ecat_lifecycle_node->homed_all_ = 0;
+
+
+#else
+
+  ecat_lifecycle_node->zeroed_all_ = 1;
+  ecat_lifecycle_node->homed_all_ = 1;
+
+
+#endif
+
+  if(ecat_lifecycle_node->on_configure())
   {
     return -1;
   }
@@ -27,50 +43,31 @@ int main(int argc, char **argv)
   {
     return -1;
   }
-  
-  int exit_int = 0;
+
+  int bogus_block = 0;
+  printf("your control logic below: ");
+  scanf("%d", &bogus_block);
 
 /*
-  for(int i = 0; i < 200; i++){
+  int server_stat = 0 ;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    ecat_lifecycle_node->seed += 1;    
+  server_stat = ListenAndServe(SOCK_PORT);
 
+
+  if(server_stat < 0 ){
+    fLog<std::string>("server failure");
+
+    ECAT_LIFECYCLE_NODE->on_shutdown();
+
+    exit(EXIT_FAILURE);
   }
 
-  for(int i = 0; i < 200 ; i ++){
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-
-    ecat_lifecycle_node->seed -= 1;   
-
-  }
 */
-
-
-  int counter = 0;
-  while(counter < 50){
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    ecat_lifecycle_node->mv_dir = ecat_lifecycle_node->mv_dir * -1;
-
-
-  }
-
-
-  std::cout << "exit? :" << std::endl;
-
-  scanf("%d",&exit_int);
-
   return 0;
 }
 
-
-void signalHandler(int /*signum*/)
-{
+void signalHandler(int /*signum*/){
     sig = 0;
     nanosleep((const struct timespec[]){0,g_kNsPerSec},NULL);
     ECAT_LIFECYCLE_NODE->on_shutdown();

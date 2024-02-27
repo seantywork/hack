@@ -91,12 +91,14 @@ int EthercatNode::MapDefaultPdos()
 
 #if POSITION_MODE
         // for position mode
-    ec_pdo_entry_info_t maxon_epos_pdo_entries[11] = {
+    ec_pdo_entry_info_t maxon_epos_pdo_entries[12] = {
         {OD_CONTROL_WORD, 16},
         {OD_TARGET_POSITION, 32},
         {OD_PROFILE_VELOCITY, 32},
         {OD_DIGITAL_OUTPUTS, 32},
         {OD_OPERATION_MODE, 8},
+
+        {OD_HOMING_METHOD, 8},
         
         {OD_STATUS_WORD, 16},
         {OD_POSITION_ACTUAL_VALUE, 32},
@@ -118,8 +120,8 @@ int EthercatNode::MapDefaultPdos()
 #if POSITION_MODE
     // for position mode
     ec_pdo_info_t maxon_pdos[2] = {
-        {0x1601, 5, maxon_epos_pdo_entries + 0},    // - RxPDO index of the EPOS4
-        {0x1a01, 6, maxon_epos_pdo_entries + 5}     // - TxPDO index of the EPOS4
+        {0x1601, 6, maxon_epos_pdo_entries + 0},    // - RxPDO index of the EPOS4
+        {0x1a01, 6, maxon_epos_pdo_entries + 6}     // - TxPDO index of the EPOS4
     };
 #endif
     // Sync manager configuration of the EPOS4. 0,1 is reserved for SDO communications
@@ -238,6 +240,9 @@ int EthercatNode::MapDefaultPdos()
         this->slaves_[i].offset_.op_mode          = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
                                                                                     OD_OPERATION_MODE,g_master_domain,NULL);
 
+        this->slaves_[i].offset_.homing_method    = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
+                                                                                    OD_HOMING_METHOD,g_master_domain,NULL);
+
         this->slaves_[i].offset_.status_word      = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
                                                                                     OD_STATUS_WORD,g_master_domain,NULL);
         this->slaves_[i].offset_.actual_pos       = ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_,
@@ -255,6 +260,7 @@ int EthercatNode::MapDefaultPdos()
         || slaves_[i].offset_.profile_vel < 0
         || slaves_[i].offset_.digital_out < 0
         || slaves_[i].offset_.op_mode < 0
+        || slaves_[i].offset_.homing_method < 0
         || slaves_[i].offset_.status_word < 0
         || slaves_[i].offset_.actual_pos < 0
         || slaves_[i].offset_.actual_vel < 0
@@ -399,6 +405,20 @@ int EthercatNode::SetProfilePositionParametersAll(ProfilePosParam& P)
             return -1;
         }
 
+        if(ecrt_slave_config_sdo32(slaves_[i].slave_config_,OD_HOMING_SPEED_SWITCH,P.homing_speed_switch) < 0) {
+            printf( "Set homing speed switch failed ! ");
+            return -1;
+        }
+
+        if(ecrt_slave_config_sdo32(slaves_[i].slave_config_,OD_HOMING_SPEED_ZERO,P.homing_speed_zero) < 0) {
+            printf( "Set homing speed zero failed ! ");
+            return -1;
+        }
+
+        if(ecrt_slave_config_sdo32(slaves_[i].slave_config_,OD_HOMING_OFFSET_SWITCH,P.homing_offset_switch[i]) < 0) {
+            printf( "Set homing offset switch failed ! ");
+            return -1;
+        }
         // quick stop deceleration 
 //       if(ecrt_slave_config_sdo32(slaves_[i].slave_config_,OD_QUICK_STOP_DECELERATION,P.quick_stop_dec) < 0) {
  //           printf( "Set quick stop deceleration failed !");

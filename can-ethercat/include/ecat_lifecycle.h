@@ -274,7 +274,7 @@ class EthercatLifeCycle
 
 extern std::shared_ptr<EthercatLifeCycleNode::EthercatLifeCycle> ECAT_LIFECYCLE_NODE;
 
-
+/* your control logic input
 
 int GetHomeStatByAxis(char* res, int axis);
 
@@ -284,6 +284,6 @@ int PostHomeShiftByAxis(char* res, int axis, int shift);
 
 int PostPositionByAxis(char* res, int axis, int pos);
 
-
+*/
 
 #endif

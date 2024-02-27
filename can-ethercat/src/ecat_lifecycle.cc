@@ -1410,12 +1410,8 @@ void EthercatLifeCycle::UpdateMotorStateVelocityMode()
     return;
 }
 
-
-#include "ecat_lifecycle.h"
-
-
-
-
+/*
+your control input logic
 
 int GetHomeStatByAxis(char* res, int axis){
 
@@ -1444,3 +1440,4 @@ int PostPositionByAxis(char* res, int axis, int pos){
 
     return 0;
 }
+*/

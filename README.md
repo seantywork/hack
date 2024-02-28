@@ -8933,7 +8933,44 @@ candump -t Absolute vcan0
 
 cangen vcan0
 
+
 ```
+
+# CANOPEN
+
+```shell
+
+git clone https://github.com/CANopenNode/CANopenLinux.git
+cd CANopenLinux
+git submodule init
+git submodule update
+
+
+sudo modprobe can
+sudo modprobe can_raw
+sudo modprobe mttcan
+
+
+
+
+sudo ip link set can0 type can bitrate 500000 \
+    dbitrate 2000000 berr-reporting on fd on
+
+
+sudo ip link set up can0
+
+cd CANopenLinux
+
+make
+
+sudo make install
+
+canopend --help
+
+# send SDO, PDO according to the motor driver vendor manual
+
+```
+
 
 # MQTT
 
@@ -9543,9 +9580,9 @@ sudo udevadm control --reload-rules
 
 # get servo motor xml from vendor site
 
-# pdo mapping
+# pdo mapping (get offset)
 
-# sdo mapping (set parameters)
+# sdo send (set parameters)
 
 # logic...
 

@@ -1580,6 +1580,7 @@ network:
 ```shell
 sudo netplan try
 
+# sudo netplan generate
 sudo netplan apply
 ```
 
@@ -1614,6 +1615,15 @@ gateway 192.1.2.254
 
 auto eth0
 iface eth0 inet dhcp
+
+
+```
+
+
+```shell
+
+# /etc/NetworkManager
+
 
 ```
 

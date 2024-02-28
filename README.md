@@ -1960,12 +1960,24 @@ sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-# save
+# save using command
 sudo netfilter-persistent save
 # or
 sudo bash -c "iptables-save > /etc/iptables.ipv4.nat"
 
+sudo nano /etc/rc.local
+# add above exit0
+iptables-restore < /etc/iptables.ipv4.nat
+
+# or simply with iptables-save
+
+sudo iptables-save > /etc/iptables/rules.v4
+sudo ip6tables-save > /etc/iptables/rules.v6
+
+
+
 sudo reboot
+
 
 ```
 
@@ -1974,17 +1986,26 @@ sudo reboot
 ```shell
 sudo apt install isc-dhcp-server
 
-
-sudo systemctl restart isc-dhcp-server
-
-
 ```
 
 ```shell
+# interface
+
+sudo vim /etc/default/isc-dhcp-server
+----
+INTERFACESv4="enp0s8"
+----
+
 
 # /etc/dhcp/dhcpd.conf
 
+# comment if not using dns server
 
+#option domain-name "example.org";
+#option domain-name-servers ns1.example.org, ns2.example.org;
+
+# uncomment if the official dhcp server for the local network
+authoritative;
 # define subnet per interface
 
 subnet 10.1.1.0 netmask 255.255.255.0 {
@@ -2027,6 +2048,47 @@ host web-server {
   hardware ethernet 00:17:a4:c2:44:22;
   fixed-address 10.1.1.200;
 }
+
+```
+
+```shell
+sudo systemctl enable isc-dhcp-server
+sudo systemctl start isc-dhcp-server
+```
+
+```shell
+
+# to internet
+
+# file
+sudo nano /etc/sysctl.d/routed-ap.conf
+# or
+sudo nano /etc/sysctl.conf
+
+# Enable IPv4 routing
+net.ipv4.ip_forward=1
+# instant enabling
+sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+
+sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+
+# save using command
+sudo netfilter-persistent save
+# or
+sudo bash -c "iptables-save > /etc/iptables.ipv4.nat"
+
+sudo nano /etc/rc.local
+# add above exit0
+iptables-restore < /etc/iptables.ipv4.nat
+
+# or simply with iptables-save
+
+sudo iptables-save > /etc/iptables/rules.v4
+sudo ip6tables-save > /etc/iptables/rules.v6
+
+
+
+sudo reboot
 
 ```
 
@@ -6472,6 +6534,7 @@ network:
 ```
 
 ```shell
+#sudo netplan generate
 sudo netplan apply
 
 

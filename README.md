@@ -1552,7 +1552,7 @@ port forward
 
 ```
 
-# INTERFACE ADDRESS NETPLAN SYSTEMD-NETWORKD
+# NETWORK INTERFACE ADDRESS NETPLAN SYSTEMD-NETWORKD
 
 ```shell
 
@@ -1597,6 +1597,23 @@ sudo netplan apply
 sudo nano /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
 
 network: {config: disabled}
+
+```
+
+```shell
+
+# /etc/network/interfaces
+
+auto eth0
+iface eth0 inet static 
+address 192.168.2.1
+netmask 255.255.255.0
+gateway 192.1.2.254
+
+# or dhcp
+
+auto eth0
+iface eth0 inet dhcp
 
 ```
 
@@ -1918,7 +1935,304 @@ network:
 
 ```shell
 sudo reboot
+
+# to internet
+
+# file
+sudo nano /etc/sysctl.d/routed-ap.conf
+# or
+sudo nano /etc/sysctl.conf
+
+# Enable IPv4 routing
+net.ipv4.ip_forward=1
+# instant enabling
+sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# save
+sudo netfilter-persistent save
+# or
+sudo bash -c "iptables-save > /etc/iptables.ipv4.nat"
+
+sudo reboot
+
 ```
+
+# DHCP SERVER
+
+```shell
+sudo apt install isc-dhcp-server
+
+
+sudo systemctl restart isc-dhcp-server
+
+
+```
+
+```shell
+
+# /etc/dhcp/dhcpd.conf
+
+
+# define subnet per interface
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+```
+
+```shell
+
+
+# /etc/dhcp/dhcpd.conf
+
+default-lease-time 600;
+max-lease-time 7200;
+
+# define dns server
+
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option domain-name-servers 10.1.1.1, 8.8.8.8;
+}
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+}
+
+# define default gateway
+
+subnet 10.1.1.0 netmask 255.255.255.0 {
+  range 10.1.1.3 10.1.1.254;
+  option routers 10.1.1.1;
+}
+
+
+# define static ip
+host web-server {
+  hardware ethernet 00:17:a4:c2:44:22;
+  fixed-address 10.1.1.200;
+}
+
+```
+
+# DNS SERVER
+
+```shell
+
+sudo apt-get install bind9
+
+# /etc/default/bind9
+
+# ipv4
+OPTIONS="-4 -u bind"
+
+# ipv6
+OPTIONS="-6 -u bind"
+
+# /etc/bind/named.conf.options
+
+acl "trusted" {
+        192.168.50.43;    # ns1 - can be set to localhost
+        192.168.50.44;    # ns2
+        192.168.50.24;  # host1
+        192.168.50.25;  # host2
+};
+
+...
+
+options {
+        directory "/var/cache/bind";
+        recursion yes;                 # enables resursive queries
+        allow-recursion { trusted; };  # allows recursive queries from "trusted" clients
+        listen-on { 192.168.50.43; };   # ns1 private IP address - listen on private network only
+        allow-transfer { none; };      # disable zone transfers by default
+
+        forwarders {
+                8.8.8.8;
+                8.8.4.4;
+        };
+};
+
+
+# /etc/bind/named.conf.local
+
+# forward
+zone "hey.example.com" {
+    type master;
+    file "/etc/bind/zones/db.hey.example.com"; # zone file path
+    allow-transfer { 192.168.50.44; };         # ns2 private IP address - secondary
+};
+
+# reverse
+
+zone "50.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/zones/db.192.168.50";  # 192.168.50.0/24 subnet
+    allow-transfer { 192.168.50.44; };  # ns2 private IP address - secondary
+};
+
+
+
+sudo mkdir /etc/bind/zones
+
+# forward zone
+cd /etc/bind/zones
+sudo cp ../db.local ./db.hey.example.com
+
+
+sudo vim db.hey.example.com
+
+# replace SOA first to ns1 FQDN
+# replace SOA second to admin.${domain}
+# increase serial by 1
+
+@       IN      SOA     ns1.hey.example.com. admin.hey.example.com. (
+                              3         ; Serial
+
+# delete NS, A, AAA
+
+# add NS
+
+; name servers - NS records
+    IN      NS      ns1.hey.example.com.
+    IN      NS      ns2.hey.example.com.
+
+# add A
+
+; name servers - A records
+ns1.hey.example.com.          IN      A       192.168.50.43
+ns2.hey.example.com.          IN      A       192.168.50.44
+
+; 10.128.0.0/16 - A records
+host1.hey.example.com.        IN      A      192.168.50.24
+host2.hey.example.com.        IN      A      192.168.50.25
+
+
+
+# reverse zone
+cd /etc/bind/zones
+sudo cp ../db.127 ./db.192.168.50
+
+# do the same as forward with SOA
+# but here match the serial with the forward
+@       IN      SOA     ns1.hey.example.com. admin.hey.example.com. (
+                              3         ; Serial
+
+# delete NS, PTR
+
+# add NS
+
+; name servers - NS records
+      IN      NS      ns1.hey.example.com.
+      IN      NS      ns2.hey.example.com.
+
+# add PTR
+# add PTR records for all of your servers whose IP addresses are on the subnet of the zone file that you are editing
+
+; PTR Records
+43   IN      PTR     ns1.hey.example.com.    ; 192.168.50.43
+44   IN      PTR     ns2.hey.example.com.    ; 192.168.50.44
+24   IN      PTR     host1.hey.example.com.  ; 192.168.50.24
+25   IN      PTR     host2.hey.example.com.  ; 192.168.50.25
+
+# subnet /16 example
+#; PTR Records
+#11.10   IN      PTR     ns1.nyc3.example.com.    ; 10.128.10.11
+#12.20   IN      PTR     ns2.nyc3.example.com.    ; 10.128.20.12
+#101.100 IN      PTR     host1.nyc3.example.com.  ; 10.128.100.101
+#102.200 IN      PTR     host2.nyc3.example.com.  ; 10.128.200.102
+
+
+# configuration check
+
+sudo named-checkconf
+
+# zone file check
+
+sudo named-checkzone
+
+# forward zone check
+
+sudo named-checkzone hey.example.com db.hey.example.com
+
+# reverse zone check
+
+sudo named-checkzone 50.168.192.in-addr.arpa /etc/bind/zones/db.192.168.50
+
+
+# restart to apply
+
+sudo systemctl restart bind9
+
+
+
+# dns client
+
+sudo apt install resolvconf
+
+sudo vim /etc/resolvconf/resolv.conf.d/head
+
+search hey.example.com  # your private domain
+nameserver 192.168.50.43  # ns1 private IP address
+nameserver 192.168.50.44  # ns2 private IP address
+
+# regen /etc/resolv.conf
+
+sudo resolvconf -u
+
+# or you can use netplan, interface, ip ...
+
+
+# forward lookup
+
+nslookup host1.hey.example.com
+
+# reverse lookup
+
+nslookup 192.168.50.24
+
+
+# adding new
+
+# Forward zone file: Add an “A” record for the new host, increment the value of “Serial”
+# Reverse zone file: Add a “PTR” record for the new host, increment the value of “Serial”
+# Add your new host’s private IP address to the “trusted” ACL (named.conf.options)
+
+
+# adding ns2
+
+
+# same /etc/bind/named.conf.options but change listen-on
+
+# /etc/bind/named.conf.local
+
+zone "hey.example.com" {
+    type slave;
+    file "slaves/db.hey.example.com";
+    masters { 192.168.50.43; };  # ns1 private IP
+};
+
+zone "50.168.192.in-addr.arpa" {
+    type slave;
+    file "slaves/db.192.168.50";
+    masters { 192.168.50.43; };  # ns1 private IP
+};
+
+# adding new on slave
+
+# Add your new host’s private IP address to the “trusted” ACL (named.conf.options)
+
+
+
+```
+
+
+
 
 # SOCKET IO
 

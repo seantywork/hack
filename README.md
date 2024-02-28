@@ -1950,12 +1950,24 @@ sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
 sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-# save
+# save using command
 sudo netfilter-persistent save
 # or
 sudo bash -c "iptables-save > /etc/iptables.ipv4.nat"
 
+sudo nano /etc/rc.local
+# add above exit0
+iptables-restore < /etc/iptables.ipv4.nat
+
+# or simply with iptables-save
+
+sudo iptables-save > /etc/iptables/rules.v4
+sudo ip6tables-save > /etc/iptables/rules.v6
+
+
+
 sudo reboot
+
 
 ```
 
@@ -2048,7 +2060,7 @@ net.ipv4.ip_forward=1
 # instant enabling
 sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 
-sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
 
 # save using command
 sudo netfilter-persistent save

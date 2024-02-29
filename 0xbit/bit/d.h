@@ -87,16 +87,19 @@ void Print2dBufferFromStream(char* source);
 
 void StreamTo2dCopyInterface();
 void Print2dBufferFromBuffer(char* source);
-char** Copy2dBufferFromBuffer(int rowc, char** source);
+char** Copy2dBufferFromBuffer(int rowc, char** source); 
+// char** malloc -> func : okay
+// char** -> func malloc : not okay
+// func malloc -> char** : okay
 
 
 struct StructWith2dArr{
 
     int name;
-    char first_line_arr[MAX_CHAR_ARR_LEN];
-    char* first_line_ptr;
-    char* td_buff[MAX_ROW_NUM];
-    char** dd_buff;
+    char first_line_arr[MAX_CHAR_ARR_LEN]; // value
+    char* first_line_ptr; // ref
+    char* td_buff[MAX_ROW_NUM]; // ref
+    char** dd_buff; // ref
 };
 
 void StreamTo2dStructInterface();

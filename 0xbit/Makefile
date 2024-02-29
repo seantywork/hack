@@ -83,5 +83,28 @@ stream-to-2d:
 	cp stream-to-2d/test.txt . && ./main.out
 
 
+.PHONY: stream-to-2d-copy
+stream-to-2d-copy:
+
+	gcc $(GCC_FLAGS) -c -I. stream-to-2d-copy.o stream-to-2d-copy/stream-to-2d-copy.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o stream-to-2d-copy/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D_COPY=y -I. -o main.out main.c stream-to-2d-copy.o interface.o
+
+	cp stream-to-2d-copy/test.txt . && ./main.out
+
+.PHONY: stream-to-2d-struct
+stream-to-2d-struct:
+
+	gcc $(GCC_FLAGS) -c -I. stream-to-2d-struct.o stream-to-2d-struct/stream-to-2d-struct.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o stream-to-2d-struct/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D_STRUCT=y -I. -o main.out main.c stream-to-2d-struct.o interface.o
+
+	cp stream-to-2d-struct/test.txt . && ./main.out
+
+
 clean:
 	rm -r *.txt *.o *.a *.so *.out

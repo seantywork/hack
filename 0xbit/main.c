@@ -47,6 +47,18 @@ int main(){
 
 #endif
 
+#ifdef TARGET_STREAM_TO_2D_COPY
+
+    StreamTo2dCopyInterface();
+
+#endif
+
+
+#ifdef TARGET_STREAM_TO_2D_STRUCT
+
+    StreamTo2dStructInterface();
+
+#endif
 
     return 0;
 }

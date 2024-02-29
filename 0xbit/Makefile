@@ -106,5 +106,18 @@ stream-to-2d-struct:
 	cp stream-to-2d-struct/test.txt . && ./main.out
 
 
+.PHONY: push-back-string
+push-back-string:
+
+	gcc $(GCC_FLAGS) -c -I. push-back-string.o push-back-string/push-back-string.c
+
+	gcc $(GCC_FLAGS) -c -I. interface.o push-back-string/interface.c
+
+	gcc $(GCC_FLAGS) -DTARGET_PUSH_BACK_STRING=y -I. -o main.out main.c push-back-string.o interface.o
+
+	cp push-back-string/test.txt . && ./main.out
+
+
+
 clean:
 	rm -r *.txt *.o *.a *.so *.out

@@ -108,6 +108,20 @@ struct StructWith2dArr{
 void StreamTo2dStructInterface();
 void Print2dBufferFromStruct(char* source);
 
+
+struct VectorString{
+
+    int size;
+
+    char** vector;
+
+};
+
+
+void PushBackStringInterface();
+void PrintPushBackStringStruct(char* source);
+struct VectorString* PushBackString(struct VectorString* sv, char* new_str);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

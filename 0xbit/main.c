@@ -60,5 +60,11 @@ int main(){
 
 #endif
 
+#ifdef TARGET_PUSH_BACK_STRING
+
+    PushBackStringInterface();
+
+#endif
+
     return 0;
 }

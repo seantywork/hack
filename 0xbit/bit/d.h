@@ -91,6 +91,9 @@ char** Copy2dBufferFromBuffer(int rowc, char** source);
 // char** malloc -> func : okay
 // char** -> func malloc : not okay
 // func malloc -> char** : okay
+// char* malloc -> func : okay
+// char* -> func malloc : not okay
+// func malloc -> char* : okay
 
 
 struct StructWith2dArr{

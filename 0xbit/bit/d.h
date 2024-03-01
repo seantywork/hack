@@ -88,6 +88,7 @@ void Print2dBufferFromStream(char* source);
 void StreamTo2dCopyInterface();
 void Print2dBufferFromBuffer(char* source);
 char** Copy2dBufferFromBuffer(int rowc, char** source); 
+void Copy2dBufferFromBuffer2(int rowc, char*** dest, char** source); 
 
 
 struct StructWith2dArr{

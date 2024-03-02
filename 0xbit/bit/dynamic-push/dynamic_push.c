@@ -1,7 +1,7 @@
-#include "bitgrep/dym.h"
+#include "bit/dynamic_push.h"
 
 
-int BITGREP_PushBackString(int rowc, char*** vec, char* new_el){
+int DYNAMICPUSH_PushBackString(int rowc, char*** vec, char* new_el){
 
     int origin_row_count = rowc;
 
@@ -43,7 +43,7 @@ int BITGREP_PushBackString(int rowc, char*** vec, char* new_el){
     return 0;
 }
 
-int BITGREP_PushBackInt(int count, int** vec, int new_el){
+int DYNAMICPUSH_PushBackInt(int count, int** vec, int new_el){
 
     int origin_el_count = count;
 

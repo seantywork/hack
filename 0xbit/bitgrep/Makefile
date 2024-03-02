@@ -18,7 +18,7 @@ grep.o:
 
 dym.o:
 
-	gcc $(GCC_FLAGS) -c -I../include -o dym.o dynamic_push.c
+	gcc $(GCC_FLAGS) -c -I../include -o dym.o ../bit/dynamic-push/dynamic_push.c
 
 clean:
 	rm -r *.o *.a *.so *.out

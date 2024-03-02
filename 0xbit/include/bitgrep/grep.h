@@ -58,10 +58,6 @@ BITGREP_FLAG BITGREP_FlagParser(BITGREP_TARGET* bg_t, int argc, char** argv);
 int BITGREP_MapStdinTo2d(BITGREP_INPUT2D* bg_in2d);
 
 
-int BITGREP_PushBackString(int rowc, char*** vec, char* new_el);
-
-int BITGREP_PushBackInt(int count, int** vec, int new_el);
-
 int BITGREP_PopulateSearchResult(char* target, BITGREP_INPUT2D* bg_in2d, BITGREP_FOUND* bg_found);
 
 

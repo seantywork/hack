@@ -1,5 +1,5 @@
 
-GCC_FLAGS := -std=c99 -g -Wall
+GCC_FLAGS := -std=gnu99 -g -Wall
 
 
 all: main.o cat.o

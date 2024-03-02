@@ -7,32 +7,43 @@ int main(int argc, char** argv){
 
     BITCAT_TARGET bc_t;
 
-    TARGET flag = BITCAT_FlagParser(&bc_t, argc, argv);
+    BITCAT_FLAG flag = BITCAT_FlagParser(&bc_t, argc, argv);
 
     //TARGET flag = EARG;
 
     int status = 0;
 
-    char** buff_2d;
+    char* buff;
 
     switch(flag){
 
         case EARG:
 
-            printf("wrong argumen\n");
+            fputs("wrong argument\n", stderr);
 
             return -1;
 
         case GETFP:
 
-            printf("get fp\n");
+            status = BITCAT_GetFileIntoBuffer(&buff, bc_t.file_path);
 
-            status = GetFileInto2dBuffer(&buff_2d, bc_t.file_path);
+            if(status < 0){
+                
+                fputs("error\n",stderr);
+
+                return status;
+
+            }
+
+            BITCAT_PrintBuffer(buff);
 
             break;
     }
+    
+    free(bc_t.file_path);
 
-
+    free(buff);
+    
 
     return 0;
 }

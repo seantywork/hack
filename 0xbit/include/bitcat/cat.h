@@ -7,12 +7,16 @@
 #include <string.h>
 
 
-typedef enum TARGET {
+typedef enum BITCAT_FLAG {
 
-    EARG,
+
     GETFP,
+    EARG,
 
-} TARGET;
+} BITCAT_FLAG;
+
+
+
 
 
 typedef struct BITCAT_TARGET {
@@ -25,12 +29,12 @@ typedef struct BITCAT_TARGET {
 
 
 
-int GetFileInto2dBuffer(char*** buff_2d, char* file_path);
-
-TARGET BITCAT_FlagParser(BITCAT_TARGET* bc_t, int argc, char** argv);
+BITCAT_FLAG BITCAT_FlagParser(BITCAT_TARGET* bc_t, int argc, char** argv);
 
 
+int BITCAT_GetFileIntoBuffer(char** buff, char* file_path);
 
+void BITCAT_PrintBuffer(char* buff);
 
 
 

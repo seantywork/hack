@@ -1,4 +1,4 @@
-#include "bit/dynamic_push.h"
+#include "bit/vector.h"
 
 /*
 int DYNAMICPUSH_PushBackString(int rowc, char*** vec, char* new_el){
@@ -78,7 +78,7 @@ int DYNAMICPUSH_PushBackInt(int count, int** vec, int new_el){
 
 
 
-int DYNAMICPUSH_PushBackString(int rowc, char*** vec, char* new_el){
+int VECTOR_PushBackString(int rowc, char*** vec, char* new_el){
 
     int origin_row_count = rowc;
 
@@ -112,28 +112,71 @@ int DYNAMICPUSH_PushBackString(int rowc, char*** vec, char* new_el){
     return 0;
 }
 
-int DYNAMICPUSH_PushBackInt(int count, int** vec, int new_el){
 
-    int origin_el_count = count;
+int VECTOR_EraseString(int rowc, char*** vec, int index){
 
-    int new_el_count = origin_el_count + 1;
+    int origin_row_count = rowc;
 
-    int* vec_tmp;
+    int new_row_count = origin_row_count - 1;
 
-    if(origin_el_count == 0){
+    if (new_row_count < 0){
 
-        vec_tmp = (int*)malloc(new_el_count * sizeof(int));
+        return -1;
+    }
 
-    } else if (origin_el_count != 0){
+    if(index >= origin_row_count || index < 0 ){
 
-        vec_tmp = (int*)realloc(*vec, new_el_count * sizeof(int));
+        return -2;
+    }
+
+    for(int i = 0 ; i < rowc; i ++){
+
+        if(i < index){
+
+            continue;
+
+        } else if( i == index){
+
+            free((*vec)[i]);
+
+            continue;
+
+        } else if (i > index && i != (rowc - 1)){
+
+            (*vec)[i - 1] = (*vec)[i]; 
+
+            continue;
+
+        } else if (i > index && i == (rowc - 1)){
+
+            int last_strlen = strlen((*vec)[i]) + 1;
+
+            char* new_last = (char*)malloc(last_strlen * sizeof(char));
+
+            memset(new_last, 0 , last_strlen * sizeof(char));
+
+            strcpy(new_last, (*vec)[i]);
+
+            free((*vec)[i]);
+
+            (*vec)[i - 1] = new_last;
+        }
 
     }
 
 
-    vec_tmp[origin_el_count] = new_el;
-   
-    *vec = vec_tmp;
+    if(new_row_count == 0){
+
+        free(*vec);
+
+        return 1;
+    }
+
+    char** new_vec;
+
+    new_vec = (char**)realloc(*vec, new_row_count * sizeof(char*));
+
+    *vec = new_vec;
 
     return 0;
 }

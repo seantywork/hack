@@ -1,5 +1,5 @@
 #include "bitgrep/grep.h"
-#include "bit/dynamic_push.h"
+#include "bit/vector.h"
 
 
 
@@ -78,7 +78,7 @@ int BITGREP_MapStdinTo2d(BITGREP_INPUT2D* bg_in2d){
     while ((line_ptr = strsep(&buff_input, delim)) != NULL) {  
 
 
-        int status = DYNAMICPUSH_PushBackString(bg_in2d->row_count, &bg_in2d->buff_2d, line_ptr);
+        int status = VECTOR_PushBackString(bg_in2d->row_count, &bg_in2d->buff_2d, line_ptr);
 
         if(status < -1){
 
@@ -108,14 +108,14 @@ int BITGREP_PopulateSearchResult(char* target, BITGREP_INPUT2D* bg_in2d, BITGREP
 
         if((target_found = strstr(bg_in2d->buff_2d[i], target)) != NULL){
 
-            status = DYNAMICPUSH_PushBackInt(bg_found->found_count, &bg_found->found_index, i);
+            status = VECTOR_PushBackInt(bg_found->found_count, &bg_found->found_index, i);
 
             if(status < 0){
 
                 return -1;
             }
 
-            status = DYNAMICPUSH_PushBackString(bg_found->found_count, &bg_found->buff_found, target_found);
+            status = VECTOR_PushBackString(bg_found->found_count, &bg_found->buff_found, target_found);
 
             if(status < 0){
 

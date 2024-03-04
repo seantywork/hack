@@ -66,5 +66,12 @@ int main(){
 
 #endif
 
+
+#ifdef TARGET_VECTOR_STRING
+
+    VectorStringInterface();
+
+#endif
+
     return 0;
 }

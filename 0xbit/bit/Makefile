@@ -1,6 +1,6 @@
 
 GCC_FLAGS := -std=c99 -g -Wall
-
+GCC_GNU_FLAGS := -std=gnu99 -g -Wall
 
 all:
 	@echo "specify target"
@@ -9,9 +9,9 @@ all:
 .PHONY: maxarea
 maxarea:
 
-	gcc $(GCC_FLAGS) -c -I../include maxarea.o maxarea/maxarea.c
+	gcc $(GCC_FLAGS) -c -I../include -o maxarea.o maxarea/maxarea.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o maxarea/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o maxarea/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_MAXAREA=y -I../include -o main.out main.c maxarea.o interface.o
 
@@ -21,9 +21,9 @@ maxarea:
 .PHONY: longest-palindromic-substr
 longest-palindromic-substr:
 
-	gcc $(GCC_FLAGS) -c -I../include longest-palindromic-substr.o longest-palindromic-substr/longest-palindromic-substr.c
+	gcc $(GCC_FLAGS) -c -I../include -o longest-palindromic-substr.o longest-palindromic-substr/longest-palindromic-substr.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o longest-palindromic-substr/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o longest-palindromic-substr/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_LONGEST_PALINDROMIC_SUBSTR=y -I../include -o main.out main.c longest-palindromic-substr.o interface.o
 
@@ -34,9 +34,9 @@ longest-palindromic-substr:
 .PHONY: reverse-int32
 reverse-int32:
 
-	gcc $(GCC_FLAGS) -c -I../include reverse-int32.o reverse-int32/reverse-int32.c
+	gcc $(GCC_FLAGS) -c -I../include -o reverse-int32.o reverse-int32/reverse-int32.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o reverse-int32/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o reverse-int32/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_REVERSE_INT32=y -I../include -o main.out main.c reverse-int32.o interface.o
 
@@ -48,9 +48,9 @@ reverse-int32:
 .PHONY: struct-copy-thread
 struct-copy-thread:
 
-	gcc $(GCC_FLAGS) -c -I../include struct-copy-thread.o struct-copy-thread/struct-copy-thread.c
+	gcc $(GCC_FLAGS) -c -I../include -o struct-copy-thread.o struct-copy-thread/struct-copy-thread.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o struct-copy-thread/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o struct-copy-thread/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_STRUCT_COPY_THREAD=y -I../include -o main.out main.c struct-copy-thread.o interface.o
 
@@ -62,9 +62,9 @@ struct-copy-thread:
 arr-as-arg:
 
 
-	gcc $(GCC_FLAGS) -c -I../include arr-as-arg.o arr-as-arg/arr-as-arg.c
+	gcc $(GCC_FLAGS) -c -I../include -o arr-as-arg.o arr-as-arg/arr-as-arg.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o arr-as-arg/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o arr-as-arg/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_ARR_AS_ARG=y -I../include -o main.out main.c arr-as-arg.o interface.o
 
@@ -74,9 +74,9 @@ arr-as-arg:
 .PHONY: stream-to-2d
 stream-to-2d:
 
-	gcc $(GCC_FLAGS) -c -I../include stream-to-2d.o stream-to-2d/stream-to-2d.c
+	gcc $(GCC_FLAGS) -c -I../include -o stream-to-2d.o stream-to-2d/stream-to-2d.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o stream-to-2d/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o stream-to-2d/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D=y -I../include -o main.out main.c stream-to-2d.o interface.o
 
@@ -86,9 +86,9 @@ stream-to-2d:
 .PHONY: stream-to-2d-copy
 stream-to-2d-copy:
 
-	gcc $(GCC_FLAGS) -c -I../include stream-to-2d-copy.o stream-to-2d-copy/stream-to-2d-copy.c
+	gcc $(GCC_FLAGS) -c -I../include -o stream-to-2d-copy.o stream-to-2d-copy/stream-to-2d-copy.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o stream-to-2d-copy/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o stream-to-2d-copy/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D_COPY=y -I../include -o main.out main.c stream-to-2d-copy.o interface.o
 
@@ -97,9 +97,9 @@ stream-to-2d-copy:
 .PHONY: stream-to-2d-struct
 stream-to-2d-struct:
 
-	gcc $(GCC_FLAGS) -c -I../include stream-to-2d-struct.o stream-to-2d-struct/stream-to-2d-struct.c
+	gcc $(GCC_FLAGS) -c -I../include -o stream-to-2d-struct.o stream-to-2d-struct/stream-to-2d-struct.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o stream-to-2d-struct/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o stream-to-2d-struct/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_STREAM_TO_2D_STRUCT=y -I../include -o main.out main.c stream-to-2d-struct.o interface.o
 
@@ -109,14 +109,24 @@ stream-to-2d-struct:
 .PHONY: push-back-string
 push-back-string:
 
-	gcc $(GCC_FLAGS) -c -I../include push-back-string.o push-back-string/push-back-string.c
+	gcc $(GCC_FLAGS) -c -I../include -o push-back-string.o push-back-string/push-back-string.c
 
-	gcc $(GCC_FLAGS) -c -I../include interface.o push-back-string/interface.c
+	gcc $(GCC_FLAGS) -c -I../include -o interface.o push-back-string/interface.c
 
 	gcc $(GCC_FLAGS) -DTARGET_PUSH_BACK_STRING=y -I../include -o main.out main.c push-back-string.o interface.o
 
 	cp push-back-string/test.txt . && ./main.out
 
+.PHONY: vector-string
+vector-string:
+
+	gcc $(GCC_GNU_FLAGS) -c -I../include -o vector_string.o vector/string.c
+
+	gcc $(GCC_GNU_FLAGS) -c -I../include -o interface.o vector/interface.c
+
+	gcc $(GCC_GNU_FLAGS) -DTARGET_VECTOR_STRING=y -I../include -o main.out main.c vector_string.o interface.o
+
+	cp vector/test.txt . && ./main.out
 
 
 clean:

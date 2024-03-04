@@ -126,6 +126,12 @@ void VS_delete(struct VectorString* sv);
 // void PushBackString2(struct VectorString* sv, char* new_str);
 void PushBackString2(struct VectorString** sv, char* new_str);
 
+
+void VectorStringInterface();
+
+void PrintReducedVectorString(char* source);
+
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

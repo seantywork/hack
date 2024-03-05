@@ -615,6 +615,14 @@ Miscellaneous
 *(gdb) quit        		quit gdb
 
 ```
+# VALGRIND
+
+```shell
+
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./main.out 
+
+
+```
 
 # SYSTEMCTL SYSTEMD
 

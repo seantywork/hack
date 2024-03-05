@@ -1,5 +1,6 @@
 #include "bit/vector.h"
 
+
 /*
 int DYNAMICPUSH_PushBackString(int rowc, char*** vec, char* new_el){
 

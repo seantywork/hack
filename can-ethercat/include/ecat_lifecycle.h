@@ -232,25 +232,28 @@ class EthercatLifeCycle
         uint32_t motor_state_[g_kNumberOfServoDrivers];
 
 
-        uint32_t zeroed_all_ = 0;
+        //uint32_t zeroed_all_ = 0;
         uint32_t homed_all_ = 0;
 
 
-        uint32_t zeroed_[g_kNumberOfServoDrivers];
-        uint32_t shifted_[g_kNumberOfServoDrivers];
+        //uint32_t zeroed_[g_kNumberOfServoDrivers];
+        //uint32_t shifted_[g_kNumberOfServoDrivers];
         uint32_t homed_[g_kNumberOfServoDrivers];
+
+        uint32_t op_mode_[g_kNumberOfServoDrivers];
  
 
-        int32_t shift_param_[g_kNumberOfServoDrivers];
-        uint32_t shift_set_pos_[g_kNumberOfServoDrivers];
+        //int32_t shift_param_[g_kNumberOfServoDrivers];
+        //uint32_t shift_set_pos_[g_kNumberOfServoDrivers];
 
 
-        uint32_t target_reached_[g_kNumberOfServoDrivers];
+        //uint32_t target_reached_[g_kNumberOfServoDrivers];
         uint32_t new_set_pos_[g_kNumberOfServoDrivers];
       
-        int32_t posted_home_shift_[g_kNumberOfServoDrivers];
+        //int32_t posted_home_shift_[g_kNumberOfServoDrivers];
+        
         int32_t posted_position_[g_kNumberOfServoDrivers];
-      
+        int32_t feedback_position_[g_kNumberOfServoDrivers];
         
 
 
@@ -274,16 +277,17 @@ class EthercatLifeCycle
 
 extern std::shared_ptr<EthercatLifeCycleNode::EthercatLifeCycle> ECAT_LIFECYCLE_NODE;
 
-/* your control logic input
 
-int GetHomeStatByAxis(char* res, int axis);
+int GetHomingStatusByAxis(char* res, int axis);
 
+int GetPositionByAxis(char* res, int axis);
 
 int PostHomeShiftByAxis(char* res, int axis, int shift);
 
-
 int PostPositionByAxis(char* res, int axis, int pos);
 
-*/
+int PostPositionWithFeedbackByAxis(char* res, int axis, int pos);
+
+
 
 #endif

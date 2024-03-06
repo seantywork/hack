@@ -82,6 +82,7 @@ void SetRealTimeSettings()
     // Associate 'signalHandler' function with interrupt signal (Ctrl+C key)
     signal(SIGINT,signalHandler);
 
+#if PREEMPT_RT_MODE
     // Prepare memory for real time performance 
     // https://design.ros2.org/articles/realtime_background.html
     
@@ -96,4 +97,5 @@ void SetRealTimeSettings()
     /* Turn off mmap usage. */
     mallopt(M_MMAP_MAX, 0);
     // -----------------------------------------------------------------------------
+#endif
 }

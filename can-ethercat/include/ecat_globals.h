@@ -40,14 +40,27 @@
 /// @note If you are using custom slaves (not servo drives) this value must be different than NUM_OF_SLAVES.
 const uint32_t  g_kNumberOfServoDrivers = 4;   
 
-const uint32_t  g_kNumberOfServoDriversTarget = 1;   
+//const uint32_t  g_kNumberOfServoDriversTarget = 1;   
+
+#define PREEMPT_RT_MODE 1
+
+#define HOMING_AT_START 1
 
 /// If you have EtherCAT slave different than CiA402 supported motor drive, set this macro to 1
 /// @note  That you'll have to manually specify PDO mapping for your custom slave.
 #define CUSTOM_SLAVE     0
 
 /// Ethercat PDO exchange loop frequency in Hz    
+
+#if PREEMPT_RT_MODE
+
 #define FREQUENCY       500        
+
+#else 
+
+#define FREQUENCY       100       
+
+#endif
 
 /// If you want to measure timings leave it as one, otherwise make it 0.
 #define MEASURE_TIMING         1    
@@ -69,10 +82,6 @@ const uint32_t  g_kNumberOfServoDriversTarget = 1;
 #define GEAR_RATIO          40
 /// Motor encoder resolution
 #define ENCODER_RESOLUTION  10000
-
-#define PREEMPT_RT_MODE 1
-
-#define HOMING_AT_START 1
 
 #define INC_PER_ROTATION      GEAR_RATIO*ENCODER_RESOLUTION*4
 #define FIVE_DEGREE_CCW      int(INC_PER_ROTATION/72)
@@ -360,6 +369,8 @@ typedef struct
     uint32_t i_gain;
     uint32_t d_gain;
 } ProfilePosParam ;
+
+
 
 /**
  * @brief Struct contains configuration parameters for cyclic sync. position mode.

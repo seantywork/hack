@@ -284,10 +284,18 @@ int EthercatLifeCycle::SetConfigurationParameters()
     P.homing_speed_switch = 10000;
     P.homing_speed_zero = 10000;
 
-    P.homing_offset_switch[0] = 65000; 
-    P.homing_offset_switch[1] = 301000; 
-    P.homing_offset_switch[2] = 392520; 
-    P.homing_offset_switch[3] = 260000; 
+    int32_t HomingOffsetSwitch[g_kNumberOfServoDrivers] = {
+        65000,
+        301000,
+        392520,
+        260000
+    };
+    
+    for(int i = 0 ; i < g_kNumberOfServoDrivers; i++){
+
+        P.homing_offset_switch[i] = HomingOffsetSwitch[i];
+
+    }
 
     P.quick_stop_dec = 3e4;
     P.motion_profile_type = 0;
@@ -839,32 +847,6 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
         else
         {
 
-            /*
-            if(homed_all_ != 1){
-
-                if(zeroed_[i] != 1){
-
-                    sent_data_.control_word[i] = 0x1F;
-                
-                    zeroed_[i] = TEST_BIT(received_data_.status_word[i], 10);
-
-
-                } else if (shifted_[i] != 1){
-
-                    sent_data_.control_word[i] = SM_EXPEDITE;
-
-                    shift_set_pos_[i] = TEST_BIT(received_data_.status_word[i],10);
-
-                } else if (homed_[i] != 1){
-
-                    sent_data_.control_word[i] = 0x1F;
-                
-                    homed_[i] = TEST_BIT(received_data_.status_word[i], 10);                    
-
-                }
-
-            */
-
 
             if(homed_all_ != 1){
                 int hit = 0;
@@ -879,7 +861,6 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
                     homed_all_ =1;
                 }        
             }
-
 
 
 
@@ -907,8 +888,6 @@ void EthercatLifeCycle::UpdateMotorStatePositionMode()
             } else {
 
                 sent_data_.control_word[i] = SM_EXPEDITE;
-            
-                target_reached_[i] = TEST_BIT(received_data_.status_word[i], 10);
 
                 new_set_pos_[i] = TEST_BIT(received_data_.status_word[i],12);
 
@@ -939,51 +918,21 @@ void EthercatLifeCycle::UpdateHomeStatePositionMode(){
                 motor_state_[i] == kTargetReached || motor_state_[i] == kSwitchedOn)
             {
 
-                printf("home: ap: %d\n", received_data_.actual_pos[i]);
-                printf("home: av: %d\n", received_data_.actual_vel[i]);
-                printf("home: di: %d\n", received_data_.digital_in[i]);
-                printf("home: ec: %d\n", received_data_.error_code[i]);
-                printf("home: pd: %d\n", received_data_.op_mode_display[i]);
-                printf("home: sw: %d\n", received_data_.status_word[i]);
-            //    printf("home: zero : %d\n", zeroed_[i]);
-            //    printf("home: shift: %d\n", shifted_[i]);
-                printf("home: homed: %d\n", homed_[i]);
-
-                /*
-                if(zeroed_[i] != 1){
-
-                    sent_data_.op_mode[i] = 6;
-                    sent_data_.homing_method[i] = 24;
-
-                } else if(shifted_[i] != 1){
-
-                    sent_data_.target_pos[i] = shift_param_[i];
-                    sent_data_.profile_vel[i] = 10000;
-                    sent_data_.op_mode[i] = 1;
-
-                } else if (homed_[i] != 1){
-
-                    sent_data_.op_mode[i] = 6;
-                    sent_data_.homing_method[i] = 24;
-
-
-                }
-                */
-
-
-
-
-                sent_data_.op_mode[i] = 6;
-                sent_data_.homing_method[i] = 24;
-
-
-
-
-                printf("received error code: %d\n", received_data_.error_code[2]);
+                printf("axis: %d\n", i);
+                printf("home: ap: %d, op mode: %d, homed: %d\n", received_data_.actual_pos[i], received_data_.op_mode_display[i], homed_[i]);
                 GetErrorMessage(received_data_.error_code[2]);
 
+                feedback_position_[i] = received_data_.actual_pos[i];
+                op_mode_[i] = received_data_.op_mode_display[i];
+
+                sent_data_.homing_method[i] = 24;
+                sent_data_.op_mode[i] = 6;
+
+
             } else {
-                printf("skipped due to motor stata\n");
+                printf("axis: %d skipped due to an error\n", i);
+                printf("home: ap: %d, op mode: %d, homed: %d\n", received_data_.actual_pos[i], received_data_.op_mode_display[i], homed_[i]);
+                GetErrorMessage(received_data_.error_code[2]);
             }
         }
 
@@ -1002,23 +951,22 @@ void EthercatLifeCycle::UpdateMoveStatePositionMode(){
             motor_state_[i] == kTargetReached || motor_state_[i] == kSwitchedOn)
         {
 
-            printf("move: ap: %d\n", received_data_.actual_pos[i]);
-            printf("move: av: %d\n", received_data_.actual_vel[i]);
-            printf("move: di: %d\n", received_data_.digital_in[i]);
-            printf("move: ec: %d\n", received_data_.error_code[i]);
-            printf("move: pd: %d\n", received_data_.op_mode_display[i]);
-            printf("move: sw: %d\n", received_data_.status_word[i]);
-            printf("move: hd: %d\n", homed_[i]);
+            printf("axis: %d\n", i);
+            printf("move: ap: %d, op mode: %d, homed: %d\n", received_data_.actual_pos[i], received_data_.op_mode_display[i], homed_[i]);
+            GetErrorMessage(received_data_.error_code[2]);
+
+            feedback_position_[i] = received_data_.actual_pos[i];
+            op_mode_[i] = received_data_.op_mode_display[i];
 
             sent_data_.target_pos[i] = posted_position_[i];
             sent_data_.profile_vel[i] = 1000000;
             sent_data_.op_mode[i] = 1;
 
-            printf("received error code: %d\n", received_data_.error_code[2]);
-            GetErrorMessage(received_data_.error_code[2]);
 
         } else {
-            printf("skipped due to motor stata\n");
+            printf("axis: %d skipped due to an error\n", i);
+            printf("move: ap: %d, op mode: %d, homed: %d\n", received_data_.actual_pos[i], received_data_.op_mode_display[i], homed_[i]);
+            GetErrorMessage(received_data_.error_code[2]);
         }
     }
 
@@ -1410,11 +1358,66 @@ void EthercatLifeCycle::UpdateMotorStateVelocityMode()
     return;
 }
 
-/*
-your control input logic
 
-int GetHomeStatByAxis(char* res, int axis){
 
+
+int GetHomingStatusByAxis(char* res, int axis){
+
+
+    int op_mode = (int)ECAT_LIFECYCLE_NODE->op_mode_[axis];
+
+    int feedback = (int)ECAT_LIFECYCLE_NODE->feedback_position_[axis];
+
+    std::string status_str;
+    /*
+
+    if(op_mode != 1 && feedback != 0){
+
+        status_str = std::to_string(0);
+
+    } else if (op_mode != 1 && feedback == 0){
+
+        status_str = std::to_string(-1);
+
+    } else if (op_mode == 1 && feedback != 0){
+
+        status_str = std::to_string(-2);
+
+    } else if (op_mode == 1 && feedback == 0){
+
+        status_str = std::to_string(1);
+
+    } 
+
+    */
+
+
+   if(op_mode == 1 && feedback == 0){
+ 
+        status_str = std::to_string(1);
+   
+   } else {
+
+        status_str = std::to_string(0);
+   }
+
+
+
+    strcpy(res, status_str.c_str());
+
+
+    return 0;
+}
+
+
+int GetPositionByAxis(char* res, int axis){
+
+
+    int feedback = (int)ECAT_LIFECYCLE_NODE->feedback_position_[axis];
+
+    std::string feedback_str = std::to_string(feedback);
+
+    strcpy(res, feedback_str.c_str());
 
 
     return 0;
@@ -1440,4 +1443,19 @@ int PostPositionByAxis(char* res, int axis, int pos){
 
     return 0;
 }
-*/
+
+
+int PostPositionWithFeedbackByAxis(char* res, int axis, int pos){
+
+    int32_t pos_32 = (int32_t)pos;
+
+    ECAT_LIFECYCLE_NODE->posted_position_[axis] = pos_32;
+
+    int feedback = (int)ECAT_LIFECYCLE_NODE->feedback_position_[axis];
+
+    std::string feedback_str = std::to_string(feedback);
+
+    strcpy(res, feedback_str.c_str());
+
+    return 0;
+}

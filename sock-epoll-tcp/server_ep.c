@@ -29,7 +29,7 @@ int main()
     else
         printf("socket successfully created\n"); 
 
-    /*
+    
     if( setsockopt(SOCKFD, SOL_SOCKET, SO_REUSEADDR, (char *)&OPT,  
           sizeof(OPT)) < 0 )   
     {   
@@ -37,7 +37,7 @@ int main()
         exit(EXIT_FAILURE);   
     } 
 
-    */  
+      
      
 
     bzero(&SERVADDR, sizeof(SERVADDR)); 

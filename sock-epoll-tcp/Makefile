@@ -22,7 +22,7 @@ $(SERVER_EP):
 
 $(CLIENT):
 
-	$(CC) $(CFLAGS) -o $(CLIENT) client.c $(LIBS)
+	$(CC) $(CFLAGS) -o $(CLIENT) client_p.c $(LIBS)
 
 
 clean:

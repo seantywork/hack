@@ -114,6 +114,84 @@ void handle_client(int cfd){
 
     fp = fopen(f_name, "a");
 
+    
+    int valread;
+    char buff[MAX_BUFF] = {0}; 
+    char wbuff[MAX_BUFF] = {0}; 
+    struct sockaddr_in peeraddr;
+    socklen_t peerlen;
+
+    SSL * sslst;
+
+    peerlen = sizeof(peeraddr);
+
+    sslst = get_tlsch_ssl(cfd);
+
+    valread = SSL_read(sslst, buff,sizeof(buff));
+
+    fprintf(fp,"read %d\n",valread);
+    fflush(fp);
+
+    if(valread == -1){
+
+        if(errno != EAGAIN){
+            printf("handle read error\n");
+        }
+
+        done = 1;
+
+
+    } else if (valread == 0){
+
+        getpeername(cfd, (SA*)&peeraddr, &peerlen);
+        printf("client disconnected: ip=%s, port=%d\n",
+            inet_ntoa(peeraddr.sin_addr),
+            ntohs(peeraddr.sin_port)
+        );
+
+        done = 1;
+
+
+    }
+
+
+    strcat(wbuff,"SSL SERVER RESP: ");
+
+    strcat(wbuff, buff);
+
+    sleep(WAIT);
+
+
+    SSL_write(sslst, wbuff, sizeof(wbuff));
+
+    if (done){
+
+        release_tlsch(cfd);
+        close(cfd);
+
+        printf("closed sock\n");
+
+    }
+
+
+
+}
+
+
+/*
+
+void handle_client(int cfd){
+
+    int done = 0;
+
+    FILE  *fp;
+
+    char f_name[10] = {0};
+
+    sprintf(f_name, "%d", cfd);
+
+    fp = fopen(f_name, "a");
+
     while(TRUE){
         int valread;
         char buff[MAX_BUFF] = {0}; 
@@ -170,3 +248,5 @@ void handle_client(int cfd){
 
 
 }
+
+*/

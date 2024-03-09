@@ -1,24 +1,4 @@
-
-
-#include <stdio.h> 
-#include <netdb.h> 
-#include <netinet/in.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
-#include <unistd.h> 
-// m headers
-#include <errno.h>
-#include <arpa/inet.h>
-#include <sys/time.h>
-
-#define TRUE 1
-#define FALSE 0
-#define MAX_BUFF 1024 
-#define MAX_CONN 80
-#define PORT 8080 
-#define SA struct sockaddr 
+#include "server_s.h"
    
 struct sockaddr_in servaddr;
 int servlen;
@@ -35,14 +15,16 @@ int valread;
 fd_set readfds;
 
 void comm() { 
-    char buff[MAX_BUFF]; 
-    struct sockaddr_in peeraddr;
+
 
     for (int i = 0; i < MAX_CONN; i ++) { 
 
-        bzero(buff, MAX_BUFF); 
 
         sd = client_socket[i];
+
+        char buff[MAX_BUFF] = {0}; 
+        char wbuff[MAX_BUFF] = {0};
+        struct sockaddr_in peeraddr;
 
         if(FD_ISSET(sd, &readfds)){
 
@@ -57,8 +39,13 @@ void comm() {
                 close(sd);
                 client_socket[i] = 0;
             }else{
-                buff[valread] = '\0';
-                send(sd, buff, strlen(buff), 0);
+
+                
+                strcat(wbuff, "SERVER RESP: ");
+
+                strcat(wbuff, buff);
+
+                send(sd, wbuff, strlen(wbuff), 0);
             }
 
         }
@@ -104,7 +91,11 @@ int main()
         exit(EXIT_FAILURE); 
     } 
    
-
+    if(make_socket_non_blocking(sockfd) < 0){
+        printf("non-blocking failed\n");
+        exit(EXIT_FAILURE);
+    }
+    
     if ((listen(sockfd, 5)) != 0) { 
         printf("listen failed\n"); 
         exit(EXIT_FAILURE); 
@@ -157,7 +148,13 @@ int main()
                 inet_ntoa(servaddr.sin_addr), 
                 ntohs(servaddr.sin_port) 
             );
-            
+
+
+            if(make_socket_non_blocking(new_socket) < 0){
+                printf("non-blocking failed\n");
+                continue;
+            }
+    
 
             for (int i = 0 ; i < MAX_CONN; i ++){
 

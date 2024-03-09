@@ -32,7 +32,10 @@
 #define MAX_CONN 80
 #define PORT 4004 
 #define SA struct sockaddr 
-   
+
+#define WAIT 7   
+
+
 extern struct sockaddr_in SERVADDR;
 extern int SERVLEN;
 

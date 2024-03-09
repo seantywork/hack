@@ -7,7 +7,7 @@ int make_socket_non_blocking (int sfd){
   flags = fcntl (sfd, F_GETFL, 0);
   if (flags == -1)
     {
-      perror ("fcntl");
+      perror ("fcntl get");
       return -1;
     }
 
@@ -15,8 +15,8 @@ int make_socket_non_blocking (int sfd){
   s = fcntl (sfd, F_SETFL, flags);
   if (s == -1)
     {
-      perror ("fcntl");
-      return -1;
+      perror ("fcntl set");
+      return -2;
     }
 
   return 0;

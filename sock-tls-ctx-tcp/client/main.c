@@ -84,6 +84,7 @@ int main(int argc, char* argv[])
 
         SSL_CTX_set_verify_depth(ctx, 5);
 
+
         
 
         const long flags = SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION;
@@ -135,6 +136,8 @@ int main(int argc, char* argv[])
             break; /* failed */
         }
         
+
+
         res = SSL_set_cipher_list(ssl, PREFERRED_CIPHERS);
         ssl_err = ERR_get_error();
         
@@ -167,27 +170,21 @@ int main(int argc, char* argv[])
             break; /* failed */
         }
         
-        res = BIO_do_connect(web);
+
+
+        res = BIO_do_connect_retry(web, 5, 100);
         ssl_err = ERR_get_error();
-        
-        ASSERT(1 == res);
-        if(!(1 == res))
-        {
-            print_error_string(ssl_err, "BIO_do_connect");
-            break; /* failed */
-        }
-        
-        res = BIO_do_handshake(web);
-        ssl_err = ERR_get_error();
-        
-        ASSERT(1 == res);
-        if(!(1 == res))
-        {
-            print_error_string(ssl_err, "BIO_do_handshake");
-            break; /* failed */
-        }
         
 
+
+        ASSERT(1 == res);
+        if(!(1 == res))
+        {
+            print_error_string(ssl_err, "BIO_do_connect_retry");
+            break; /* failed */
+        }
+
+        
         X509* cert = SSL_get_peer_certificate(ssl);
         if(cert) { X509_free(cert); } 
         
@@ -215,21 +212,92 @@ int main(int argc, char* argv[])
         
         int len = 0;
         do {
-            char buff[1536] = {};
+            char buff[1024] = {0};
+            char rbuff[1024] = {0};
+            size_t rlen = 0;
+            size_t wlen = 0;
+            int timeout = 0;
+
+            int ms_until_deadline;
+
+            long timeout_limit = 3000;
+
+
             printf("client message : ");
-            int nindex = 0;
-            while ((buff[nindex++] = getchar()) != '\n')
-            ;
+            
 
-            BIO_write(web, buff, nindex);
+            fgets(buff, 1024, stdin);
 
-            len = BIO_read(web, buff, sizeof(buff));
+            BIO_write_ex(web, buff, sizeof(buff), &wlen);
 
-            printf("%s\n",buff);
+            struct timespec wnow;
+
+            clock_gettime(CLOCK_MONOTONIC_RAW, &wnow);
+
+            struct timespec wdeadline ;
+
+            while(BIO_should_retry(web)){
+
+                clock_gettime(CLOCK_MONOTONIC_RAW, &wdeadline);
+
+                ms_until_deadline = ((wdeadline.tv_sec - wnow.tv_sec) * 1000 + (wdeadline.tv_nsec - wnow.tv_nsec) / 1000000);
+                
+                printf("%d\n", ms_until_deadline);
+
+                
+                if(ms_until_deadline > timeout_limit){
+                    timeout = 1;
+                    break;
+                }
+
+                BIO_write_ex(web, buff, sizeof(buff), &wlen);
+
+            }
+
+            if(timeout == 1){
+                printf("write timeout\n");
+                timeout = 0;
+            }
+
+            ms_until_deadline = 0;
+
+
+            BIO_read_ex(web, rbuff, sizeof(rbuff), &rlen);
+
+            struct timespec rnow;
+
+            clock_gettime(CLOCK_MONOTONIC_RAW, &rnow);
+
+            struct timespec rdeadline;
+
+            while(BIO_should_retry(web)){
+
+                clock_gettime(CLOCK_MONOTONIC_RAW, &rdeadline);
+
+                ms_until_deadline = ((rdeadline.tv_sec - rnow.tv_sec) * 1000 + (rdeadline.tv_nsec - rnow.tv_nsec) / 1000000);
+
+                
+                if(ms_until_deadline > timeout_limit){
+                    timeout = 1;
+                    break;
+                }
+
+
+                BIO_read_ex(web, rbuff, sizeof(buff), &rlen);
+
+            }
+
+            if(timeout == 1){
+                printf("read timeout\n");
+                timeout = 0;
+            } else {
+                printf("%s\n",rbuff);
+            }
+
             
             
             
-        } while (len > 0 || BIO_should_retry(web));
+        } while (1);
         
         printf("client terminated\n");
 

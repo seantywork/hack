@@ -11,19 +11,25 @@
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
-void func(int sockfd)
+void comm(int sockfd)
 {
-    char buff[MAX];
+    char buff[1024];
     int n;
     for (;;) {
-        bzero(buff, sizeof(buff));
+        
+        memset(buff, 0, 1024);
+        
         printf("client message : ");
         n = 0;
-        while ((buff[n++] = getchar()) != '\n')
-            ;
+
+        fgets(buff, 1024, stdin);
+
         write(sockfd, buff, sizeof(buff));
-        bzero(buff, sizeof(buff));
+
+        memset(buff, 0, 1024);
+        
         read(sockfd, buff, sizeof(buff));
+        
         printf("server message : %s", buff);
         if ((strncmp(buff, "exit", 4)) == 0) {
             printf("client exit\n");
@@ -59,7 +65,7 @@ int main()
         printf("connected to the server\n");
  
 
-    func(sockfd);
+    comm(sockfd);
  
     close(sockfd);
 }

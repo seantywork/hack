@@ -1,8 +1,8 @@
-#include "client_conn.h"
+#include "client_p.h"
 
 int SOCK_FD;
 
-int connect_with_timeout(char* addr, int port, int timeout){
+int connect_with_timeout(char* addr, int port, long timeout){
 
     int status, valread, client_fd;
     struct sockaddr_in serv_addr;
@@ -82,26 +82,25 @@ int connect_with_timeout(char* addr, int port, int timeout){
 
         if ((errno != EWOULDBLOCK) && (errno != EINPROGRESS)) {
 
-            rc = -1;
+            rc = -11;
 
         } else {
             
             struct timespec now;
 
-            struct timespec deadline = { .tv_sec = now.tv_sec,
-                                            .tv_nsec = now.tv_nsec + timeout*1000000l};
-            
+            clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+
+            struct timespec deadline;
+
 
             do{
 
-                if(clock_gettime(CLOCK_MONOTONIC, &now) < 0) { 
-                    rc = -1; 
-                    break; 
-                }
-                int ms_until_deadline = (int)(  (deadline.tv_sec  - now.tv_sec)*1000l
-                                                + (deadline.tv_nsec - now.tv_nsec)/1000000l);
-                if(ms_until_deadline < 0) { 
-                    rc=0; 
+                clock_gettime(CLOCK_MONOTONIC_RAW, &deadline);
+
+                int ms_until_deadline = ((deadline.tv_sec - now.tv_sec) * 1000 + (deadline.tv_nsec - now.tv_nsec) / 1000000);
+ 
+                if(ms_until_deadline > timeout) { 
+                    rc = -10; 
                     break; 
                 }
                 
@@ -116,18 +115,17 @@ int connect_with_timeout(char* addr, int port, int timeout){
                         errno = error;
                     }
                     if(error != 0) {
-                        rc = -1;
+                        rc = -11;
                     }
                 }
 
-            } while(rc == -1 && errno == EINTR);
+            } while(rc == -11 && errno == EINTR);
 
 
-            if(rc == 0) {
+            if(rc == -10) {
                 
                 errno = ETIMEDOUT;
                 
-                rc = -1;
             }
 
         }
@@ -137,16 +135,15 @@ int connect_with_timeout(char* addr, int port, int timeout){
     
     
 
-
     if(fcntl(SOCK_FD,F_SETFL,sockfd_flags_before ) < 0) {
 
-        return -1;
+        return -20;
     }
 
     return rc;
 }
 
-void func(int sockfd)
+void comm(int sockfd)
 {
     char buff[1024];
     int n;
@@ -176,7 +173,7 @@ void func(int sockfd)
 int main(){
 
 
-    int stat = connect_with_timeout("192.168.50.24", 8080, 5000);
+    int stat = connect_with_timeout("127.0.0.1", 8080, 5000);
 
 
     if(stat < 0){
@@ -187,7 +184,7 @@ int main(){
     }
 
 
-    func(SOCK_FD);
+    comm(SOCK_FD);
 
     close(SOCK_FD);
 

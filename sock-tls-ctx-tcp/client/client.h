@@ -13,6 +13,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include <errno.h>
+#include <poll.h>
+#include <time.h>
+
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>

@@ -215,13 +215,18 @@ int main(int argc, char* argv[])
         
         int len = 0;
         do {
-            char buff[1536] = {};
+            char rbuff[1024] = {0};
+            char wbuff[1024] = {0};
             
+            printf("client message : ");
 
-            len = BIO_read(web, buff, sizeof(buff));
+            fgets(wbuff, 1024, stdin);
+
+            BIO_write(web, wbuff, sizeof(wbuff));
+
+            len = BIO_read(web, rbuff, sizeof(rbuff));
             
-            if(len > 0)
-                BIO_write(out, buff, len);
+            printf("%s\n", rbuff);
             
             
         } while (len > 0 || BIO_should_retry(web));

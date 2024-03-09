@@ -61,6 +61,37 @@ void configure_context(SSL_CTX *ctx)
     }
 }
 
+
+void comm(SSL* ssl){
+
+
+    char buff[1024]; 
+    int n; 
+
+    for (;;) { 
+       
+        char rbuff[1024] = {0};
+        char wbuff[1024] = {0};
+   
+        SSL_read(ssl, rbuff, sizeof(rbuff));
+
+        printf("client message: %s\n", rbuff); 
+        
+        strcat(wbuff, "SERVER RESP: ");
+
+        strcat(wbuff, rbuff);
+
+     
+        SSL_write(ssl, wbuff, sizeof(wbuff));
+
+        if (strncmp("exit", rbuff, 4) == 0) { 
+            printf("server exit\n"); 
+            break; 
+        } 
+    } 
+
+}
+
 int main(int argc, char **argv)
 {
     int sock;
@@ -91,8 +122,9 @@ int main(int argc, char **argv)
 
         if (SSL_accept(ssl) <= 0) {
             ERR_print_errors_fp(stderr);
+            return -1;
         } else {
-            SSL_write(ssl, reply, strlen(reply));
+            comm(ssl);
         }
 
         SSL_shutdown(ssl);
@@ -102,4 +134,6 @@ int main(int argc, char **argv)
 
     close(sock);
     SSL_CTX_free(ctx);
+
+    return 0;
 }

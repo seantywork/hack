@@ -1,7 +1,62 @@
 
 #include "server_st.h"
 
-   
+
+int SERVICE_PORTS[MAX_PORT];
+
+pthread_t TID[MAX_PORT];
+pthread_mutex_t TLOCK; 
+
+struct WorkerArg WA[MAX_PORT];
+
+int main() 
+{ 
+
+
+    SERVICE_PORTS[0] = PORT1;
+    SERVICE_PORTS[1] = PORT2;
+    SERVICE_PORTS[2] = PORT3;
+
+    if(pthread_mutex_init(&TLOCK, NULL) != 0){
+        printf("mutex init failed \n");
+        return EXIT_FAILURE;
+    }
+
+
+    for(int i = 0; i < MAX_PORT; i++){
+
+        WA[i].WTHREAD_ID = i;
+        WA[i].PORT = SERVICE_PORTS[i];
+
+        int perr = pthread_create(&(TID[i]), NULL, Worker, (void *)&(WA[i]));
+
+        if(perr != 0){
+            printf("thread creation failed\n");
+            return EXIT_FAILURE;
+        }else {
+
+            printf("thread created\n");
+            
+        }
+
+        sleep(1);
+
+
+    }
+
+
+
+
+
+    pthread_join(TID[0], NULL);
+
+    pthread_mutex_destroy(&TLOCK);
+
+    return EXIT_SUCCESS;
+}
+
+
+/*
 int main() 
 { 
 
@@ -115,3 +170,5 @@ int main()
 
     return EXIT_SUCCESS;
 }
+
+*/

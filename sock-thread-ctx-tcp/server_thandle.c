@@ -1,6 +1,6 @@
-#include "server_ep.h"
+#include "server_st.h"
 
-void handle_conn(){
+void thandle_conn(FILE* fp, int SOCKFD, int EPLFD, struct epoll_event EVENT){
 
 
     while(TRUE){
@@ -19,18 +19,21 @@ void handle_conn(){
                 (errno == EAGAIN) ||
                 (errno == EWOULDBLOCK)
             ){
-                printf("all incoming connections handled\n");
+                fprintf(fp, "all incoming connections handled\n");
+                fflush(fp);
                 break;
 
             } else{
-                printf("errbo: %d\n", errno);
-                printf("error handling incoming connection\n");
+                fprintf(fp, "errbo: %d\n", errno);
+                fprintf(fp, "error handling incoming connection\n");
+                fflush(fp);
                 break;
             }
         }
 
-        if(make_socket_non_blocking(infd) < 0){
-            printf("failed new conn non block\n");
+        if(make_socket_non_blocking(fp, infd) < 0){
+            fprintf(fp, "failed new conn non block\n");
+            fflush(fp);
             exit(EXIT_FAILURE);
         }
 
@@ -39,12 +42,14 @@ void handle_conn(){
 
         if (epoll_ctl(EPLFD, EPOLL_CTL_ADD, infd, &EVENT) < 0){
 
-            printf("handle epoll add failed\n");
+            fprintf(fp, "handle epoll add failed\n");
+            fflush(fp);
             exit(EXIT_FAILURE);
 
         }  else {
 
-            printf("handle epoll add success\n");
+            fprintf(fp, "handle epoll add success\n");
+            fflush(fp);
 
         }
 
@@ -57,7 +62,7 @@ void handle_conn(){
 }
 
 
-void handle_client(int i){
+void thandle_client(FILE* fp, int i, struct epoll_event* CLIENT_SOCKET){
 
     int done = 0;
 
@@ -75,7 +80,8 @@ void handle_client(int i){
     if(valread == -1){
 
         if(errno != EAGAIN){
-            printf("handle read error\n");
+            fprintf(fp, "handle read error\n");
+            fflush(fp);
             
         }
 
@@ -86,10 +92,11 @@ void handle_client(int i){
 
 
         getpeername(CLIENT_SOCKET[i].data.fd, (SA*)&peeraddr, &peerlen);
-        printf("client disconnected: ip=%s, port=%d\n",
+        fprintf(fp, "client disconnected: ip=%s, port=%d\n",
             inet_ntoa(peeraddr.sin_addr),
             ntohs(peeraddr.sin_port)
         );
+        fflush(fp);
 
         done = 1;
 
@@ -108,7 +115,8 @@ void handle_client(int i){
     if (done){
 
         close(CLIENT_SOCKET[i].data.fd);
-        printf("closed sock\n");
+        fprintf(fp, "closed sock\n");
+        fflush(fp);
 
     }
 

@@ -11,9 +11,12 @@
 #include <unistd.h> 
 #include <time.h>
 // s headers
-#include <errno.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <fcntl.h>
+#include <sys/epoll.h>
+#include <errno.h>
+
 // t headers
 #include <pthread.h>
 
@@ -27,32 +30,40 @@
 #define FALSE 0
 #define MAX_BUFF 1024 
 #define MAX_CONN 80
-#define PORT 8080 
+#define MAX_PORT 3
+#define PORT1 8080 
+#define PORT2 8090 
+#define PORT3 8100 
 #define SA struct sockaddr 
    
 
-static struct sockaddr_in SERVADDR;
-static int SERVLEN;
-
-// to be locked
-static int CLIENT_SOCKET[MAX_CONN];
-static int SOCKFD;
-static int MAX_SD;
 
 
-static int OPT = TRUE;   
+extern int SERVICE_PORTS[MAX_PORT];
 
 
-static pthread_t TID[MAX_CONN];
-static pthread_mutex_t TLOCK; 
+extern pthread_t TID[MAX_PORT];
+extern pthread_mutex_t TLOCK; 
 
-static struct WorkerArg {
+struct WorkerArg {
 
     int WTHREAD_ID;
-    int WSOCK_FD;
+    int PORT;
 };
+
+extern struct WorkerArg WA[MAX_PORT];
+
+
 
 void *Worker(void *); 
 int msleep(long);
+
+
+int make_socket_non_blocking (FILE* fp, int sfd);
+
+void thandle_conn(FILE* fp, int SOCKFD, int EPLFD, struct epoll_event EVENT);
+
+void thandle_client(FILE* fp, int i, struct epoll_event* CLIENT_SOCKET);
+
 
 #endif

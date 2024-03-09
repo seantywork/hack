@@ -1,6 +1,6 @@
 
-#ifndef _SOCK_POLL_TIMEOUT_H_
-#define _SOCK_POLL_TIMEOUT_H_
+#ifndef _SOCK_POLL_CLIENT_H_
+#define _SOCK_POLL_CLIENT_H_
 
 
 #include <stdio.h> 
@@ -23,6 +23,6 @@
 
 
 extern int SOCK_FD;
-int connect_with_timeout(char* addr, int port, int timeout);
+int connect_with_timeout(char* addr, int port, long timeout);
 
 #endif

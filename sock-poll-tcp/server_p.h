@@ -12,10 +12,14 @@
 #include <sys/time.h>
 #include <poll.h>
 
-#define PORT 9990
+#include <fcntl.h>
+#include <errno.h>
+
+#define PORT 8080
 #define SIZE 1024
 #define MAX_CLIENTS 10
+#define WAIT 3
 
-
+int make_socket_non_blocking (int sfd);
 
 #endif

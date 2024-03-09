@@ -1,4 +1,4 @@
-CFLAGS  := -Wall -std=c99 -g
+CFLAGS  := -Wall -g
 LIBS    := -lcrypto -lssl -lpthread
 
 

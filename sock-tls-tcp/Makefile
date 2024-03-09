@@ -18,5 +18,5 @@ $(CLIENT):
 	$(CC) $(CFLAGS) -o $(CLIENT) client/main.c $(LIBS)
 
 
-clean:
-	rm -f  *.o 
+clean:	
+	rm -rf server/*.o server/*.out client/*.o client/*.out 

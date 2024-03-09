@@ -15,26 +15,26 @@
  
 void func(int connfd) 
 { 
-    char buff[MAX]; 
+    char buff[1024]; 
     int n; 
 
     for (;;) { 
-        bzero(buff, MAX); 
+       
+        char rbuff[1024] = {0};
+        char wbuff[1024] = {0};
    
      
-        read(connfd, buff, sizeof(buff)); 
-        printf("client message: %s\t to client : ", buff); 
-        bzero(buff, MAX); 
-        n = 0; 
+        read(connfd, rbuff, sizeof(rbuff)); 
 
-        while ((buff[n++] = getchar()) != '\n') 
-            ; 
-   
+        printf("client message: %s\n ", rbuff); 
+        
+        strcat(wbuff, "SERVER RESP: ");
 
-        write(connfd, buff, sizeof(buff)); 
-   
+        strcat(wbuff, rbuff);
+
+        write(connfd, wbuff, sizeof(wbuff)); 
      
-        if (strncmp("exit", buff, 4) == 0) { 
+        if (strncmp("exit", rbuff, 4) == 0) { 
             printf("server exit\n"); 
             break; 
         } 

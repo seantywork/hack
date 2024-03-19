@@ -10,7 +10,5 @@
 *.cc linguist-vendored=false
 *.sh linguist-vendored=false
 0xgo/* linguist-vendored
-0xpy/* linguist-vendored
-0xjs/* linguist-vendored
-0xml/* linguist-vendored
-0xalgo/* linguist-vendored
+0xetc/* linguist-vendored
+

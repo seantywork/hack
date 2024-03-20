@@ -9402,7 +9402,7 @@ allow_anonymous true
 # RASPBERRY PI
 
 ```shell
-# gpio pins
+# gpio pins for rpi 4
 
 | #  |           | PIN  |    |    | PIN  |          | #  |
 |----|-----------|------|----|----|------|----------|----|

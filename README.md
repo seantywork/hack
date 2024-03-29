@@ -9450,6 +9450,9 @@ cd pigpio-master
 make
 sudo make install
 
+# wiringpi
+
+sudo apt install wiringpi
 
 # ir receiver
 
@@ -9980,5 +9983,44 @@ sudo udevadm control --reload-rules
 # sdo send (set parameters)
 
 # logic...
+
+```
+
+
+# SERIAL SPI I2C UART
+
+
+```shell
+
+# on rpi4
+
+sudo vim /boot/config.txt
+
+
+# add or uncomment for i2c
+dtparam=i2c_arm=on
+
+
+# add or uncomment for spi
+dtparam=spi=on
+dtoverlay=spi1-1cs
+
+# add or uncomment for uart
+enable_uart=1
+
+...
+
+arm_boost=1
+
+[all]
+
+# add or uncomment for freq stabilization
+force_turbo=1
+
+
+
+
+sudo reboot
+
 
 ```

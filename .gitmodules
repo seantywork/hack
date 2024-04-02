@@ -1,7 +1,3 @@
-[submodule "ap4ko"]
-	path = ap4ko
-	url = https://github.com/seantywork/ap4ko.git
-	branch = main
 [submodule "gh-bot"]
 	path = gh-bot
 	url = https://github.com/seantywork/gh-bot.git

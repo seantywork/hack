@@ -6455,36 +6455,93 @@ sudo apt-get install qemu-system-arm qemu-efi
 
 ```
 
-# VIRTUAL CLUSTER
-
-```shell
-
-
-# proxmox
-
-create vm
-
-import vm
-
-import disk
-
-qm importdisk <VM_ID> <OVA_DISK.vmdk> <VOL_NAME> -format qcow2
-
-ex) qm importdisk 101 ubuntu20-disk001.vmdk local-lvm -format qcow2
-
-create cluster
-
-join cluster
-
-```
 
 # VM QEMU
 
 ```shell
 
-sudo virsh shutdown <vm>
+virsh shutdown <vm>
 
-sudo virsh start <vm>
+virsh start <vm>
+
+# create vm
+
+virsh dumpxml guest1 > guest1.xml
+
+# do some needed editing
+# delete uuid
+
+# hard new 
+virsh define guest1.xml
+
+# or
+# soft new
+
+virsh create guest1.xml
+
+# delete
+
+virsh destroy <vm>
+
+virsh undefine <vm>
+
+rm -rf /var/lib/libvirt/images/<vm>.qcow2
+
+# clone 
+
+virt-clone --original ubuntu-box1 --auto-clone
+
+# edit
+
+virsh edit guest
+
+# export/import
+
+# on host 1
+
+
+virsh list --all
+
+virsh shutdown target_guest_machine
+
+virsh dumpxml target_guest_machine > /root/target_guest_machine.xml
+
+# disk location
+
+virsh domblklist target_guest_name
+
+scp /root/target_guest_machine.xml destination_host_ip:/etc/libvirt/qemu
+
+scp /var/lib/libvirt/images/target_guest_name.qcow2 destination_host_ip:/var/lib/libvirt/images/
+
+
+# on host 2
+
+# specify qcow2 location
+
+virsh define target_guest_machine.xml
+
+virsh start target_guest_machine
+
+
+# install
+
+virt-install \
+-n ubuntu20-gpu \
+--description "ubuntu20-gpu" \
+--os-type=Linux \
+--os-variant=ubuntu20.04 \
+--ram=4096 \
+--vcpus=4 \
+--disk path=/var/lib/libvirt/images/ubuntu20-gpu.qcow2,format=qcow2,bus=virtio,size=32 \
+# --graphics none \
+--cdrom /home/seantywork/box/ubuntu-20-server.iso \
+--network bridge:br0
+# --boot uefi
+
+# vm uefi
+
+sudo apt install ovmf
 
 ```
 
@@ -6645,6 +6702,8 @@ systemctl enable vreset.service && systemctl start vreset.service
 
 lspci -nn | grep 'NVIDIA' # or 'AMD'
 
+
+
 echo "options vfio-pci ids=<ID>,<ID2>,..." > /etc/modprobe.d/vfio.conf
 
 ex)
@@ -6656,6 +6715,8 @@ echo "options vfio-pci ids=1002:67df,1002:aaf0" > /etc/modprobe.d/vfio.conf
 echo "blacklist radeon" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist amdgpu" >> /etc/modprobe.d/blacklist.conf
 # NVIDIA drivers
+# if snd_hda_intel present
+# echo "blacklist snd_hda_intel" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidiafb" >> /etc/modprobe.d/blacklist.conf
@@ -6673,8 +6734,10 @@ echo "i915" >> /etc/modprobe.d/blacklist.conf
 # machine q35
 
 # display vmware compatible
+# or
+# video QXL and Display Spice Listen type Address
 
-# boot vm without secure boot (esc at proxmox screen)
+# boot vm without secure boot (esc || f2)
 
 # check
 
@@ -6719,6 +6782,42 @@ crontab -e
 
 ```
 
+# VM CLUSTER
+
+```shell
+
+# proxmox
+
+
+# export/import
+
+qm list
+
+vzdump <id> --compress gzip --storage local
+
+# usually /var/lib/vz/dump
+
+qmrestore /var/lib/vz/dump/vzdump-qemu-<id>.vma.gz <new-id>
+
+
+
+# from different
+
+create vm
+
+import vm
+
+import disk
+
+qm importdisk <VM_ID> <OVA_DISK.vmdk> <VOL_NAME> -format qcow2
+
+ex) qm importdisk 101 ubuntu20-disk001.vmdk local-lvm -format qcow2
+
+create cluster
+
+join cluster
+
+```
 
 # IDA
 

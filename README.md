@@ -6642,7 +6642,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet  iommu=pt"
 
 # or
 
-GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction nofb nomodeset initcall_blacklist=sysfb_init"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction pcie_aspm=off nofb nomodeset initcall_blacklist=sysfb_init"
 
 update-grub
 
@@ -6729,13 +6729,36 @@ echo "i915" >> /etc/modprobe.d/blacklist.conf
 
 # gpu in vm
 
+
+# (proxmox)
 # bios ovmf (uefi)
+# (qemu/kvm)
+# biod uefi OVMF.fd
 
 # machine q35
 
-# display vmware compatible
+# display vmware compatible (proxmox)
 # or
-# video QXL and Display Spice Listen type Address
+# video QXL and Display Spice Listen type Address (qemu/kvm)
+
+# don't attach pci yet
+
+# (qemu/kvm)
+
+virsh edit vm-gpu
+
+  <features>
+    <acpi/>
+    <apic/>
+    <hyperv>
+      <vendor_id state="on" value="whatever"/>
+    </hyperv>
+    <kvm>
+      <hidden state='on'/>
+    </kvm>
+    <vmport state='off'/>
+    <ioapic driver='kvm'/>
+  </features>
 
 # boot vm without secure boot (esc || f2)
 
@@ -6754,7 +6777,7 @@ sudo update-initramfs -u
 
 # turnoff
 
-# add pci device without options
+# now add pci device without options
 
 # turnon
 

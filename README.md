@@ -6642,7 +6642,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet  iommu=pt"
 
 # or
 
-GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction pcie_aspm=off nofb nomodeset initcall_blacklist=sysfb_init"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction nofb nomodeset initcall_blacklist=sysfb_init"
 
 update-grub
 
@@ -6733,7 +6733,7 @@ echo "i915" >> /etc/modprobe.d/blacklist.conf
 # (proxmox)
 # bios ovmf (uefi)
 # (qemu/kvm)
-# biod uefi OVMF.fd
+# bios uefi 
 
 # machine q35
 

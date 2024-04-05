@@ -6779,6 +6779,9 @@ sudo update-initramfs -u
 
 # now add pci device without options
 
+# all functions
+# no ROM BAR
+
 # turnon
 
 # install corresponding gpu drivers

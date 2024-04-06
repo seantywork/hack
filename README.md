@@ -6653,6 +6653,7 @@ efibootmgr
 
 # grub iommu config
 
+# v (worked set)
 /etc/default/grub
 GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"
 
@@ -6676,7 +6677,7 @@ reboot
 dmesg | grep -e IOMMU
 
 # vfio config
-
+# v
 echo "vfio" >> /etc/modules
 echo "vfio_iommu_type1" >> /etc/modules
 echo "vfio_pci" >> /etc/modules
@@ -6692,12 +6693,12 @@ dmesg | grep -i vfio
 dmesg | grep 'remapping'
 
 # in case of no remapping
-
+# v
 echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iommu_unsafe_interrupts.conf
 
 
 # nvidia stability
-
+# v
 echo "options kvm ignore_msrs=1 report_ignored_msrs=0" > /etc/modprobe.d/kvm.conf
 
 # amd stability
@@ -6730,7 +6731,7 @@ systemctl enable vreset.service && systemctl start vreset.service
 lspci -nn | grep 'NVIDIA' # or 'AMD'
 
 
-
+#v
 echo "options vfio-pci ids=<ID>,<ID2>,..." > /etc/modprobe.d/vfio.conf
 
 
@@ -6745,6 +6746,7 @@ echo "blacklist amdgpu" >> /etc/modprobe.d/blacklist.conf
 # NVIDIA drivers
 # if snd_hda_intel present
 # echo "blacklist snd_hda_intel" >> /etc/modprobe.d/blacklist.conf
+# v
 echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidiafb" >> /etc/modprobe.d/blacklist.conf
@@ -6755,15 +6757,24 @@ echo "blacklist snd_hda_codec_hdmi" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist i915" >> /etc/modprobe.d/blacklist.conf
 
 
+# softdep
+# v
+echo "softdep snd_hda_intel pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep xhci_hcd pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep xhci_pci pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep nvidia-gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep i2c_nvidia_gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+
 # gpu in vm
 
-
+#v
 # bios ovmf (uefi)
 
 # machine q35
 
 # display vmware compatible (proxmox)
 # or
+# v
 # video QXL and Display Spice Listen type Address (qemu/kvm)
 
 # don't attach pci yet

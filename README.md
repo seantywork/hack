@@ -6487,6 +6487,22 @@ virsh undefine <vm>
 
 rm -rf /var/lib/libvirt/images/<vm>.qcow2
 
+
+# check device
+
+virsh nodedev-list --cap pci
+
+virsh nodedev-dumpxml pci_0000_00_19_0
+
+# add device
+
+virsh attach-device vm_name --file device.xml --config # --config also persistent, --persistent
+
+# remove device
+
+
+virsh detach-device vm_name device.xml
+
 # clone 
 
 virt-clone --original ubuntu-box1 --auto-clone
@@ -6638,11 +6654,20 @@ efibootmgr
 # grub iommu config
 
 /etc/default/grub
-GRUB_CMDLINE_LINUX_DEFAULT="quiet  iommu=pt"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"
 
-# or
+# or 
 
-GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction nofb nomodeset initcall_blacklist=sysfb_init"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt vfio-pci.ids=<I:D>,<I:D>"
+
+# or (overkill, explicit)
+
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt vfio-pci.ids=<I:D>,<I:D> nofb nomodeset initcall_blacklist=sysfb_init video=vesafb:off video=efifb:off video=simplefb:off"
+
+# or (overkill, explicit, unsafe)
+
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt vfio-pci.ids=<I:D>,<I:D> pcie_acs_override=downstream,multifunction nofb nomodeset initcall_blacklist=sysfb_init video=vesafb:off video=efifb:off video=simplefb:off"
+
 
 update-grub
 
@@ -6655,6 +6680,8 @@ dmesg | grep -e IOMMU
 echo "vfio" >> /etc/modules
 echo "vfio_iommu_type1" >> /etc/modules
 echo "vfio_pci" >> /etc/modules
+echo "vfio_virqfd" >> /etc/modules
+echo "vfio_nvidia" >> /etc/modules
 
 update-initramfs -u -k all
 
@@ -6706,6 +6733,7 @@ lspci -nn | grep 'NVIDIA' # or 'AMD'
 
 echo "options vfio-pci ids=<ID>,<ID2>,..." > /etc/modprobe.d/vfio.conf
 
+
 ex)
 
 echo "options vfio-pci ids=1002:67df,1002:aaf0" > /etc/modprobe.d/vfio.conf
@@ -6722,18 +6750,15 @@ echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidiafb" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidia_drm" >> /etc/modprobe.d/blacklist.conf
 # Intel drivers
-echo "snd_hda_intel" >> /etc/modprobe.d/blacklist.conf
-echo "snd_hda_codec_hdmi" >> /etc/modprobe.d/blacklist.conf
-echo "i915" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist snd_hda_intel" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist snd_hda_codec_hdmi" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist i915" >> /etc/modprobe.d/blacklist.conf
 
 
 # gpu in vm
 
 
-# (proxmox)
 # bios ovmf (uefi)
-# (qemu/kvm)
-# bios uefi 
 
 # machine q35
 
@@ -6779,8 +6804,7 @@ sudo update-initramfs -u
 
 # now add pci device without options
 
-# all functions
-# no ROM BAR
+# all functions within iommu group
 
 # turnon
 
@@ -6805,6 +6829,13 @@ echo 1 > /sys/bus/pci/rescan
 crontab -e
 
 @reboot /root/reset_pci_gpu.sh
+
+```
+
+```shell
+# gpu reset method disable 
+
+echo > /sys/bus/pci/devices/0000\:09\:00.0/reset_method
 
 ```
 

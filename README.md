@@ -6645,6 +6645,15 @@ virsh net-list --all
 
 ```shell
 
+# v
+# locations
+# /etc/default/grub
+# /etc/modules
+# /etc/modprobe.d/vfio.conf
+# /etc/modprobe.d/iommu_unsafe_interrupts.conf
+# /etc/modprobe.d/kvm.conf
+# /etc/modprobe.d/blacklist.conf
+
 efibootmgr
 
 # vt-x & vt-d enabled
@@ -6739,6 +6748,15 @@ ex)
 
 echo "options vfio-pci ids=1002:67df,1002:aaf0" > /etc/modprobe.d/vfio.conf
 
+# softdep
+# v
+echo "softdep snd_hda_intel pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep xhci_hcd pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep xhci_pci pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep nvidia-gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+echo "softdep i2c_nvidia_gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+
+# blacklist
 
 # AMD drivers
 echo "blacklist radeon" >> /etc/modprobe.d/blacklist.conf
@@ -6757,13 +6775,7 @@ echo "blacklist snd_hda_codec_hdmi" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist i915" >> /etc/modprobe.d/blacklist.conf
 
 
-# softdep
-# v
-echo "softdep snd_hda_intel pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
-echo "softdep xhci_hcd pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
-echo "softdep xhci_pci pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
-echo "softdep nvidia-gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
-echo "softdep i2c_nvidia_gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
+
 
 # gpu in vm
 
@@ -6777,7 +6789,9 @@ echo "softdep i2c_nvidia_gpu pre: vfio-pci" >> /etc/modprobe.d/vfio.conf
 # v
 # video QXL and Display Spice Listen type Address (qemu/kvm)
 
-# don't attach pci yet
+# add all pci devices within iommu group
+
+# edit if necessary
 
 # (qemu/kvm)
 
@@ -6811,15 +6825,6 @@ options nouveau modeset=0
 
 sudo update-initramfs -u
 
-# turnoff
-
-# now add pci device 
-
-# all functions within iommu group
-
-# multifunction on
-
-# turnon
 
 # install corresponding gpu drivers
 
@@ -6830,6 +6835,7 @@ https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html
 https://www.nvidia.com/download/index.aspx
 
 # gpu reset at reboot
+# if necessary
 
 ```
 
@@ -6847,6 +6853,7 @@ crontab -e
 
 ```shell
 # gpu reset method disable 
+# if necessary
 
 echo > /sys/bus/pci/devices/0000\:09\:00.0/reset_method
 

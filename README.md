@@ -6802,9 +6802,11 @@ sudo update-initramfs -u
 
 # turnoff
 
-# now add pci device without options
+# now add pci device 
 
 # all functions within iommu group
+
+# multifunction on
 
 # turnon
 

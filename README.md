@@ -3491,7 +3491,7 @@ curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
 
 sudo apt-get update 
 
-sudo apt-get install cri-o cri-o-runc -y 
+sudo apt-get install cri-o cri-o-runc crun -y 
 
  
 
@@ -6190,7 +6190,7 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
 sudo apt-get install -y nvidia-container-toolkit
 
 
-sudo nvidia-ctk runtime configure --runtime=containerd
+sudo nvidia-ctk runtime configure --runtime=docker
 
 sudo systemctl restart docker
 
@@ -6206,9 +6206,32 @@ sudo nvidia-ctk runtime configure --runtime=crio
 sudo systemctl restart crio
  
 
+# crio 
+
+/etc/crio/crio.conf.d/99-nvidia.conf
+
+[crio]
+
+  [crio.runtime]
+    default_runtime = "nvidia"
+
+    [crio.runtime.runtimes]
+
+      [crio.runtime.runtimes.nvidia]
+        runtime_path = "/usr/bin/nvidia-container-runtime"
+        runtime_type = "oci"
  
 
+
+sudo nvidia-ctk runtime configure --runtime=crio --set-as-default --config=/etc/crio/crio.conf.d/99-nvidia.conf
  
+
+/etc/nvidia-container-runtime/config.toml
+
+[nvidia-container-runtime]
+runtimes = ["crun", "docker-runc", "runc"]
+
+sudo systemctl restart crio
 
 # docker 
 
@@ -7802,7 +7825,7 @@ curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:sta
 curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
 
 sudo apt-get update
-sudo apt-get install cri-o cri-o-runc -y
+sudo apt-get install cri-o cri-o-runc crun -y
 
 sudo systemctl daemon-reload
 sudo systemctl enable crio --now
@@ -7930,7 +7953,7 @@ curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:sta
 curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
 
 sudo apt-get update
-sudo apt-get install cri-o cri-o-runc -y
+sudo apt-get install cri-o cri-o-runc crun -y
 
 sudo systemctl daemon-reload
 sudo systemctl enable crio --now

@@ -8698,6 +8698,14 @@ server
 }
 ```
 
+```shell
+
+# add server without restart
+
+sudo nginx -s reload
+
+```
+
 
 ```shell
 #!/bin/bash

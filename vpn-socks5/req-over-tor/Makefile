@@ -1,2 +1,2 @@
 all:
-	g++ -Wno-write-strings -o fetch.out fetch.cc 
+	gcc -Wno-write-strings -o fetch.out fetch.c 

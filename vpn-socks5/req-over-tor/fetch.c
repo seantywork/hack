@@ -9,23 +9,24 @@
 #include <netdb.h>
 #include <errno.h>
 #include <err.h>
+#include <stdlib.h>
 
 #define SOCKET_ERROR    -1
 #define INVALID_SOCKET  -1
 
 typedef int         SOCKET;
-typedef sockaddr    SOCKADDR;
-typedef sockaddr_in SOCKADDR_IN;
+typedef struct sockaddr    SOCKADDR;
+typedef struct sockaddr_in SOCKADDR_IN;
 
 #define closesocket close
 
 
-#include <iostream>
+#include <stdio.h>
 
 int main()
 {
-    std::cout << " [*] C++ Tor" << std::endl;
-    std::cout << " [*] Connecting " << std::endl;
+    printf(" [*] C Tor \n");
+    printf(" [*] Connecting \n");
 
     SOCKET      Socket;
     SOCKADDR_IN SocketAddr;
@@ -45,15 +46,15 @@ int main()
     };
     send(Socket, Req1, 3, MSG_NOSIGNAL);
 
-    char Resp1[2];
+    char Resp1[2] = {0};
     recv(Socket, Resp1, 2, 0);
     if(Resp1[1] != 0x00)
     {
-        std::cout << " [*] Error Authenticating " << std::endl;
-        return(-1); // Error
+        printf(" [*] Error Authenticating \n");
+        return -1; // Error
     }
 
-    std::cout << " [*] Fetching... " << std::endl;
+    printf(" [*] Fetching... \n");
     char* Domain = "httpbin.org";
     char  DomainLen = (char)strlen(Domain);
     short Port = htons(80);
@@ -65,7 +66,8 @@ int main()
           0x03, // DOMAIN
         };
 
-    char* Req2 = new char[4 + 1 + DomainLen + 2];
+
+    char* Req2 = (char*)malloc((4 + 1 + DomainLen + 2) * sizeof(char));
 
     memcpy(Req2, TmpReq, 4);                // 5, 1, 0, 3
     memcpy(Req2 + 4, &DomainLen, 1);        // Domain Length
@@ -74,26 +76,32 @@ int main()
 
     send(Socket, (char*)Req2, 4 + 1 + DomainLen + 2, MSG_NOSIGNAL);
 
-    delete[] Req2;
+    free(Req2);
 
-    char Resp2[10];
+    char Resp2[10] = {0};
     recv(Socket, Resp2, 10, 0);
     if(Resp2[1] != 0x00)
     {
-      std::cout << " [*] Error : " << Resp2[1] << std::endl;
-      return(-1); // ERROR
+      
+      printf(" [*] Error : %c\n", Resp2[1]);
+
+      return -1; // ERROR
     }
 
-    std::cout << " [*] Connected " << std::endl;
+    printf(" [*] Connected \n");
 
-    std::cout << " [*] Testing with GET Request \n" << std::endl;
+    printf(" [*] Testing with GET Request \n");
+
     char * request = "GET /ip HTTP/1.1\r\nHost: httpbin.org\r\nCache-Control: no-cache\r\n\r\n\r\n";
+    
     send(Socket, request, strlen(request), MSG_NOSIGNAL);
-    char RecvBuffer[2048];
+    
+    char RecvBuffer[2048] = {0};
+    
     size_t Rcved = recv(Socket, RecvBuffer, 2048, 0);
-    std::cout.write(RecvBuffer, Rcved);
+    
+    printf("%s\n",RecvBuffer);
 
-    std::cout << std::endl;
 
-    return(0);
+    return 0;
 }

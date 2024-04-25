@@ -252,6 +252,120 @@ int asym_pipe(char* pub_key_path, char* priv_key_path, int msg_len, char* msg){
 }
 
 
+void cert_verify(){
+
+    OpenSSL_add_all_algorithms();
+    OpenSSL_add_all_ciphers();
+    OpenSSL_add_all_digests(); 
+
+    BIO* cert = NULL;
+    BIO* intermediate = NULL;
+
+
+    cert = BIO_new(BIO_s_file());
+
+    intermediate = BIO_new(BIO_s_file());
+
+    int ret = BIO_read_filename(cert, "./certs/server.pem");
+
+    ret = BIO_read_filename(intermediate, "./certs/ca.pem");
+
+    //cert_info(cert);
+    //cert_info(intermediate);
+    int res = sig_verify(cert,intermediate);
+    printf("result: %d\n",res);
+
+
+    BIO_free_all(cert);
+    BIO_free_all(intermediate);
+
+
+}
+
+void cert_show(){
+
+
+    OpenSSL_add_all_algorithms();
+    OpenSSL_add_all_ciphers();
+    OpenSSL_add_all_digests(); 
+
+    BIO* cert = NULL;
+    BIO* intermediate = NULL;
+
+
+    cert = BIO_new(BIO_s_file());
+
+    intermediate = BIO_new(BIO_s_file());
+
+    int ret = BIO_read_filename(cert, "./certs/server.pem");
+
+    ret = BIO_read_filename(intermediate, "./certs/ca.pem");
+
+    cert_info(cert);
+    cert_info(intermediate);
+
+
+
+    BIO_free_all(cert);
+    BIO_free_all(intermediate);
+
+
+}
+
+int sig_verify(BIO* cert_pem, BIO* intermediate_pem)
+{
+    //BIO *b = BIO_new(BIO_s_mem());
+    //BIO_puts(b, intermediate_pem);
+
+    BIO* b = intermediate_pem;
+    X509 * issuer = PEM_read_bio_X509(b, NULL, NULL, NULL);
+    EVP_PKEY *signing_key=X509_get_pubkey(issuer);
+
+    //BIO *c = BIO_new(BIO_s_mem());
+    //BIO_puts(c, cert_pem);
+    BIO* c = cert_pem;
+    X509 * x509 = PEM_read_bio_X509(c, NULL, NULL, NULL);
+    
+    int result = X509_verify(x509, signing_key);
+    
+
+    EVP_PKEY_free(signing_key);
+    X509_free(x509);
+    X509_free(issuer);
+ 
+    return result;
+}
+
+void cert_info(BIO* cert_pem)
+{
+    //BIO *b = BIO_new(BIO_s_mem());
+    //BIO_puts(b, cert_pem);
+    BIO* b = cert_pem;
+    X509 * x509 = PEM_read_bio_X509(b, NULL, NULL, NULL);
+
+    BIO *bio_out = BIO_new_fp(stdout, BIO_NOCLOSE);
+ 
+    BIO_printf(bio_out,"Subject: ");
+    X509_NAME_print(bio_out,X509_get_subject_name(x509),0);
+    BIO_printf(bio_out,"\n");
+
+    BIO_printf(bio_out,"Issuer: ");
+    X509_NAME_print(bio_out,X509_get_issuer_name(x509),0);
+    BIO_printf(bio_out,"\n");
+ 
+
+    //EVP_PKEY *pkey=X509_get_pubkey(x509);
+    //EVP_PKEY_print_public(bio_out, pkey, 0, NULL);
+    //EVP_PKEY_free(pkey);
+
+    //X509_signature_print(bio_out, x509->sig_alg, x509->signature);
+    //BIO_printf(bio_out,"\n");
+ 
+    BIO_free(bio_out);
+    X509_free(x509);
+}
+
+
 unsigned char* char2hex(int arrlen, unsigned char* bytearray){
 
     unsigned char* hexarray;

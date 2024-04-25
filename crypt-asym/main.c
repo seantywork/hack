@@ -66,6 +66,13 @@ int main(int argc, char** argv){
 
         printf("result: %d\n", result);
 
+    } else if (strcmp(argv[1], "cert-verify") == 0){
+
+        cert_verify();
+
+    } else if (strcmp(argv[1], "cert-show") == 0){
+
+        cert_show();   
     } else {
 
         fprintf(stderr, "invalid argument\n");

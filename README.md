@@ -6612,6 +6612,8 @@ virsh net-undefine default
 
 ```yaml
 
+# netplan
+
 # /etc/netplan/00-installer-config.yaml 
 
 network:
@@ -6641,6 +6643,47 @@ network:
 #sudo netplan generate
 sudo netplan apply
 
+
+```
+
+```shell
+
+# network/interfaces
+# /etc/network/interfaces
+
+# The primary network interface
+auto eno1
+
+#make sure we don't get addresses on our raw device
+iface eno1 inet manual
+iface eno1 inet6 manual
+
+#set up bridge and give it a static ip
+auto br0
+allow-hotplug eno1
+iface br0 inet static
+        address 192.168.0.100
+        netmask 255.255.255.0
+        network 192.168.0.0
+        broadcast 192.168.0.255
+        gateway 192.168.0.1
+        bridge_ports eno1
+        bridge_stp off
+        bridge_fd 0
+        bridge_maxwait 0
+        dns-nameservers 8.8.8.8
+
+#allow autoconf for ipv6
+iface br0 inet6 auto
+        accept_ra 1
+
+
+
+```
+
+```shell
+
+sudo systemctl restart networking
 
 ```
 

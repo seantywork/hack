@@ -8,3 +8,6 @@ receiver:
 transmitter:
 
 	gcc -o irsend.out ir_send.c -lm -lpigpio -lrt -lpthread 
+
+clean:
+	rm -r *.out *.o

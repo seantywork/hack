@@ -10275,6 +10275,86 @@ sudo reboot
 
 ```
 
+# BUILDROOT
+
+```shell
+
+sudo apt-get update
+
+sudo apt-get -y install make binutils build-essential diffutils patch gzip bzip2 perl tar cpio unzip rsync file bc findutils wget libelf-dev libncurses5-dev python-is-python3
+
+git clone git://git.busybox.net/buildroot
+
+cd buildroot
+
+git switch -c lts origin/2019.08.x
+
+find ./configs -name '*_defconfig'
+
+# make the defconfig
+
+# ex)
+
+make qemu_x86_64_defconfig
+
+make menuconfig
+
+# target options
+
+# build options
+
+# toolchain options
+
+# system configuration
+
+# kernel
+
+# targat packages
+
+# filesystem images
+
+make -j$(nproc)
+
+# output
+
+./output/images
+
+# vm
+
+# hypervisor
+
+i440fx
+
+bios
+
+# os
+
+generic
+
+# boot options
+
+
+# at start-qemu.sh
+
+direct kernel boot
+
+kernel path: bzimage
+kernel args: rootwait root=/dev/vda console=tty1 console=ttyS0 ip=dhcp
+
+# storage
+
+change ide to virtio disk
+
+# network interface
+
+model virtio
+
+# serial 1
+
+# and delete all other hardwares
+
+```
+
 
 # YOCTO 
 
@@ -10304,5 +10384,22 @@ source oe-init-build-env
 # tweak conf?
 
 bitbake core-image-sato
+
+
+# create vm
+
+# disk, bzimage at
+
+# tmp/deploy/images
+
+# direct kernel boot
+
+# kernel args 
+
+root=/dev/sda ip=dhcp
+
+# nic
+
+e1000
 
 ```

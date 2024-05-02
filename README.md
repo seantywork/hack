@@ -3091,6 +3091,39 @@ openssl x509 -in <csr,crt> -text -noout
 openssl verify -CAfile ca.crt sub.crt
 
 
+# ca extension
+
+
+CONFIG="[ v3_req ]\n" && \
+CONFIG="${CONFIG}subjectKeyIdentifier=hash\n" && \
+CONFIG="${CONFIG}authorityKeyIdentifier=keyid:always,issuer\n" && \
+CONFIG="${CONFIG}basicConstraints=CA:TRUE\n" && \
+CONFIG="${CONFIG}keyUsage=keyCertSign,cRLSign\n" && \
+openssl req -new -x509 -days 3650 \
+	-sha256 -key root.key \
+	-out root.crt \
+	-subj "/CN=ROOT CA" \
+	-config <(printf "${CONFIG}") \
+	-extensions v3_req 
+
+
+# cert extension
+
+EXTFILE="subjectKeyIdentifier=hash\n" && \
+EXTFILE="${EXTFILE}authorityKeyIdentifier=keyid,issuer\n" && \
+EXTFILE="${EXTFILE}basicConstraints=CA:FALSE\n" && \
+EXTFILE="${EXTFILE}subjectAltName=email:copy\n" && \
+EXTFILE="${EXTFILE}extendedKeyUsage=serverAuth\n" && \
+openssl  x509 -req -days 365 \
+	-in ./server.csr \
+	-extfile <(printf "${EXTFILE}") \
+	-CA ./root.crt \
+	-CAkey ./root.key \
+  -sha256 \
+	-out ./server.crt 
+
+
+
 # x509
 
  certificate and public key send, root ca on the authenticate requester side, chained authentication

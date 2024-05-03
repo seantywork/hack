@@ -22,13 +22,13 @@ app.set('port', port);
 var server = http.createServer(app);
 
 /**
- * Create Socket IO access logic
+ * Create web socket access logic
  */
 
 
-var wsio = require('socket.io')(server);
-app.set('io', wsio);
-require('../app_ws')(wsio);
+var wsio = require('ws');
+let app_ws = new wsio.WebSocketServer({ port: port + 1})
+require('../app_ws')(app_ws);
 
 
 /**

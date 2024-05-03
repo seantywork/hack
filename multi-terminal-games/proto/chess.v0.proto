@@ -1,0 +1,86 @@
+
+syntax = "proto3";
+
+package gmchess;
+
+service GameChess {
+
+  rpc MakeMove(Move) returns (MoveResult);
+
+  rpc GetMoveHistory(Void) returns (MoveHistory);
+
+}
+
+
+enum PIECES {
+
+  WHITE_KING = 0;
+  WHITE_QUEEN = 1;
+  WHITE_KNIGHT_B = 2;
+  WHITE_KNIGHT_G = 3;
+  WHITE_BISHOP_C = 4;
+  WHITE_BISHOP_F = 5;
+  WHITE_ROOK_A = 6;
+  WHITE_ROOK_B = 7;
+  WHITE_PAWN_A = 8;
+  WHITE_PAWN_B = 9;
+  WHITE_PAWN_C = 10;
+  WHITE_PAWN_D = 11;
+  WHITE_PAWN_E = 12;
+  WHITE_PAWN_F = 13;
+  WHITE_PAWN_G = 14;
+  BLACK_KING = 15;
+  BLACK_QUEEN = 16;
+  BLACK_KNIGHT_B = 17;
+  BLACK_KNIGHT_G = 18;
+  BLACK_BISHOP_C = 19;
+  BLACK_BISHOP_F = 20;
+  BLACK_ROOK_A = 21;
+  BLACK_ROOK_B = 22;
+  BLACK_PAWN_A = 23;
+  BLACK_PAWN_B = 24;
+  BLACK_PAWN_C = 25;
+  BLACK_PAWN_D = 26;
+  BLACK_PAWN_E = 27;
+  BLACK_PAWN_F = 28;
+  BLACK_PAWN_G = 29;
+
+
+} 
+
+
+message Void {}
+
+message Test {
+
+  PIECES id = 1;
+  string name = 2;
+  Move single_move = 3;
+  repeated string multiple_names = 4;
+  repeated Move multiple_moves = 5;
+
+}
+
+message Move {
+
+  PIECES id = 1;
+  string to = 2;
+  MoveResult result = 3;
+
+}
+
+message MoveResult {
+
+  bool success = 1;
+  string resolve_time_stamp = 2;
+
+}
+
+
+message MoveHistory{
+
+  repeated Move move_history = 1;
+
+}
+
+

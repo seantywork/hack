@@ -11,7 +11,3 @@
 	path = sorrylinus
 	url = https://github.com/seantywork/sorrylinus.git
 	branch = main
-[submodule "multi-terminal-games"]
-	path = multi-terminal-games
-	url = https://github.com/seantywork/multi-terminal-games.git
-	branch = main

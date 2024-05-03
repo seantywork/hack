@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package gmchess;
+
+service GameChess {
+
+  rpc PostRoom(Room) returns (stream RoomResult);
+
+  rpc JoinRoom(Room) returns (stream RoomResult);
+
+  rpc MakeMoveThenGet(Move) returns (stream MoveRecord);
+
+  rpc MakeMoveThenFree(Move) returns (MoveRecord);
+
+  rpc GetMoveRecord(Get) returns (stream MoveRecord);
+
+  rpc GetMoveHistory(Get) returns (MoveHistory);
+
+  rpc Leave(GG) returns (Report);
+
+  rpc MakeMove(Move) returns (MoveResult);
+
+  rpc GetMove(Void) returns (stream MoveRecord);
+
+
+  // PostChat
+
+}
+
+
+
+enum TALK {
+
+  ABORT = 0;
+  WAIT = 1;
+  TIMEOUT = 2;
+  MATCH = 3;
+  AUTH = 5;
+  OKAY = 6;
+  WATCH = 7;
+  TURN = 8;
+  EAUTH = 9;
+  ENTOK = 10;
+  ETURN = 11;
+  ETIMEOUT = 12;
+  EABORT = 13;
+  
+}
+
+enum SIDE {
+
+  WHITE = 0;
+  BLACK = 1;
+
+}
+
+
+
+enum PIECES {
+
+  WHITE_KING = 0;
+  WHITE_QUEEN = 1;
+  WHITE_KNIGHT_B = 2;
+  WHITE_KNIGHT_G = 3;
+  WHITE_BISHOP_C = 4;
+  WHITE_BISHOP_F = 5;
+  WHITE_ROOK_A = 6;
+  WHITE_ROOK_B = 7;
+  WHITE_PAWN_A = 8;
+  WHITE_PAWN_B = 9;
+  WHITE_PAWN_C = 10;
+  WHITE_PAWN_D = 11;
+  WHITE_PAWN_E = 12;
+  WHITE_PAWN_F = 13;
+  WHITE_PAWN_G = 14;
+  BLACK_KING = 15;
+  BLACK_QUEEN = 16;
+  BLACK_KNIGHT_B = 17;
+  BLACK_KNIGHT_G = 18;
+  BLACK_BISHOP_C = 19;
+  BLACK_BISHOP_F = 20;
+  BLACK_ROOK_A = 21;
+  BLACK_ROOK_B = 22;
+  BLACK_PAWN_A = 23;
+  BLACK_PAWN_B = 24;
+  BLACK_PAWN_C = 25;
+  BLACK_PAWN_D = 26;
+  BLACK_PAWN_E = 27;
+  BLACK_PAWN_F = 28;
+  BLACK_PAWN_G = 29;
+
+
+} 
+
+
+message Room {
+
+  string room_id = 1;
+  string room_name = 2;
+  SIDE host_color = 3;
+  int64 match_timeout = 4;
+  int64 move_timeout = 5;
+
+
+}
+
+
+message RoomResult{
+
+  TALK status = 1;  
+  string key = 2;
+  Room r = 3;
+
+}
+
+
+message RoomLock {
+
+  Room r = 1;
+  string poster_key = 2;
+  string joiner_key = 3;
+
+}
+
+message RoomStatus{
+
+  Room r = 1;
+  MoveRecord move_last = 2;
+  MoveHistory move_history = 3;
+
+}
+
+
+message Void {}
+
+message Get {
+  string room_id = 1;
+  string key = 2;
+  
+}
+  
+
+message Move {
+  string room_id = 1;
+  string key = 2;
+  PIECES id = 3;
+  string to = 4;
+  
+}
+  
+message MoveRecord {
+
+  int64 step = 1;
+  PIECES id = 2;
+  string to = 3;
+  MoveResult result = 4;
+
+}
+
+
+message MoveResult {
+
+  bool success = 1;
+  TALK code = 2;
+  string resolve_time_stamp = 3;
+
+}
+
+
+
+message MoveHistory{
+
+  repeated MoveRecord move_history = 1;
+
+}
+
+message GG{
+
+  string room_id = 1;
+  string key = 2;
+
+}
+
+message Report{
+
+  string message = 1;
+
+}
+

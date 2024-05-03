@@ -1,0 +1,47 @@
+CXX=g++
+
+AR := ar rc
+
+CFLAGS  = -Wall -std=c++11 -g
+
+CLIBFLAGS  = -Wall -std=c++11 -g -c
+
+OBJ_INTERFACE := terminal/chess/user_interface.o
+
+OBJ_GAME := multigames/chess/chess.o
+
+OBJ_LIB := lib/libchess.a
+
+CHESS := chess.out
+
+TARGETS := $(OBJ_GAME) $(OBJ_LIB) $(OBJ_INTERFACE) $(CHESS)
+
+INCLUDES := -I./include/chess  
+
+LIBS := -L./lib
+
+# go with static links only
+
+LINKS := -lchess
+
+
+all: $(TARGETS)
+
+$(CHESS): terminal/chess/main.cc
+
+	$(CXX) $(CFLAGS) $(INCLUDES) $(LIBS) -o chess.out terminal/chess/main.cc $(OBJ_INTERFACE) $(LINKS)
+
+$(OBJ_INTERFACE): terminal/chess/user_interface.cc 
+
+	$(CXX) $(CLIBFLAGS) $(INCLUDES) -o $(OBJ_INTERFACE) terminal/chess/user_interface.cc
+
+$(OBJ_LIB):
+
+	$(AR) $(OBJ_LIB) $(OBJ_GAME) 
+
+$(OBJ_GAME): multigames/chess/chess.cc 
+
+	$(CXX) $(CLIBFLAGS) $(INCLUDES) -o $(OBJ_GAME) multigames/chess/chess.cc
+
+clean:
+	rm -f multigames/chess/*.o terminal/chess/*.o lib/libchess.a *.out

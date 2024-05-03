@@ -1,0 +1,11 @@
+build
+dev
+dev_then
+sample
+sample_then
+*.pem
+*.csr
+*.key
+*.pub
+chess_client
+chess_server

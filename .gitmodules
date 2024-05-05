@@ -14,3 +14,6 @@
 [submodule "multi-terminal-games"]
 	path = multi-terminal-games
 	url = https://github.com/seantywork/multi-terminal-games.git
+[submodule "sorrylinus-cc"]
+	path = sorrylinus-cc
+	url = https://github.com/seantywork/sorrylinus-cc.git

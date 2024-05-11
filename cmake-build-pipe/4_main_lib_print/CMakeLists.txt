@@ -18,6 +18,6 @@ link_directories(
 
 
 
-add_executable(main.out main.cc)
+add_executable(main.out main.c)
 
 target_link_libraries(main.out ${PROJECT_LINK_LIBS})

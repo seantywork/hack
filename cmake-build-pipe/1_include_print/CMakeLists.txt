@@ -4,7 +4,7 @@ project(include_print)
 include_directories(include)
 
 
-set(SOURCES src/main.cc src/something.cc)
+set(SOURCES src/main.c src/something.c)
 
 
 add_executable(print.out ${SOURCES})

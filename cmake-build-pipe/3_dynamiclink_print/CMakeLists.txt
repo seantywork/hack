@@ -4,7 +4,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 include_directories(include)
 
-set(SOURCES src/crazything.cc)
+set(SOURCES src/crazything.c)
 
 add_library(crazything SHARED ${SOURCES})
 

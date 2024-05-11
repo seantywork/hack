@@ -1,9 +1,0 @@
-<library path="ros2hwif">
-    <class name="ros2hwif/RosSystemHardware"
-           type="ros2hwif::RosSystemHardware"
-           base_class_type="hardware_interface::SystemInterface">
-      <description>
-        controlled by nav2
-      </description>
-    </class>
-  </library>

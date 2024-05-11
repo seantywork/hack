@@ -7,10 +7,10 @@ import (
 
 func main() {
 
-	srv := &http.Server{Addr: ":8000", Handler: http.HandlerFunc(handle)}
+	http.HandleFunc("/", handle)
 
 	log.Printf("Serving on https://0.0.0.0:8000")
-	log.Fatal(srv.ListenAndServeTLS("certs/server.pem", "certs/server.key"))
+	log.Fatal(http.ListenAndServeTLS(":8000", "certs/server.pem", "certs/server.key", nil))
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {

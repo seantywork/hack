@@ -1,9 +1,8 @@
 all:
 
-	rm -r *.h *.so
+	go build -o c2go.out .
 
-	go build -buildmode=c-shared -o go2c.so .
 
 clean:
 
-	rm -r *.so *.h
+	rm -r *.out

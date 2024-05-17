@@ -10804,3 +10804,13 @@ sudo nmcli c up VPN
 sudo nmcli c down VPN
 
 ```
+
+# UDP BUFFER SIZE
+
+```shell
+
+sudo sysctl -w net.core.rmem_max=7500000
+
+sudo sysctl -w net.core.wmem_max=7500000
+
+```

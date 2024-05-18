@@ -1849,6 +1849,7 @@ ip link add veth1 netns net1 type veth peer name veth2 netns net2
 
 sudo ip link add veth1 type veth
 
+
 sudo ip addr add 192.168.1.1/24 brd + dev veth0
 
 sudo ip addr add 192.168.1.5/24 brd + dev veth1
@@ -1867,12 +1868,54 @@ sudo ip addr del 192.168.1.5/24 brd + dev veth1
 
 sudo ip link del veth1 type veth
 
+# veth with peer
+
+sudo ip link add br-blah01 type bridge 
+
+sudo ip link add dev vm1 type veth peer name vm2
+
+sudo ip link set vm1 master br-blah01
+
+sudo ip addr add 10.0.0.1/24 dev br-blah01
+
+sudo ip addr add 10.0.0.2/24 dev vm2
+
+sudo ip link set br-blah01 up
+
+sudo ip link set vm1 up
+
+sudo ip link set vm2 up
+
+# veth with peer namespace 
+
+sudo ip netns add blahnet
+
+sudo ip link set vm2 netns blahnet 
+
+sudo ip netns exec blahnet ip link set dev lo up
+
+sudo ip netns exec blahnet ip a
+
+sudo iptables -t nat -A POSTROUTING -o br-blah01 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o wlo1 -j MASQUERADE
+
+sudo ip netns exec blahnet /bin/bash
+
+ip addr add 10.0.0.2/24 dev vm2
+
+ip link set dev vm2 up
+
+ip route add default via 10.0.0.1
+
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
 ```
 ```shell
 
 # bridge
 
+sudo ip link add br0 type bridge 
 
 ip link set br0 type bridge stp_state 1
 

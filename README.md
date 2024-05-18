@@ -1829,6 +1829,78 @@ ip route add 192.168.10.0/24 via 192.168.100.1 dev eth0
 
 ```
 
+```shell
+
+# network namespace
+
+sudo ip netns add net1
+
+sudo ip netns del net1
+
+sudo ip -all netns exec ip link show
+
+# veth namespace
+
+ip link add veth1 netns net1 type veth
+
+ip link add veth1 netns net1 type veth peer name veth2 netns net2
+
+# veth
+
+sudo ip link add veth1 type veth
+
+sudo ip addr add 192.168.1.1/24 brd + dev veth0
+
+sudo ip addr add 192.168.1.5/24 brd + dev veth1
+
+sudo ip link set dev veth0 up
+
+sudo ip link set dev veth1 up
+
+sudo ip link set dev veth1 down
+
+sudo ip link set dev veth0 down
+
+sudo ip addr del 192.168.1.1/24 brd + dev veth0
+
+sudo ip addr del 192.168.1.5/24 brd + dev veth1
+
+sudo ip link del veth1 type veth
+
+
+```
+```shell
+
+# bridge
+
+
+ip link set br0 type bridge stp_state 1
+
+# ip link set br0 type bridge vlan_filtering 1
+
+ip link set eth1 master br0
+
+ip link set eth1 up
+
+ip link set br0 up
+
+
+```
+
+```shell
+
+# tuntap
+
+sudo ip tuntap add mode tap tap0
+
+sudo ip addr add 192.168.1.100/24 brd + dev tap0
+
+sudo ip link set tap0 master br0
+
+sudo ip link set dev tap0 up
+
+
+```
 
 
 # FIREWALL  

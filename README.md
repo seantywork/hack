@@ -947,6 +947,61 @@ git commit -m "lfs"
 ```
 
 
+```shell
+
+# git server
+
+# on git server
+
+sudo mkdir /git
+
+
+sudo adduser git
+
+sudo chown git:git /git
+
+su git
+cd
+mkdir .ssh && chmod 700 .ssh
+touch .ssh/authorized_keys && chmod 600 .ssh/authorized_keys
+
+
+cd /git
+
+mkdir boxproject.git
+
+git init --bare
+
+
+
+# on git user computer
+
+ssh-copy-id git@gitserver
+
+mkdir boxproject
+
+git init
+git add .
+git commit -m 'init'
+git branch -M main
+git remote add origin git@gitserver:/git/boxproject.git
+git push -u origin main
+
+
+# on another user computer
+
+
+git clone git@gitserver:/git/boxproject.git
+
+cd boxproject
+
+git fetch --all
+
+git switch -c main origin/main
+
+```
+
+
 # PURCHASE 
 
  

@@ -929,6 +929,23 @@ gh pr view <num> --json state,author,assignees,reviews,reviewRequests,mergeable
 
 ```
 
+```shell
+
+# git lfs
+
+git lfs install
+
+
+git lfs track "*.png" "*.jpg" "*.docx" "*.zip"
+
+git add .
+
+git commit -m "lfs"
+
+
+
+```
+
 
 # PURCHASE 
 

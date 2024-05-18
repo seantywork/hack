@@ -86,41 +86,7 @@ sudo stackcount-bpfcc -p $PID -v -d
 
 ```
 
-```shell
-# cgroup 
 
-# check cgroup mount location
-
-mount | grep cgroup2
-
-# if not change kernel parameters in grub to see
-
-# cgroup_no_v1=all
-
-cat /proc/cmdline
-
-# check controllers
-
-cat /sys/fs/cgroup/cgroup.controllers
-
-# add controller , here SOMETHING being cpu 
-
-echo "+$SOMETHING" >> /sys/fs/cgroup/cgroup.subtree_control  
-
-# add sub group
-
-mkdir /sys/fs/cgroup/$SOME_GROUP
-
-# give cpu max
-
-echo "$MAX $PERIOD" > /sys/fs/cgroup/$SOME_GROUP/cpu.max
-
-# revoke group
-
-rmdir /sys/fs/cgroup/$SOME_GROUP
-
-
-```
 
 # LINUX KERNEL MODULE
 
@@ -1568,6 +1534,112 @@ sudo systemctl restart nginx
 
 ```
 
+# CGROUP
+
+```shell
+# cgroup 
+
+# check cgroup mount location
+
+mount | grep cgroup2
+
+# if not change kernel parameters in grub to see
+
+# cgroup_no_v1=all
+
+cat /proc/cmdline
+
+# check controllers
+
+cat /sys/fs/cgroup/cgroup.controllers
+
+# add controller , here SOMETHING being cpu 
+
+echo "+$SOMETHING" >> /sys/fs/cgroup/cgroup.subtree_control  
+
+# add sub group
+
+mkdir /sys/fs/cgroup/$SOME_GROUP
+
+# give cpu max
+
+echo "$MAX $PERIOD" > /sys/fs/cgroup/$SOME_GROUP/cpu.max
+
+# revoke group
+
+rmdir /sys/fs/cgroup/$SOME_GROUP
+
+
+```
+
+
+# PROCESS NAMESPACE
+
+```shell
+
+
+unshare --user --pid --map-root-user --mount-proc --fork bash 
+
+```
+
+# OVERLAYFS
+
+```shell
+sudo mkdir /tmp/upper /tmp/overlay /mnt/merged_directories
+
+sudo mount -t overlay overlay -olowerdir=/path/to/dir1:/path/to/dir2,upperdir=/tmp/upper,workdir=/tmp/overlay /mnt/merged_directories
+
+```
+
+# NETWORK NAMESPACE
+
+```shell
+
+# bridge, veth with peer
+
+sudo ip link add br-blah01 type bridge 
+
+sudo ip link add dev vm1 type veth peer name vm2
+
+sudo ip link set vm1 master br-blah01
+
+sudo ip addr add 10.0.0.1/24 dev br-blah01
+
+sudo ip addr add 10.0.0.2/24 dev vm2
+
+sudo ip link set br-blah01 up
+
+sudo ip link set vm1 up
+
+sudo ip link set vm2 up
+
+# veth with peer namespace 
+
+sudo ip netns add blahnet
+
+sudo ip link set vm2 netns blahnet 
+
+sudo ip netns exec blahnet ip link set dev lo up
+
+sudo ip netns exec blahnet ip a
+
+sudo iptables -t nat -A POSTROUTING -o br-blah01 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o wlo1 -j MASQUERADE
+
+sudo ip netns exec blahnet /bin/bash
+
+ip addr add 10.0.0.2/24 dev vm2
+
+ip link set dev vm2 up
+
+ip route add default via 10.0.0.1
+
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+
+```
+
+
 # ROUTER/MODEM LAN
 
 ```shell
@@ -1886,29 +1958,6 @@ sudo ip link set vm1 up
 
 sudo ip link set vm2 up
 
-# veth with peer namespace 
-
-sudo ip netns add blahnet
-
-sudo ip link set vm2 netns blahnet 
-
-sudo ip netns exec blahnet ip link set dev lo up
-
-sudo ip netns exec blahnet ip a
-
-sudo iptables -t nat -A POSTROUTING -o br-blah01 -j MASQUERADE
-sudo iptables -t nat -A POSTROUTING -o wlo1 -j MASQUERADE
-
-sudo ip netns exec blahnet /bin/bash
-
-ip addr add 10.0.0.2/24 dev vm2
-
-ip link set dev vm2 up
-
-ip route add default via 10.0.0.1
-
-echo "nameserver 8.8.8.8" >> /etc/resolv.conf
-echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
 ```
 ```shell

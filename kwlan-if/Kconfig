@@ -1,0 +1,9 @@
+config KWLANIDIOT
+	tristate "Kernel wlan idiot module"
+	depends on CFG80211
+	help
+	  It claims to be a kernel wifi module.
+      But it is just an idiot doing nothing really.
+
+	  If you choose to build it as a module, it will be called
+	  kwlan_idiot. 

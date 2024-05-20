@@ -1,1 +1,0 @@
-savedcmd_/home/seantywork/hack/hack/dummy2/dummy2.ko := ld -r -m elf_x86_64 -z noexecstack --build-id=sha1  -T scripts/module.lds -o /home/seantywork/hack/hack/dummy2/dummy2.ko /home/seantywork/hack/hack/dummy2/dummy2.o /home/seantywork/hack/hack/dummy2/dummy2.mod.o;  make -f ./arch/x86/Makefile.postlink /home/seantywork/hack/hack/dummy2/dummy2.ko

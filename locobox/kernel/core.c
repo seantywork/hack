@@ -1,21 +1,21 @@
 
 #include "core.h"
 
-struct net_device* dev_dummy2 = NULL;
+struct net_device* dev_locobox = NULL;
 
-int numdummies = 1;
+int numlocobox = 1;
 
 /* fake multicast ability */
 void set_multicast_list(struct net_device *dev){
 }
 
-void dummy_get_stats64(struct net_device *dev,
+void locobox_get_stats64(struct net_device *dev,
 			      struct rtnl_link_stats64 *stats){
 
 	dev_lstats_read(dev, &stats->tx_packets, &stats->tx_bytes);
 }
 
-netdev_tx_t dummy_xmit(struct sk_buff *skb, struct net_device *dev){
+netdev_tx_t locobox_xmit(struct sk_buff *skb, struct net_device *dev){
 
 	dev_lstats_add(dev, skb->len);
 
@@ -24,7 +24,7 @@ netdev_tx_t dummy_xmit(struct sk_buff *skb, struct net_device *dev){
 	return NETDEV_TX_OK;
 }
 
-int dummy_dev_init(struct net_device *dev){
+int locobox_dev_init(struct net_device *dev){
 
 	dev->lstats = netdev_alloc_pcpu_stats(struct pcpu_lstats);
 	if (!dev->lstats)
@@ -33,11 +33,11 @@ int dummy_dev_init(struct net_device *dev){
 	return 0;
 }
 
-void dummy_dev_uninit(struct net_device *dev){
+void locobox_dev_uninit(struct net_device *dev){
 	free_percpu(dev->lstats);
 }
 
-int dummy_change_carrier(struct net_device *dev, bool new_carrier){
+int locobox_change_carrier(struct net_device *dev, bool new_carrier){
 
 	if (new_carrier)
 		netif_carrier_on(dev);
@@ -46,28 +46,28 @@ int dummy_change_carrier(struct net_device *dev, bool new_carrier){
 	return 0;
 }
 
-const struct net_device_ops dummy_netdev_ops = {
-	.ndo_init		= dummy_dev_init,
-	.ndo_uninit		= dummy_dev_uninit,
-	.ndo_start_xmit		= dummy_xmit,
+const struct net_device_ops locobox_netdev_ops = {
+	.ndo_init		= locobox_dev_init,
+	.ndo_uninit		= locobox_dev_uninit,
+	.ndo_start_xmit		= locobox_xmit,
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_set_rx_mode	= set_multicast_list,
 	.ndo_set_mac_address	= eth_mac_addr,
-	.ndo_get_stats64	= dummy_get_stats64,
-	.ndo_change_carrier	= dummy_change_carrier,
+	.ndo_get_stats64	= locobox_get_stats64,
+	.ndo_change_carrier	= locobox_change_carrier,
 };
 
-const struct ethtool_ops dummy_ethtool_ops = {
+const struct ethtool_ops locobox_ethtool_ops = {
 	.get_ts_info		= ethtool_op_get_ts_info,
 };
 
-void dummy_setup(struct net_device *dev){
+void locobox_setup(struct net_device *dev){
 
 	ether_setup(dev);
 
 	/* Initialize the device structure. */
-	dev->netdev_ops = &dummy_netdev_ops;
-	dev->ethtool_ops = &dummy_ethtool_ops;
+	dev->netdev_ops = &locobox_netdev_ops;
+	dev->ethtool_ops = &locobox_ethtool_ops;
 	dev->needs_free_netdev = true;
 
 	/* Fill in device structure with ethernet-generic values. */
@@ -87,36 +87,35 @@ void dummy_setup(struct net_device *dev){
 }
 
 
-/* Number of dummy devices to be set up by this module. */
-module_param(numdummies, int, 0);
-MODULE_PARM_DESC(numdummies, "Number of dummy pseudo devices");
+/* Number of locobox devices to be set up by this module. */
+module_param(numlocobox, int, 0);
+MODULE_PARM_DESC(numlocobox, "Number of locobox pseudo devices");
 
-static int __init dummy_init_module(void){
+static int __init locobox_init_module(void){
 
 	int err;
 
-	dev_dummy2 = alloc_netdev(0, "dummy2-%d", NET_NAME_ENUM, dummy_setup);
-	if (!dev_dummy2)
+	dev_locobox = alloc_netdev(0, "locobox%d", NET_NAME_ENUM, locobox_setup);
+	if (!dev_locobox)
 		return -ENOMEM;
 
-	err = register_netdevice(dev_dummy2);
+	err = register_netdevice(dev_locobox);
 	if (err < 0)
 		goto err;
 	return 0;
 
 err:
-	free_netdev(dev_dummy2);
+	free_netdev(dev_locobox);
 	return err;
 }
 
 
 
-static void __exit dummy_cleanup_module(void)
+static void __exit locobox_cleanup_module(void)
 {
-	unregister_netdevice(dev_dummy2);
+	unregister_netdevice(dev_locobox);
 }
 
-module_init(dummy_init_module);
-module_exit(dummy_cleanup_module);
+module_init(locobox_init_module);
+module_exit(locobox_cleanup_module);
 MODULE_LICENSE("GPL");
-// MODULE_ALIAS_RTNL_LINK(DRV_NAME);

@@ -1,5 +1,0 @@
-config DUMMY2
-	tristate "dummy module 2"
-	help
-	  It claims to be a kernel dummy module.
-	  dummy2. 

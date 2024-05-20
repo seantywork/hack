@@ -1,0 +1,4 @@
+config LOCOBOX
+	tristate "locobox kernel module"
+	help
+	  It is locobox.

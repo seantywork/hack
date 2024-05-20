@@ -1,0 +1,7 @@
+config VETH2
+	tristate "Virtual ethernet pair device 2"
+	select PAGE_POOL
+	help
+	  This device is a local ethernet tunnel. Devices are created in pairs.
+	  When one end receives the packet it appears on its pair and vice
+	  versa.

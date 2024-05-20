@@ -1,1 +1,0 @@
-savedcmd_/home/seantywork/hack/hack/dummy/Module.symvers :=  scripts/mod/modpost -m -a      -o /home/seantywork/hack/hack/dummy/Module.symvers -T /home/seantywork/hack/hack/dummy/modules.order -i Module.symvers -e 

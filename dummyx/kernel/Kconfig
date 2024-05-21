@@ -1,0 +1,4 @@
+config DUMMYX
+	tristate "dummyx kernel module"
+	help
+	  Dumber than dummy.

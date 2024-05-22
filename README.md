@@ -1,6 +1,6 @@
 # hack
 
-***crap compilation of mostly Linux, C stuff***
+***crap compilation of mostly Linux stuff***
 
 
 **Disclaimer : I am not liable for any misuse of this code Only use it on machines and in environments that you have explicit permissions and authrizations to do so**

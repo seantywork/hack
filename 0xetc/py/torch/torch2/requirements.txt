@@ -1,4 +1,0 @@
-torch==2.1
-torchvision==0.16
-scikit-learn
-requests

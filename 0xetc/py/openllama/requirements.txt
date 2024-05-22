@@ -1,6 +1,0 @@
-notebook==7.0.1
-matplotlib==3.7.2
-torch==1.13.1
-torchvision==0.14.1
-transformers==4.38.2
-accelerate==0.28.0

@@ -11,6 +11,3 @@
 	path = sorrylinus
 	url = https://github.com/seantywork/sorrylinus.git
 	branch = main
-[submodule "0xploit"]
-	path = 0xploit
-	url = https://github.com/seantywork/0xploit.git

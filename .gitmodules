@@ -11,3 +11,6 @@
 	path = sorrylinus
 	url = https://github.com/seantywork/sorrylinus.git
 	branch = main
+[submodule "0xbox"]
+	path = 0xbox
+	url = https://github.com/seantywork/0xbox.git

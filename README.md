@@ -7444,7 +7444,11 @@ git clone --filter=blob:none https://github.com/seantywork/kubernetes.git
 
 sudo nano ~/.profile
 
-export PATH="$GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}"
+export KUBE_ROOT=/root/kubernetes
+export GOPATH=/usr/local/go
+export PATH=$PATH:$GOPATH/bin
+export PATH="$KUBE_ROOT/third_party/etcd:${PATH}"
+
 
 source ~/.profile
 

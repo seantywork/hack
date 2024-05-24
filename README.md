@@ -7455,6 +7455,19 @@ source ~/.profile
 ```
 
 
+```shell
+
+# modify and run
+
+
+make
+
+./hack/local-up-cluster.sh
+
+
+
+```
+
 
 
 # KUBERNETES K8S

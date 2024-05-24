@@ -683,81 +683,6 @@ git submodule update --init --recursive
 ```
 
 
-# ON WINDOWS 
-
-```shell
-virtual machine -> bridge  
-
- 
-
-wsl bridge -> netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=<winport> connectaddress=localhost connectport=linuxport 
-
-```
- 
-# ONEDRIVE
-
-```shell
-
-# installing onedrive cmd
-
-sudo apt update 
-
-sudo apt install onedrive -y
-
-
-# custome configuration
-
-wget https://raw.githubusercontent.com/abraunegg/onedrive/master/config -O ~/.config/onedrive/config
-
-
-vim ~/.config/onedrive/config
-
-
-```
-
-```shell 
-
-# ~/.config/onedrive/config
-
-...
-
-sync_dir = "~/c"
-...
-
-```
-
-```shell
-
-# ~/.config/onedrive/sync_list
-...
-/c
-...
-
-
-```
-
-```shell
-
-
-# no autostart
-
-sudo rm /etc/systemd/user/default.target.wants/onedrive.service
-
-# autostart
-# symlink
-
-/etc/systemd/user/default.target.wants/onedrive.service → /usr/lib/systemd/user/onedrive.service
-
-```
-
-```shell
-
-# sync single directory
-
-onedrive --synchronize --single-directory "c" 
-
-
-``` 
 
 # PROFILE PATH PERMANENT
 
@@ -967,178 +892,7 @@ git switch -c main origin/main
 
 ```
 
-
-# PURCHASE 
-
  
-```shell
-Server - AWS EC2 instance, Http, https, ssh inbound setting  
-
-Domain Name - Namecheap - two A RECORD set for host @, www, and link IP  
-
-openai ready 
-```
- 
-
-# OS VERSION 
-
-```shell
-
-
-
-AWS EC2 Ubuntu 22 
-
-``` 
-
-# INSTALL 
-
- 
-```shell
-chrome 
-
-virtualbox 
-
-git 
-
-curl 
-
-wget 
-
-vim 
-
-vscode 
-
-python3-pip 
-
-nodejs 
-
-go 
-
-docker 
-
-kubectl 
-
-virtualbox 
-
-ghidra 
-
-wireshark 
-
-metasploit 
-
-nmap 
-
-sqlmap 
-
-nikto 
-
-burpesuite 
-
-owasp zap 
-
-tor 
-
- 
-
-nginx 
-
-gunicorn 
-
-mysql 
-
-python 
-
-pip 
-
-django 
-
-pandas 
-
-openai 
-
-mysql-connector-python 
-
-mysqlclient 
-
-```
-
-# MYSQL SETTING 
-
- 
-```shell
-# create user, grant privileges 
-
-python manage.py migrate 
-```
- 
-
-# GUNICORN
-
-```shell
-
-
-mkdir -pv config/gunicorn/ 
-
-
-
-```
-
-```python
-
-# gunicorn dev.py 
-
-"""Gunicorn *development* config file""" 
-
-# Django WSGI application path in pattern MODULE_NAME:VARIABLE_NAME 
-
-wsgi_app = "<project_name>.wsgi:application" 
-
-# The granularity of Error log outputs 
-
-loglevel = "debug" 
-
-# The number of worker processes for handling requests 
-
-workers = 2 
-
-# The socket to bind 
-
-bind = "0.0.0.0:8000" 
-
-# Restart workers when code changes (development only!) 
-
-reload = True 
-
-# Write access and error info to /var/log 
-
-accesslog = errorlog = "/var/log/gunicorn/dev.log" 
-
-# Redirect stdout/stderr to log file 
-
-capture_output = True 
-
-# PID file so you can easily fetch process ID 
-
-pidfile = "/var/run/gunicorn/dev.pid" 
-
-# Daemonize the Gunicorn process (detach & enter background) 
-
-daemon = True 
-
-
-```
-
-```shell
-sudo mkdir -pv /var/{log,run}/gunicorn/ 
-
- 
-
-sudo chown -cR ubuntu:ubuntu /var/{log,run}/gunicorn/ 
-
- 
-
-gunicorn -c config/gunicorn/dev.py 
-```
 
 # NGINX SETTING
 
@@ -1268,27 +1022,6 @@ sudo systemctl restart nginx
 # namecheap DNS relinking 
 
 ```
-
-# DB CHECK
-
-```shell
-
-# running
-
-```
-
-# GUINCORN CHECK
-
-```shell
-sudo mkdir -pv /var/{log,run}/gunicorn/ 
-
-sudo chown -cR ubuntu:ubuntu /var/{log,run}/gunicorn/ 
-
-gunicorn -c config/gunicorn/dev.py 
-
-
-```
-
 
 
 # NGINX CHECK 
@@ -2549,14 +2282,6 @@ zone "50.168.192.in-addr.arpa" {
 
 
 
-
-# SOCKET IO
-
-```shell
-# node
-npm install socket.io
-```
-
 # GRPC
 
 ```shell
@@ -2821,7 +2546,7 @@ sudo mkfs.vfat /dev/sdb1
 sudo eject /dev/sdb
 ```
 
-# API KEY
+# APT KEY
 
 ```shell
 
@@ -2847,7 +2572,7 @@ echo "deb [signed-by=/usr/share/keyrings/<>.gpg] https://packages.cloud.google.c
 
 ```
 
-# DB & SYNC
+# DB SYNC REPLICATION
 
 ```shell
 
@@ -3213,67 +2938,7 @@ source ~/.profile
 
 ```
 
-# KOTLIN
 
-```shell
-
-
-sudo apt install openjdk-11-jdk 
-
- 
-
-curl -s https://get.sdkman.io | bash 
-
- 
-
-sdk install kotlin 
-
- 
-
-kotlinc Kotlin.kt -include-runtime -d outPutFile.jar 
-
- 
-
-java -jar outPutFile.jar 
-
-```
-
-# NODEJS
-
-```shell
-
-curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh 
-
- 
-
-sudo bash /tmp/nodesource_setup.sh 
-
- 
-
-sudo apt install nodejs 
-
-
-
-```
-
-
-# DJANGO
-
-```shell
-
-django-admin startproject mysite
-
-```
-
-# EXPRESSJS
-
-```shell
-
- npm install -g express-generator
- 
- express myapp
-
-```
 
 # JMETER
 
@@ -3389,31 +3054,6 @@ gpg --output un_encrypted.data --decrypt encrypted.data
 
 ```
 
-# DOCKER & KUBERNETES
-
-```shell
-
-
-docker version - 20.10.17 
-
-kubectl version v1.24.3 
-
- 
-
-# !!!! sudo -i  FIRST!!!! 
-
- 
-
-# swap disabled and firewall check 
-
-swapoff -a 
-
-apt update 
-
-apt upgrade -y 
-
-
-```
 
 
 # DOCKER INSTALL
@@ -3467,36 +3107,6 @@ chmod +x /usr/local/bin/docker-compose
 # PREPARE DOCKER IMAGE
 
 ```shell
-
-cat > /etc/docker/daemon.json <<EOF 
-
-{ 
-
-  "exec-opts": ["native.cgroupdriver=systemd"], 
-
-  "log-driver": "json-file", 
-
-  "log-opts": { 
-
-    "max-size": "100m" 
-
-  }, 
-
-  "storage-driver": "overlay2", 
-
-  "storage-opts": [ 
-
-    "overlay2.override_kernel_check=true" 
-
-  ] 
-
-} 
-
-EOF 
-
-systemctl restart docker 
-
-# add runtime: sysbox-runc   if using sysbox
 
 
 
@@ -3600,40 +3210,6 @@ docker context use default
  
 ```
 
-# KUBERNETES INSTALL
-
-
-```shell
-
-apt update 
-
- 
-
-apt install -y apt-transport-https ca-certificates curl 
-
- 
-
-curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg 
-
- 
-
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list 
-
- 
-
-apt update 
-
- 
-
-apt install -y kubectl kubelet kubeadm  
-
- 
-
-sudo apt-mark hold kubelet kubeadm kubectl 
-
-
-```
-
 
 # KIND INSTALL
 
@@ -3653,277 +3229,6 @@ sudo mv ./kind /usr/local/bin/
 ```
 
 
-# KUBEADM ALL NODES
-
-
-```shell
-
-#!/bin/bash 
-
- 
-
- 
-
- 
-
-set -euxo pipefail 
-
- 
-
-# Variable Declaration 
-
- 
-
-KUBERNETES_VERSION="1.23.6-00" 
-
- 
-
-# disable swap 
-
-sudo swapoff -a 
-
- 
-
-# keeps the swaf off during reboot 
-
-(crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true 
-
-sudo apt-get update -y 
-
- 
-
- 
-
-# Install CRI-O Runtime 
-
- 
-
-OS="xUbuntu_20.04" 
-
- 
-
-VERSION="1.23" 
-
- 
-
-# Create the .conf file to load the modules at bootup 
-
-cat <<EOF | sudo tee /etc/modules-load.d/crio.conf 
-
-overlay 
-
-br_netfilter 
-
-EOF 
-
- 
-
-sudo modprobe overlay 
-
-sudo modprobe br_netfilter 
-
- 
-
-# Set up required sysctl params, these persist across reboots. 
-
-cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf 
-
-net.bridge.bridge-nf-call-iptables  = 1 
-
-net.ipv4.ip_forward                 = 1 
-
-net.bridge.bridge-nf-call-ip6tables = 1 
-
-EOF 
-
- 
-
-sudo sysctl --system 
-
- 
-
-cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list 
-
-deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ / 
-
-EOF 
-
-cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list 
-
-deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ / 
-
-EOF 
-
- 
-
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add - 
-
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add - 
-
- 
-
-sudo apt-get update 
-
-sudo apt-get install cri-o cri-o-runc crun -y 
-
- 
-
-sudo systemctl daemon-reload 
-
-sudo systemctl enable crio --now 
-
- 
-
-echo "CRI runtime installed susccessfully" 
-
- 
-
-# Install kubelet, kubectl and Kubeadm 
-
- 
-
-sudo apt-get update 
-
-sudo apt-get install -y apt-transport-https ca-certificates curl 
-
-sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg 
-
- 
-
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list 
-
-sudo apt-get update -y 
-
-sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION" 
-
-sudo apt-get update -y 
-
-sudo apt-get install -y jq 
-
- 
-
- 
-
-netinf_row="$(ip -o link | awk '$2 != "lo:" {print $2, $(NF-2)}')" 
-
-searchstring=": " 
-
- 
-
-rest=${netinf_row#*$searchstring} 
-
-idx=$(( ${#netinf_row} - ${#rest} - ${#searchstring} )) 
-
-netinf_name=${netinf_row:0:idx} 
-
- 
-
-local_ip="$(ip --json a s | jq -r --arg NETINF_NAME $netinf_name '.[] | if .ifname == $NETINF_NAME then .addr_info[] | if .family == "inet" then .local else empty end else empty end')" 
-
-cat > /etc/default/kubelet << EOF 
-
-KUBELET_EXTRA_ARGS=--node-ip=$local_ip 
-
-EOF 
-
- 
-
-
-```
-
-# MASTER - ON MASTER NODE
-
-
-```shell
-
-set -euxo pipefail 
-
- 
-
-netinf_row="$(ip -o link | awk '$2 != "lo:" {print $2, $(NF-2)}')" 
-
-searchstring=": " 
-
- 
-
-rest=${netinf_row#*$searchstring} 
-
-idx=$(( ${#netinf_row} - ${#rest} - ${#searchstring} )) 
-
-netinf_name=${netinf_row:0:idx} 
-
- 
-
-local_ip="$(ip --json a s | jq -r --arg NETINF_NAME $netinf_name '.[] | if .ifname == $NETINF_NAME then .addr_info[] | if .family == "inet" then .local else empty end else empty end')" 
-
- 
-
-MASTER_IP=$local_ip 
-
-#LB_IP=<load_balancer_ip> 
-
-#PORT=<load_balancer_port> 
-
-NODENAME=$(hostname -s) 
-
-POD_CIDR="10.10.0.0/16" 
-
- 
-
-sudo kubeadm config images pull 
-
- 
-
-echo "Preflight Check Passed: Downloaded All Required Images" 
-
- 
-
-sudo kubeadm init --apiserver-advertise-address=$MASTER_IP --apiserver-cert-extra-sans=$MASTER_IP --pod-network-cidr=$POD_CIDR --node-name "$NODENAME" --ignore-preflight-errors Swap  
-
- 
-
-mkdir -p "$HOME"/.kube 
-
-sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config 
-
-sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config 
-
- 
-
- 
-
- 
-
-curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml -O 
-
- 
-
-kubectl apply -f calico.yaml 
-
- 
-
- 
-
-mkdir -p "$HOME"/.kube 
-
-sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config 
-
-sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config 
-
- 
-
-# Install Claico Network Plugin Network  
-
- 
-
-curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml -O 
-
- 
-
-kubectl apply -f calico.yaml 
-
-
-```
 
 
 # JOIN TOKEN CREATION
@@ -6654,74 +5959,7 @@ cmake --build . --config Release
 
 ```
 
-# VIRTUAL MACHINE BOX
 
-```shell
-# virtualbox
-
-sudo apt update 
-
- 
-
-sudo apt install virtualbox 
-
- 
-
- 
-
- 
-
-sudo vboxmanage createvm --ostype Ubuntu_64 --basefolder "/srv/virtualbox" --register --name "ubuntu20" 
-
- 
-
-sudo vboxmanage modifyvm "ubuntu20" --cpus 2 --memory 2048 --nic1 bridged --bridgeadapter1 wlp2s0 
-
- 
-
-sudo vboxmanage createhd --filename "/srv/virtualbox/ubuntu20/ubuntu20.vdi" --format VDI --size 32000 
-
- 
-
-sudo vboxmanage storagectl "ubuntu20" --name "SATA" --add sata 
-
- 
-
-sudo vboxmanage storageattach "ubuntu20" --storagectl SATA --port 0 --type hdd --medium "/srv/virtualbox/ubuntu20/ubuntu20.vdi" 
-
- 
-
-sudo vboxmanage storagectl "ubuntu20" --name IDE --add ide 
-
- 
-
-sudo vboxmanage storageattach "ubuntu20" --storagectl IDE --port 0 --device 0 --type dvddrive --medium /home/seantywork/Downloads/ubuntu-20.04.5-live-server-amd64.iso  
-
- 
-
- 
-
-sudo vboxmanage startvm "ubuntu20" --type headless 
-
- 
-
-sudo vboxmanage list runningvms 
-
- 
-
-sudo vboxmanage controlvm "ubuntu20" acpipowerbutton 
-
- 
-# clone 
-
- 
-
-sudo vboxmanage clonevm "ubuntu20" --name="ol7-dev-002" --register 
-
-
-
-
-```
 
 # VIRTUAL MACHINE QEMU
 
@@ -8080,6 +7318,140 @@ spec:
       storage: 16Gi
 
 ```
+# KUBERNETES K8S DEV
+
+```shell
+
+# install basic dependencies
+
+sudo apt-get install build-essential make openssl libssl-dev
+
+```
+
+
+```shell
+
+# bootstrap and install container runtime 
+
+sudo swapoff -a
+
+
+(crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
+sudo apt-get update -y
+
+cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+sudo sysctl --system
+
+
+apt-get update
+apt-get install -y software-properties-common curl
+
+mkdir -p /etc/apt/keyrings
+
+KUBERNETES_VERSION=v1.30
+PROJECT_PATH=prerelease:/main
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+
+curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/$PROJECT_PATH/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/$PROJECT_PATH/deb/ /" | tee /etc/apt/sources.list.d/cri-o.list
+
+apt-get update
+
+apt-get install -y cri-o 
+
+systemctl daemon-reload
+systemctl enable crio --now
+
+systemctl start crio 
+
+
+```
+
+
+```shell
+
+# install go
+
+
+curl -OL https://golang.org/dl/go1.22.3.linux-amd64.tar.gz
+
+sudo tar -C /usr/local -xvf go1.22.3.linux-amd64.tar.gz
+
+sudo nano ~/.profile
+
+export GOPATH=/usr/local/go
+export PATH=$PATH:$GOPATH/bin
+
+
+
+
+source ~/.profile
+
+```
+
+
+
+
+```shell
+
+
+# install cfssl
+
+go install github.com/cloudflare/cfssl/cmd/...@latest
+
+```
+
+
+```shell
+
+# clone kubenernetes repo
+
+
+git clone --filter=blob:none https://github.com/seantywork/kubernetes.git
+
+
+
+
+```
+
+
+
+```shell
+
+
+# install etcd
+
+
+./hack/install-etcd.sh
+
+sudo nano ~/.profile
+
+export PATH="$GOPATH/src/k8s.io/kubernetes/third_party/etcd:${PATH}"
+
+source ~/.profile
+
+```
+
+
+
 
 # KUBERNETES K8S
 

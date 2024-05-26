@@ -9,5 +9,5 @@
 *.h linguist-vendored=false
 *.cc linguist-vendored=false
 *.sh linguist-vendored=false
-0xgo/** export-ignore
-0xjs/** export-ignore
+0xgo/** linguist-vendored
+0xjs/** linguist-vendored

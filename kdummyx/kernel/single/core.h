@@ -1,5 +1,5 @@
-#ifndef _DUMMYX_H_
-#define _DUMMYX_H_
+#ifndef _DUMMYX_SINGLE_H_
+#define _DUMMYX_SINGLE_H_
 
 
 
@@ -15,7 +15,7 @@
 #include <net/rtnetlink.h>
 #include <linux/u64_stats_sync.h>
 
-#define DRV_NAME	"dummyx"
+#define DRV_NAME	"dummyx_single"
 
 extern struct net_device* dev_dummyx;
 

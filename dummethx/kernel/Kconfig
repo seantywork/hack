@@ -1,0 +1,4 @@
+config DUMMETHX
+	tristate "dummethx kernel module"
+	help
+	  Dumber than dummies.

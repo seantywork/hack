@@ -7460,14 +7460,37 @@ source ~/.profile
 # modify and run
 
 
+cat <<EOF > /tmp/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+EOF
+
+
+export CONTAINER_RUNTIME_ENDPOINT="unix:///run/crio/crio.sock"
+
+
 make
 
-./hack/local-up-cluster.sh
+# ./hack/local-up-cluster.sh
 
-
+KUBELET_RESOLV_CONF="/tmp/resolv.conf" KUBELET_FLAGS="--cgroup-driver=systemd" ./hack/local-up-cluster.sh
 
 ```
 
+
+
+```shell
+
+export KUBECONFIG=/var/run/kubernetes/admin.kubeconfig
+
+cd _output/local/bin/linux/amd64
+
+
+./kubectl apply -f your.yaml
+./kubectl get pods 
+
+
+```
 
 
 # KUBERNETES K8S

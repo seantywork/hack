@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"context"
@@ -73,34 +73,5 @@ func GetKey(cli *clientv3.Client, key string) error {
 	log.Println("match: key: " + string(resp.Kvs[0].Key) + " val: " + string(resp.Kvs[0].Value))
 
 	return nil
-
-}
-
-func main() {
-
-	cli, err := ConnectEtcd()
-
-	defer cli.Close()
-
-	if err != nil {
-
-		log.Fatalln(err.Error())
-	}
-
-	test_key := "my_little_key"
-
-	test_val := "myLittleValue"
-
-	err = PutKey(cli, test_key, test_val)
-
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
-	err = GetKey(cli, test_key)
-
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
 
 }

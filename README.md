@@ -10462,3 +10462,18 @@ sudo sysctl -w net.core.rmem_max=7500000
 sudo sysctl -w net.core.wmem_max=7500000
 
 ```
+
+
+# GUI FYNE
+
+```shell
+
+# after installing go, gcc
+
+sudo apt-get update
+
+sudo apt-get install -y libgl1-mesa-dev xorg-dev
+
+
+
+```

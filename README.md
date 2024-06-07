@@ -9732,7 +9732,7 @@ ffmpeg -f v4l2 -i /dev/video0 \
 
 
 ```shell
-# strema to rtp server
+# stream to rtp server
 
 
 ffmpeg -i /dev/video0 -r 24 -video_size 640x480 -vcodec libvpx -cpu-used 5 -deadline 1 -g 10 -error-resilient 1 -auto-alt-ref 1 -f rtp 'rtp://127.0.0.1:5004?pkt_size=1200'
@@ -10507,6 +10507,37 @@ sudo apt install libpng++-dev
 
 # GoHook
 sudo apt install xcb libxcb-xkb-dev x11-xkb-utils libx11-xcb-dev libxkbcommon-x11-dev libxkbcommon-dev
+
+
+```
+
+# TURN SERVER COTURN WEBRTC
+
+
+```shell
+
+sudo apt-get update
+
+sudo apt-get install coturn
+
+
+sudo nano /etc/default/coturn
+
+TURNSERVER_ENABLED=1
+
+sudo systemctl start coturn
+
+
+nano /etc/turnserver.conf
+
+listening-ip=0.0.0.0
+
+listening-port=3478
+
+min-port=10000
+max-port=20000
+
+sudo systemctl restart coturn
 
 
 ```

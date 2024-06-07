@@ -9715,7 +9715,7 @@ server
 
 ```shell
 
-# stream to server
+# stream to rtmp server
 
 
 ffmpeg -f v4l2 -i /dev/video0 \
@@ -9726,6 +9726,17 @@ ffmpeg -f v4l2 -i /dev/video0 \
   "rtmps://$HOST/live/MyWebCam?puser=$PUSER"
 
 #  -preset ultrafast -tune zerolatency                             \
+
+
+```
+
+
+```shell
+# strema to rtp server
+
+
+ffmpeg -i /dev/video0 -r 24 -video_size 640x480 -vcodec libvpx -cpu-used 5 -deadline 1 -g 10 -error-resilient 1 -auto-alt-ref 1 -f rtp 'rtp://127.0.0.1:5004?pkt_size=1200'
+
 
 ```
 

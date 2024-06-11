@@ -1,7 +1,3 @@
-[submodule "gh-bot"]
-	path = gh-bot
-	url = https://github.com/seantywork/gh-bot.git
-	branch = main
 [submodule "sorrylinus"]
 	path = sorrylinus
 	url = https://github.com/seantywork/sorrylinus.git

@@ -2,11 +2,6 @@
 	path = gh-bot
 	url = https://github.com/seantywork/gh-bot.git
 	branch = main
-[submodule "0xgo/kube-codejam"]
-	path = 0xgo/kube-codejam
-	url = https://github.com/seantywork/kube-codejam.git
-	branch = main
-
 [submodule "sorrylinus"]
 	path = sorrylinus
 	url = https://github.com/seantywork/sorrylinus.git

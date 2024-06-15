@@ -5,6 +5,4 @@
 [submodule "dummethx"]
 	path = dummethx
 	url = https://github.com/seantywork/dummethx.git
-[submodule "0xgo/go-boomerland"]
-	path = 0xgo/go-boomerland
-	url = https://github.com/seantywork/go-boomerland.git
+	branch = main

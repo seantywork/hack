@@ -6,3 +6,6 @@
 	path = dummethx
 	url = https://github.com/seantywork/dummethx.git
 	branch = main
+[submodule "0xgo/sorrylinus-again"]
+	path = 0xgo/sorrylinus-again
+	url = https://github.com/seantywork/sorrylinus-again.git

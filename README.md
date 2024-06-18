@@ -9632,7 +9632,7 @@ sudo apt install nvidia-jetpack
 ```
 
 
-# VIDEO LIVE STREAM FFMPEG RTMP NGINX
+# VIDEO LIVE STREAM FFMPEG GSTREAMER RTMP NGINX
 
 ```shell
 
@@ -9642,6 +9642,17 @@ sudo apt install libnginx-mod-rtmp
 
 
 ```
+
+```shell
+
+# gstreamer
+
+apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+
+
+```
+
+
 ```shell
 # /etc/nginx/nginx.conf
 
@@ -9736,6 +9747,15 @@ ffmpeg -f v4l2 -i /dev/video0 \
 
 
 ffmpeg -i /dev/video0 -r 24 -video_size 640x480 -vcodec libvpx -cpu-used 5 -deadline 1 -g 10 -error-resilient 1 -auto-alt-ref 1 -f rtp 'rtp://127.0.0.1:5004?pkt_size=1200'
+
+
+```
+
+```shell
+
+# stream to rtmp server
+
+gst-launch-1.0 -e v4l2src device=/dev/video0 ! queue ! videoconvert ! videoscale ! video/x-raw,width=960,height=720 ! x264enc speed-preset=ultrafast tune=zerolatency key-int-max=20 ! flvmux streamable=true ! queue ! rtmpsink location='rtmp://localhost:8084/publish/foobar'
 
 
 ```

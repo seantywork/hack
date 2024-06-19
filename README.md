@@ -6513,11 +6513,22 @@ sudo apt install wireshark
 
 ```
 
-# TCP DUMP TCPDUMP
+# TCP DUMP TCPDUMP UDP DUMP
 
 ```shell
 
 sudo tcpdump -i $IFACE -A -X -c 20 port $PORT
+
+
+```
+
+```shell
+
+# udpdump
+
+sudo tcpdump -i $IFACE -A -X -c 20 -n udp port 23232
+
+
 ```
 
 # TOR

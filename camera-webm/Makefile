@@ -2,7 +2,7 @@
 
 all:
 
-	gcc -o camweb.out main.c -lavcodec -lavformat -lavfilter -lavdevice -lavutil
+	gcc -o camweb.out main.c -lgstreamer-1.0
 
 clean:
 

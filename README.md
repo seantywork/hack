@@ -10568,6 +10568,15 @@ listening-port=3478
 min-port=10000
 max-port=20000
 
+
+fingerprint
+
+user=test:test123
+
+lt-cred-mech
+
+
+
 sudo systemctl restart coturn
 
 

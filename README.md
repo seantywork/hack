@@ -10565,8 +10565,8 @@ listening-ip=0.0.0.0
 
 listening-port=3478
 
-min-port=10000
-max-port=20000
+min-port=60001
+max-port=60100
 
 
 fingerprint
@@ -10578,6 +10578,24 @@ lt-cred-mech
 
 
 sudo systemctl restart coturn
+
+
+```
+
+```shell
+
+# webrtc ports
+
+
+# server udp mux: 8006 (custom)
+
+# turn udp : 3478
+
+# turn relay udp: 3479-3579
+
+# webrtc udp: 5353
+
+# udp: 30000-60000
 
 
 ```

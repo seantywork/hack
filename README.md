@@ -10581,3 +10581,20 @@ sudo systemctl restart coturn
 
 
 ```
+
+```shell
+
+# webrtc topology
+
+
+# example:
+
+# webrtc server application udp mux: 
+#   allow all: in: 8006
+
+# turn: allow all: in: 3478
+# turn: allow all: out: 3478
+# 
+
+
+```

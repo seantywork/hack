@@ -10595,7 +10595,7 @@ sudo systemctl restart coturn
 
 # webrtc udp: 5353
 
-# udp: 30000-60000
+# ephemeral udp range : 50000-50100 (custom)
 
 
 ```

@@ -10593,9 +10593,7 @@ sudo systemctl restart coturn
 
 # turn relay udp: 3479-3579
 
-# webrtc udp: 5353
-
-# ephemeral udp range : 50000-50100 (custom)
+# ephemeral udp range : 31000-31100 (custom)
 
 
 ```

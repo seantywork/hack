@@ -5,7 +5,7 @@ module.exports = function () {
 
     let router = express.Router();
     
-    router.post('/test', ctrlindex.PostTest);
+    router.get('/', ctrlindex.GetIndex);
 
     return router;
 };

@@ -2,7 +2,7 @@
 
 
 
-function PostTest(req, res, next){
+function GetIndex(req, res, next){
 
     let recvMsg = req.body.msg;
 
@@ -24,6 +24,6 @@ function PostTest(req, res, next){
 
 module.exports = {
 
-    PostTest: PostTest
+    GetIndex: GetIndex
 
 }

@@ -12,7 +12,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '8080');
 app.set('port', port);
 
 /**
@@ -21,14 +21,6 @@ app.set('port', port);
 
 var server = http.createServer(app);
 
-/**
- * Create web socket access logic
- */
-
-
-var wsio = require('ws');
-let app_ws = new wsio.WebSocketServer({ port: port + 1})
-require('../app_ws')(app_ws);
 
 
 /**

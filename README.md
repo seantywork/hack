@@ -10565,8 +10565,8 @@ listening-ip=0.0.0.0
 
 listening-port=3478
 
-min-port=60001
-max-port=60100
+min-port=3479
+max-port=3579
 
 
 fingerprint

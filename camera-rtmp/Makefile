@@ -2,7 +2,7 @@
 
 all:
 
-
+	@echo "camera-rtmp"
 
 x64:
 
@@ -10,7 +10,7 @@ x64:
 
 arm:
 
-	
+	libtool --mode=link gcc `pkg-config --cflags --libs gstreamer-1.0` -o camrtmp.out arm.c
 
 clean:
 

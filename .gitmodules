@@ -5,6 +5,3 @@
 [submodule "0xgo/sorrylinus-again"]
 	path = 0xgo/sorrylinus-again
 	url = https://github.com/seantywork/sorrylinus-again.git
-[submodule "dummeth"]
-	path = dummeth
-	url = https://github.com/seantywork/dummeth.git

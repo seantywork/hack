@@ -4,8 +4,12 @@ all: run.out
 
 	cat output.txt
 
-run.out:
-	g++ --std=c++14 -o run.out main.cc
+run.out: common.o
+	g++ --std=c++14 -I../../ -o run.out main.cc common.o
+
+common.o:
+
+	gcc -c -I../../ -o common.o ../../common.c
 
 clean:
-	rm -r *.out 
+	rm -r *.out *.o

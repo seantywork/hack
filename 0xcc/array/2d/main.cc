@@ -1,10 +1,8 @@
+#include "common.h"
+
 #include <bits/stdc++.h>
 
 using namespace std;
-
-string ltrim(const string &);
-string rtrim(const string &);
-vector<string> split(const string &);
 
 /*
  * Complete the 'hourglassSum' function below.
@@ -15,34 +13,83 @@ vector<string> split(const string &);
 
 int hourglassSum(vector<vector<int>> arr) {
 
+    int init = 0;
+
+    int top = 0;
+
+
+    for(int i = 0; i < 4; i ++){
+
+        for(int j = 0 ; j < 4; j++){
+
+
+            int sum = 0;
+
+
+            sum += arr[i][j];
+            sum += arr[i][j + 1];
+            sum += arr[i][j + 2];
+
+            sum += arr[i + 1][j + 1];
+
+            sum += arr[i + 2][j];
+            sum += arr[i + 2][j + 1];
+            sum += arr[i + 2][j + 2];
+
+            if(init == 0){
+
+                init = 1;
+
+                top = sum;
+
+            } else {
+
+                if(sum > top){
+
+                    top = sum;
+
+                }
+            }
+
+
+        }
+    }
+
+
+    return top;
+
 }
 
 int main()
 {
-    ofstream fout(getenv("OUTPUT_PATH"));
+    FILE* fout = fopen(getenv("OUTPUT_PATH"), "w");
 
-    vector<vector<int>> arr(6);
+    vector<vector<int>> arr;
 
-    for (int i = 0; i < 6; i++) {
-        arr[i].resize(6);
+    for(int i = 0; i < 6; i ++){
 
-        string arr_row_temp_temp;
-        getline(cin, arr_row_temp_temp);
+        char** arr_temp = split_string(rtrim(readline()));
 
-        vector<string> arr_row_temp = split(rtrim(arr_row_temp_temp));
+        vector<int> row;
 
-        for (int j = 0; j < 6; j++) {
-            int arr_row_item = stoi(arr_row_temp[j]);
+        for(int j = 0 ; j < 6 ; j++){
 
-            arr[i][j] = arr_row_item;
+            int el = parse_int(arr_temp[j]);
+
+            row.push_back(el);
+
         }
+
+        arr.push_back(row);
+
     }
+
 
     int result = hourglassSum(arr);
 
-    fout << result << "\n";
+    fprintf(fout, "%d\n", result);
 
-    fout.close();
+    fclose(fout);
 
     return 0;
 }

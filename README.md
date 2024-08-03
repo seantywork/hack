@@ -10946,11 +10946,38 @@ sudo systemctl restart coturn
 
 ```shell
 
-curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-sudo rm -rf /opt/nvim
-sudo tar -C /opt -xzf nvim-linux64.tar.gz
+# copy
+# $LINENUMyy
+
+99yy
+
+# paste
+
+p
+
+# set number
+
+:set nu
+
+# unset number
+
+:set nonu
+
+# set paste
+
+:set paste
+
+# goto
+# :$LINENUM
+
+:33
+
+# search
+
+/$BLAH
+
+# set tab spaces
+set expandtab ts=4 sw=4 ai
 
 
-# ~/.profile or ~/.bashrc ....
-export PATH="$PATH:/opt/nvim-linux64/bin"
 ```

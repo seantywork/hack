@@ -53,6 +53,25 @@ char* readline() {
     return data;
 }
 
+
+void normalize_line(char* line){
+
+
+    int linelen = strlen(line);
+
+    for(int i = 0 ; i < linelen; i++){
+    
+        if(line[i] == '[' || line[i] == ']' || line[i] == ','){
+	
+	    line[i] = ' ';
+	
+	}
+
+    }
+
+
+}
+
 char* ltrim(char* str) {
     if (!str) {
         return '\0';
@@ -109,6 +128,30 @@ char** split_string(char* str) {
 
     return splits;
 }
+
+char** split_string2(char* str, int* len) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+
+        if (!splits) {
+            return splits;
+        }
+
+        splits[spaces - 1] = token;
+
+        token = strtok(NULL, " ");
+    }
+
+    *len = spaces;
+
+    return splits;
+}
+
 
 int parse_int(char* str) {
     char* endptr;

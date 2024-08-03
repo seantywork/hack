@@ -18,13 +18,18 @@ extern "C" {
 #include <string.h>
 
 
+
 char* readline();
+
+void normalize_line(char* line);
 
 char* ltrim(char* str);
 
 char* rtrim(char* str);
 
 char** split_string(char* str);
+
+char** split_string2(char* str, int* len);
 
 int parse_int(char* str);
 

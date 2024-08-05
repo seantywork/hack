@@ -38,3 +38,5 @@ uninstall-shared:
 clean:
 
 	cd raylib/src/ &&  make clean
+
+	rm -rf *.out

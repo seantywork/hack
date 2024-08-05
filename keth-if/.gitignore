@@ -4,3 +4,4 @@
 *.symvers
 *.order
 *.mod.c
+.vscode

@@ -10981,3 +10981,18 @@ set expandtab ts=4 sw=4 ai
 
 
 ```
+
+
+# RAYLIB
+
+```shell
+
+sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+
+```
+
+# KANIKO
+
+```shell
+
+```

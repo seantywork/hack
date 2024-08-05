@@ -3,4 +3,4 @@ PORT="$2"
 
 
 
-sudo tcpdump -i $IFACE -A -X -c 20 -v  port $PORT 
+sudo tcpdump -i $IFACE -A -X -c 20 -v port $PORT 

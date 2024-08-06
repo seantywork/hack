@@ -10995,4 +10995,34 @@ sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-d
 
 ```shell
 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    args: ["--dockerfile=Dockerfile",
+            "--context=git://github.com/seantywork/target.git",
+	          "--context-sub-path=subdir/",
+            "--destination=seantywork.com/library/test"] 
+    volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+    env:
+      - name: GIT_USERNAME
+        value: "$YOUR_ID"
+      - name: GIT_PASSWORD
+        value: "$YOUR_PASS"
+  restartPolicy: Never
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: regcred
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+
+
 ```

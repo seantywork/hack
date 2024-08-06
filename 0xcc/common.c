@@ -61,7 +61,7 @@ void normalize_line(char* line){
 
     for(int i = 0 ; i < linelen; i++){
     
-        if(line[i] == '[' || line[i] == ']' || line[i] == ','){
+        if(line[i] == '[' || line[i] == ']' || line[i] == ',' || line[i] == '\"'){
 	
 	    line[i] = ' ';
 	

@@ -8,51 +8,7 @@ class Solution {
 public:
     int minSubArrayLen(int target, vector<int>& nums) {
         
-        //sort(nums.begin(), nums.end(), greater<int>());
 
-        int nsize = nums.size();
-
-        vector<int> new_nums;
-
-        int result = 0;
-
-        int total = 0;
-
-        int seed = 1;
-
-
-        for(int i = 0 ; i < nsize; i++){
-
-            if(nums[i] >= target){
-
-                return 1;
-            }
-
-            total += nums[i];
-
-
-        }
-
-        if(total < target){
-
-            return 0;
-        }
-
-        if(nsize == 1){
-
-            return 0;
-        }
-
-        if(total >= target){
-
-            return nsize;
-        }
-
-
-        if(target > )
-
-
-        return result;
 
     }
 };

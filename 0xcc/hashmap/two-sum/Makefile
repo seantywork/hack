@@ -1,10 +1,10 @@
 all: run.out
 
-	cat input.txt | OUTPUT_PATH=output.txt ./run.out 
+	cat input.txt | ./run.out 
 
-	cat output.txt
 
 run.out: common.o
+
 	g++ --std=c++14 -I../../ -o run.out main.cc common.o
 
 common.o:

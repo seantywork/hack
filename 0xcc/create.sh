@@ -21,6 +21,16 @@ fi
 
 SHOW="$SUBJ/$TITLE"
 
+
+if [ -d "$SHOW" ]
+then
+
+    echo "already exists: $SHOW"
+
+    exit 1
+fi
+
+
 mkdir -p "$SHOW"
 
 
@@ -28,6 +38,6 @@ mkdir -p "$SHOW"
 
 /bin/cp -Rf main.cc.tmpl "$SHOW/main.cc"
 
-echo "" | tee "$SHOW/input.txt"
+echo "" | tee "$SHOW/input.txt" > /dev/null
 
 echo "$SHOW created"

@@ -7,8 +7,45 @@ using namespace std;
 class Solution {
 public:
     int minSubArrayLen(int target, vector<int>& nums) {
-        
 
+        int front = 0;
+        int rear = 0;
+
+        int sum = 0;
+
+        int min_len = INT_MAX;
+
+        int hit = 0;
+
+        while(front < nums.size()){
+
+            sum += nums[front];
+
+            while(sum >= target){
+
+                hit = 1;
+
+                min_len = min(min_len, front - rear + 1);
+
+                sum -= nums[rear];
+
+                rear += 1;
+
+                if(rear > front){
+                    break;
+                }
+
+            }
+
+            front += 1;
+
+        }        
+
+        if(hit != 1){
+            return 0;
+        } else {
+            return min_len;
+        }
 
     }
 };

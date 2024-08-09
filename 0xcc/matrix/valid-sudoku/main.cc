@@ -22,22 +22,19 @@ public:
 
                     vector<char> sub;
 
-                    for(int si = i; si < si + 3; si++){
+                    for(int si = i; si < i + 3; si++){
 
-                        for(int sj = j; sj < sj + 3; sj++){
+                        for(int sj = j; sj < j + 3; sj++){
 
                             char subc = board[si][sj];
+
 
                             if(subc == '.'){
                                 continue;
                             }
 
-                            
-
-                            printf("%c \n", subc);
 
                             if(find(sub.begin(), sub.end(), subc) != sub.end()){
-                                printf("find?\n");
                                 return false;
 
                             } else {
@@ -50,10 +47,6 @@ public:
 
                     }
 
-
-                    if(sub.size() == 0){
-                        return false;
-                    }
                 }
 
                 char xc = board[i][j];
@@ -82,16 +75,6 @@ public:
 
                 }
 
-            }
-
-            if(x.size() == 0){
-
-                return false;
-            }
-
-            if(y.size() == 0){
-
-                return false;
             }
 
                         

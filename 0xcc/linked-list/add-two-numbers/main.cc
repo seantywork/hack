@@ -40,23 +40,27 @@ public:
 
         ListNode* ans = nullptr;
 
-        ListNode* ans_ptr = nullptr;
+        vector<ListNode*> make_ans;
 
         int carry = 0;        
 
         while(1){
 
+            int l1end = 0;
+            int l2end = 0;
+
             if(l1 != nullptr){
 
                 number_one = l1->val;
 
-                printf("n1: %d ", number_one);
+               // printf("n1: %d ", number_one);
 
 
                 l1 = l1->next;
 
             } else {
 
+                l1end = 1;
                 number_one = 0;
             
             }
@@ -66,7 +70,7 @@ public:
                 number_two = l2->val;
 
 
-                printf("n2: %d\n", number_two);
+               // printf("n2: %d\n", number_two);
 
 
                 l2 = l2->next;
@@ -75,11 +79,12 @@ public:
 
             } else {
 
+                l2end = 1;
                 number_two = 0;
             
             }
 
-            if(carry == 0 && number_one == 0 && number_two == 0){
+            if(carry == 0 && l1end == 1 && l2end == 1){
 
                 break;
             }
@@ -92,14 +97,27 @@ public:
 
             ListNode *ln = new ListNode(thisval);
 
-            ans_ptr = ln;
+            make_ans.push_back(ln);
 
-            if(ans == nullptr){
+        }
 
-                ans = ans_ptr;
+        int mk_len = make_ans.size();
+
+        for(int i = 0; i < mk_len; i++){
+
+            ListNode* a;
+
+            a = make_ans[i];
+
+            if(i != mk_len - 1){
+
+                a->next = make_ans[i + 1];
             }
 
-            ans_ptr = ans_ptr->next;
+            if(i == 0){
+
+                ans = a;
+            }
 
         }
 
@@ -130,30 +148,23 @@ int main()
         char** ll1 = split_string2(line_raw1, &ll1_len);
         char** ll2 = split_string2(line_raw2, &ll2_len);
         
-        
-        ListNode* l1_ptr = nullptr;
 
-        ListNode* l1 = nullptr;
+        vector<ListNode*> ln1;
+        vector<ListNode*> ln2;
 
-        ListNode* l2_ptr = nullptr;    
+        ListNode* l1;
+        ListNode* l2;
 
-        ListNode* l2 = l2_ptr;
-        
-        int valint = 0;
+        int valint;
+
 
         for(int i = 0; i < ll1_len; i++){
 
             valint = parse_int(ll1[i]);
 
-            ListNode* new_ln = new ListNode(valint);
-
-            l1_ptr = new_ln;
-
-            if(l1 == nullptr){
-                l1 = l1_ptr;
-            }
-
-            l1_ptr = l1_ptr->next;
+            ListNode* a = new ListNode(valint);
+            
+            ln1.push_back(a);
 
         }
 
@@ -161,17 +172,53 @@ int main()
 
             valint = parse_int(ll2[i]);
 
-            ListNode* new_ln = new ListNode(valint);
+            ListNode* a = new ListNode(valint);
 
-            l2_ptr = new_ln;
-
-            if(l2 == nullptr){
-                l2 = l2_ptr;
-            }
-
-            l2_ptr = l2_ptr->next;
+            ln2.push_back(a);
 
         }
+
+        for(int i = 0; i < ll1_len; i++){
+
+            ListNode* a;
+
+            a = ln1[i];
+
+            if(i != ll1_len -1){
+
+                a->next = ln1[i + 1];
+            
+            }
+
+            if(i == 0){
+
+                l1 = a;
+            }
+
+
+        }
+
+        for(int i = 0; i < ll2_len; i++){
+
+            ListNode* a;
+
+            a = ln2[i];
+
+            if(i != ll2_len -1){
+
+                a->next = ln2[i + 1];
+            
+            }
+
+
+            if(i == 0){
+
+                l2 = a;
+            }
+
+
+        }
+
 
         Solution s;
 

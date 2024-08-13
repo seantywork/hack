@@ -11,6 +11,10 @@ int main( void ) {
 	int pid = fork();
 
 	if ( pid == 0 ) {
+		// for new session
+		// signal effective
+		// setsid();
+
         printf( "child process pid: %d\n", (int)getpid() );
 		execvp( "ls", argv );
 	}

@@ -28,6 +28,8 @@ public:
 
     void longerTheWinner(string* s){
 
+        //printf("%s\n", s->c_str());
+
         int ssize = s->size();
 
         if(ssize == 1){
@@ -99,7 +101,12 @@ public:
         }
 
 
+
         while(1){
+
+            //if(epoch_size > ssize){
+            //    break;
+            //}
 
             int end = ssize - epoch_size + 1;
             
@@ -107,17 +114,14 @@ public:
 
                 string teststr = "";
 
-                int epoch_end = i + epoch_size;
-
-                for(int j = i; j < epoch_end; j++){
-
-                    teststr += s[j];
-                }
+                teststr = s.substr(i, epoch_size);
 
                 this->longerTheWinner(&teststr);
                 
                 if(this->found != 0){
+                    
                     return this->top;
+
                 }
             }
 

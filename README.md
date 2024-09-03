@@ -2500,6 +2500,33 @@ sudo umount /nfsclient/upload
 
 ```
 
+# SSHFS
+
+
+```shell
+
+sudo apt install sshfs
+
+# mount local to remote
+
+sshfs -p $PORT /data/local user@host:/data/remote
+
+# unmount 
+
+sudo umount /data/local
+
+# make permanent
+
+sudo nano /etc/fstab
+
+
+user@host:/data/remote /data/local  fuse.sshfs noauto,x-systemd.automount,_netdev,reconnect,identityfile=/home/sammy/.ssh/id_rsa,allow_other,default_permissions, port=$PORTNUMBER 0 0
+
+```
+
+
+
+
 # CHECK FILE SYSTEM FS INTEGRITY
 
 ```shell

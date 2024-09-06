@@ -1805,6 +1805,17 @@ firewall-cmd --zone=trusted --add-source=10.10.0.0/16 --permanent
 
 ```
 
+# SSH TUNNEL 
+
+```shell
+
+ssh -f user@ssh.server.com -L 2000:ssh.server.com:2005 -N
+
+ssh -f -L 2000:ssh.server.com:2005 user@ssh.server.com -N
+
+```
+
+
 # SSH KEY DISTRIBUTE
 
 ```shell

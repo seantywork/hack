@@ -11068,3 +11068,138 @@ spec:
 
 
 ```
+
+
+# DPDK
+
+
+```shell
+
+# gcloud tutorial
+
+# https://cloud.google.com/compute/docs/networking/use-dpdk
+
+
+# create vpc for data plane
+
+## new subnet > region name (ex us-west1) , ipv4 range (ex 10.0.0.0/24)
+
+# create vpc for control plane
+
+## new subnet > region name (must be same as dp, ex us-west1), ipv4 range (must be different from dp, ex 10.0.1.0/24), enable ssh firewall rule
+
+
+# create vm
+
+## region must be same as dp
+
+## going with e2-medium
+
+## ubuntu 22 x64
+
+## network card: virtio
+
+## add two interfaces, control plane, data plane
+
+
+# connect to vm
+
+# get env
+
+sudo apt-get update && sudo apt-get upgrade -yq
+sudo apt-get install -yq build-essential ninja-build python3-pip linux-headers-$(uname -r) pkg-config libnuma-dev
+sudo pip install pyelftools meson
+
+# get dpdk
+
+wget https://fast.dpdk.org/rel/dpdk-23.07.tar.xz
+tar xvf dpdk-23.07.tar.xz
+cd dpdk-23.07
+
+# build dpdk
+
+meson setup -Dexamples=all build
+
+sudo ninja -C build install; sudo ldconfig
+
+
+# check iommu-less vfio
+
+cat /boot/config-$(uname -r) | grep NOIOMMU
+
+CONFIG_VFIO_NOIOMMU=y
+
+## load noiommu, vfio
+
+sudo modprobe vfio enable_unsafe_noiommu_mode=1
+
+sudo modprobe vfio-pci
+
+## enable noiommu
+
+sudo bash -c 'echo 1 > /sys/module/vfio/parameters/enable_unsafe_noiommu_mode'
+
+# alternative, uio
+
+## install uio
+
+git clone https://dpdk.org/git/dpdk-kmods
+
+pushd dpdk-kmods/linux/igb_uio
+sudo make
+sudo depmod && sudo insmod igb_uio.ko
+popd
+
+## or 
+
+sudo apt-get install -y dpdk-igb-uio-dkms
+
+sudo modprobe igb_uio
+
+
+# bind dpdk
+
+## check pci, get data plane slot
+
+sudo lspci | grep -e "gVNIC" -e "Virtio network device"
+
+## down
+
+sudo ip link set ens5 down
+
+## bind
+
+sudo dpdk-devbind.py --bind=vfio-pci 00:05.0
+
+## or, if uio
+
+sudo dpdk-devbind.py --bind=igb_uio 00:05.0
+
+## create huge page
+
+sudo mkdir /mnt/huge
+
+sudo mount -t hugetlbfs -o pagesize=1G none /mnt/huge
+
+sudo bash -c 'echo 4 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages'
+sudo bash -c 'echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages'
+
+## test
+
+sudo ./build/app/dpdk-testpmd
+
+# unbind dpdk
+
+sudo dpdk-devbind.py -u 00:05.0
+
+## if virtio-pci
+
+sudo bash -c 'echo 00:05.0 > /sys/bus/pci/drivers/virtio-pci/bind'
+
+## if gvnic
+
+sudo bash -c 'echo 00:05.0 > /sys/bus/pci/drivers/gvnic/bind'
+
+sudo ip link set ens5 up
+
+```

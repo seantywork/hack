@@ -1727,6 +1727,32 @@ sudo ip link set dev tap0 up
 
 ```
 
+# NFTABLES NFT
+
+
+```shell
+
+# iptables translate, outputs nftables equivalent
+
+iptables-translate -A INPUT -i enp1s0 -p tcp --dport 22 -j ACCEPT
+
+# list
+
+sudo nft list ruleset
+
+# default file at
+# /etc/nftools.conf
+# or /etc/nftables.conf
+
+# can use include syntax 
+
+include "ipv4-ipv5-webserver-rules.nft"
+
+
+```
+
+
+
 
 # FIREWALL  
 
@@ -6873,6 +6899,15 @@ sudo apt install wireshark
 
 
 ```
+
+# TSHARK
+
+```shell
+
+sudo apt install tshark
+
+```
+
 
 # TCP DUMP TCPDUMP UDP DUMP
 

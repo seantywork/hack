@@ -11249,3 +11249,21 @@ sudo bash -c 'echo 00:05.0 > /sys/bus/pci/drivers/gvnic/bind'
 sudo ip link set ens5 up
 
 ```
+
+
+# RUST
+
+```shell
+
+# install
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# .profile
+
+export PATH="$PATH:$HOME/.cargo/env"
+export PATH="$PATH:$HOME/.cargo/bin"
+
+source .profile
+
+```

@@ -738,8 +738,33 @@ git config --global credential.helper store
 
 # then clone or pull or whatever to store
 
-# git submodule
+# squash commits using editor
 
+git rebase -i my_first_commit~
+
+# prefix `pick` to use commit
+# prefix `squash` to get it meld into previous commit
+
+
+# git diff
+
+
+git diff commit_a commit_b
+
+# or just the current and latest commit
+
+git diff
+
+
+# git create patch file for latest commit
+
+git format-patch -1 HEAD
+
+# signoff
+
+git commit --signoff
+
+# git submodule
 
 git submodule add <repository.git>
 
@@ -892,6 +917,57 @@ git switch -c main origin/main
 
 ```
 
+```shell
+
+# remove submodule
+
+# delete in .gitmodules 
+
+git add .gitmodules
+
+# delete in .git/config.
+
+git rm --cached path_to_submodule 
+
+rm -rf .git/modules/path_to_submodule
+
+git commit -m "Removed submodule <name>"
+
+rm -rf path_to_submodule
+
+```
+
+
+```shell
+
+# git email
+
+sudo apt update
+
+sudo apt install git-email
+
+# might have to install perl dependency
+
+cpan Authen::SASL MIME::Base64 Net::SMTP::SSL
+
+# configure $HOME/.gitconfig
+
+[sendemail]
+    smtpServer = smtp.gmail.com
+    smtpServerPort = 587
+    smtpEncryption = tls
+    smtpUser = my_email@gmail.com
+    # (Optional: we'll leave this commented out and use a different way)
+    # smtpPass = PASSWORD
+
+# generate google app password for gmail
+# goto acoount manager, search app password
+
+# add pass to .gitconfig
+
+git send-email --to=my_email@gmail.com something.patch
+
+```
  
 
 # NGINX SETTING
@@ -3002,7 +3078,24 @@ source ~/.profile
 
 ```
 
+```shell
 
+# private module
+
+# $HOME/.gitconfig
+
+[url "https://${ID}:${PW}@private.git.com"]
+        insteadOf = https://private.git.com
+
+# or
+
+git config --global url."https://${ID}:${PW}@private.git.com".insteadOf "https://private.git.com"
+
+export GONOPROXY=private.git.com
+export GONOSUMDB=private.git.com
+export GOPRIVATE=private.git.com
+
+```
 
 # JMETER
 

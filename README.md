@@ -10285,6 +10285,9 @@ ffmpeg -i /dev/video0 -r 24 -video_size 640x480 -vcodec libvpx -cpu-used 5 -dead
 
 gst-launch-1.0 -e v4l2src device=/dev/video0 ! queue ! videoconvert ! videoscale ! video/x-raw,width=960,height=720 ! x264enc speed-preset=ultrafast tune=zerolatency key-int-max=20 ! flvmux streamable=true ! queue ! rtmpsink location='rtmp://localhost:8084/publish/foobar'
 
+# youtube
+
+gst-launch-1.0 v4l2src device=/dev/video0 ! queue ! videoconvert ! videoscale ! video/x-raw,width=640,height=480 ! x264enc speed-preset=ultrafast tune=zerolatency key-int-max=20 ! flvmux streamable=true name=mux ! queue ! rtmpsink location='rtmp://a.rtmp.youtube.com/live2/qbm8-a0dq-x7z5-hks7-3m6w' audiotestsrc is-live=true ! lamemp3enc ! mpegaudioparse ! mux.
 
 ```
 

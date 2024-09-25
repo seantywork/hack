@@ -1604,6 +1604,17 @@ iface <interface_name> inet manual
 # undo above
 
 ```
+# ARP
+
+```shell
+
+# delete 
+sudo ip -s -s neigh flush all
+
+arp -d 192.168.1.1
+
+```
+
 
 # IP INTERFACE IPTABLES NAT PORT FORWARD
 
@@ -1800,8 +1811,129 @@ sudo ip link set tap0 master br0
 
 sudo ip link set dev tap0 up
 
+```
+
+
+```shell
+
+# vlan
+
+sudo apt-get install vlan
+
+sudo modprobe 8021q
+
+# permanent
+
+echo "8021q" >> /etc/modules
+
+sudo ip link add link eth0 name eth0.100 type vlan id 5
+
+sudo ip link set eth0.100 up
+
+
+
+
+
+# del
+
+sudo ip link set eth0.100 down
+
+sudo ip link del eth0.100
+
 
 ```
+
+
+```shell
+
+# vxlan
+
+# on host1
+
+sudo ip netns add top
+
+sudo ip link add top-in type veth peer name top-out
+
+sudo ip link set top-in netns top
+
+sudo ip netns exec top ip addr add 10.10.5.2/16 dev top-in
+
+sudo ip netns exec top ip link set top-in up
+
+# on host1: bridge
+
+sudo ip link add middle type bridge
+
+sudo ip addr add 10.10.5.1/16 dev middle
+
+sudo ip link set top-out master middle
+
+sudo ip link set top-out up
+
+sudo ip link set middle up
+
+# on host1: route
+
+sudo ip netns exec top ip route add default via 10.10.5.1
+
+# on host1: vxlan
+
+sudo ip link add vxlan-top type vxlan id 100 local 192.168.99.1 remote 192.168.99.2 dev eth0
+
+sudo ip link set vxlan-top master middle
+
+sudo ip link set vxlan-top up
+
+
+# on host2
+
+sudo ip netns add bottom
+
+sudo ip link add bottom-in type veth peer name bottom-out
+
+sudo ip link set bottom-in netns bottom
+
+sudo ip netns exec bottom ip addr add 10.10.5.12/16 dev bottom-in
+
+sudo ip netns exec bottom ip link set bottom-in up
+
+# on host2: bridge
+
+sudo ip link add middle type bridge
+
+sudo ip addr add 10.10.5.11/16 dev middle
+
+sudo ip link set bottom-out master middle
+
+sudo ip link set bottom-out up
+
+sudo ip link set middle up
+
+# on host2: route
+
+sudo ip netns exec bottom ip route add default via 10.10.5.11
+
+
+# on host1: vxlan
+
+sudo ip link add vxlan-bottom type vxlan id 100 local 192.168.99.2 remote 192.168.99.1 dev eth0
+
+sudo ip link set vxlan-bottom master middle
+
+sudo ip link set vxlan-bottom up
+
+# test
+
+# on host1
+sudo ip netns exec top ncat -l 10.10.5.2 9999
+
+# on host2
+
+
+sudo ip netns exec bottom ncat 10.10.5.2 9999
+
+```
+
 
 # NFTABLES NFT
 

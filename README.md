@@ -11346,6 +11346,110 @@ spec:
 
 # DPDK
 
+```shell
+
+# qemu kvm
+# fstack
+
+# Install dependencies for F-Stack
+sudo apt install build-essential make libssl-dev python3 python-is-python3 
+
+# get fstack release
+
+# Install libnuma-dev
+yum install numactl-devel          # on Centos
+#sudo apt-get install libnuma-dev  # on Ubuntu
+
+# Install dependencies (FreeBSD only)
+#pkg install meson pkgconf py38-pyelftools
+
+cd f-stack
+# Compile DPDK
+
+# fix for virtual machine
+
+$FSTACK_DIR/dpdk/kernel/linux/igb_uio/igb_uio.c
+
+-   if (pci_intx_mask_supported(udev->pdev)) {
++   if (true || pci_intx_mask_supported(udev->pdev)) {
+
+cd dpdk/usertools
+./dpdk-setup.sh # compile with x86_64-native-linuxapp-gcc
+
+# Set hugepage (Linux only)
+# single-node system
+echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+
+# or NUMA (Linux only)
+echo 1024 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+echo 1024 > /sys/devices/system/node/node1/hugepages/hugepages-2048kB/nr_hugepages
+
+# Using Hugepage with the DPDK (Linux only)
+mkdir /mnt/huge
+mount -t hugetlbfs nodev /mnt/huge
+
+# Close ASLR; it is necessary in multiple process (Linux only)
+echo 0 > /proc/sys/kernel/randomize_va_space
+
+# Install python for running DPDK python scripts
+sudo apt install python # On ubuntu
+#sudo pkg install python # On FreeBSD
+
+# Offload NIC
+# For Linux:
+modprobe uio
+insmod /data/f-stack/dpdk/x86_64-native-linuxapp-gcc/kmod/igb_uio.ko
+insmod /data/f-stack/dpdk/x86_64-native-linuxapp-gcc/kmod/rte_kni.ko carrier=on # carrier=on is necessary, otherwise need to be up `veth0` via `echo 1 > /sys/class/net/veth0/carrier`
+python dpdk-devbind.py --status
+ip link set dev eth0 down
+python dpdk-devbind.py --bind=igb_uio eth0 # assuming that use 10GE NIC and eth0
+
+# Install DPDK
+cd ../x86_64-native-linuxapp-gcc
+make install
+
+# On Ubuntu, use gawk instead of the default mawk.
+#sudo apt-get install gawk  # or execute `sudo update-alternatives --config awk` to choose gawk.
+
+# Install dependencies for F-Stack
+sudo apt install gcc make libssl-dev                            # On ubuntu
+#sudo pkg install gcc gmake openssl pkgconf libepoll-shim       # On FreeBSD
+
+
+
+# Compile F-Stack
+export FF_PATH=/$FSTACK_DIR
+export FF_DPDK=/$FSRACK_DIR/dpdk/x86_64-native-linuxapp-gcc
+cd ../../lib/
+
+# disable RSS in source code
+
+#lib/ff_dpdk_if.c 
+#edit
+
+port_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
+
+make    # On Linux
+#gmake   # On FreeBSD
+
+# Install F-STACK
+# libfstack.a will be installed to /usr/local/lib
+# ff_*.h will be installed to /usr/local/include
+# start.sh will be installed to /usr/local/bin/ff_start
+# config.ini will be installed to /etc/f-stack.conf
+make install    # On Linux
+#gmake install   # On FreeBSD
+
+
+# kni
+ip link set dev veth0 up
+
+ip addr add 192.168.1.2/24 dev veth0
+
+ip route add 0.0.0.0 via 192.168.1.1 dev veth0
+
+```
+
 
 ```shell
 

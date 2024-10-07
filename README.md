@@ -3393,6 +3393,17 @@ chmod +x /usr/local/bin/docker-compose
 
 ```
 
+# INSTALL PODMAN
+
+```shell
+
+sudo apt-get install -y podman
+
+
+
+```
+
+
 # PREPARE DOCKER IMAGE
 
 ```shell

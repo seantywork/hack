@@ -3393,11 +3393,18 @@ chmod +x /usr/local/bin/docker-compose
 
 ```
 
-# INSTALL PODMAN
+# PODMAN
 
 ```shell
 
 sudo apt-get install -y podman
+
+sudo apt-get install -y podman-compose
+
+# /etc/containers/registries.conf
+
+unqualified-search-registries = ["docker.io"]
+
 
 
 
@@ -11608,5 +11615,34 @@ export PATH="$PATH:$HOME/.cargo/env"
 export PATH="$PATH:$HOME/.cargo/bin"
 
 source .profile
+
+```
+
+# SCRCPY ANDROID SCREEN MIRRORING
+
+```shell
+
+# enable usb debugging
+
+snap install scrcpy
+
+scrcpy
+
+```
+
+# DBEAVER 
+
+
+```shell
+
+
+
+# download ce
+
+sudo apt install ./dbeaver
+
+# public key retrieval by url
+
+jdbc:mysql://localhost:3306/db?allowPublicKeyRetrieval=true
 
 ```

@@ -836,6 +836,10 @@ sudo bpftool map show
 
 sudo bpftool map dump id 13
 
+# bpf printk out
+
+sudo cat /sys/kernel/tracing/trace
+
 ```
 
 

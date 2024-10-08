@@ -10,6 +10,12 @@
 #include "stats_kern_user.h"
 #include "stats_kern.h"
 
+struct {
+        __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+        __type(key, __u32);
+        __type(value, long);
+        __uint(max_entries, 1);
+} rxcnt SEC(".maps");
 
 SEC("xdp_block_port")
 int xdp_block_port_func(struct xdp_md *ctx)
@@ -24,6 +30,8 @@ int xdp_block_port_func(struct xdp_md *ctx)
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
 	struct hdr_cursor nh = { .pos = data };
+	__u32 key = 0;
+	long *value;
 
 	bpf_printk("xdp entered\n");
 	eth_type = parse_ethhdr(&nh, data_end, &eth);
@@ -89,8 +97,16 @@ int xdp_block_port_func(struct xdp_md *ctx)
 		
 		if(tcphdr->dest == 9999){
 				bpf_printk("port 9999: drop\n");
+
+                value = bpf_map_lookup_elem(&rxcnt, &key);
+                if (value){
+                        *value += 1;
+				}
 				action = XDP_DROP;
 				goto out;
+		} else {
+
+			tcphdr->dest = bpf_htons(tcphdr->dest);
 		}
 	}
 

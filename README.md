@@ -830,6 +830,12 @@ sudo ip link set veth1 xdpgeneric off
 
 sudo xdp-loader unload -a veth1
 
+# check 
+
+sudo bpftool map show
+
+sudo bpftool map dump id 13
+
 ```
 
 

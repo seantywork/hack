@@ -13,8 +13,8 @@
 # kernel mode
 
 process & memory (arch_mem)
-   process, hardware interrupt -> kernel -> process -> hardware interrupt, threads
-   memory, kernel space, user space, virtual address, physical address, page table, mmu, major fault, minor fault
+   process, hardware interrupt (timer) -> kernel -> process -> hardware interrupt(timer)..., threads, scheduling
+   memory, kernel space, user space, virtual address (page num + distance), physical address, page table, page, frame, mmu, tlb, major fault, minor fault
    ps, top, lsof, strace, ltrace, renice, uptime, trace-cmd, kernelshark
    vmstat, iostat, iotop, pidstat
    cgroup, /proc/self/cgroup, /sys/fs/cgroup
@@ -40,9 +40,6 @@ process & memory (arch_mem)
      ipc (inter process communication) > unix domain socket > eg) mysql.sock
      rsync
 # syscall & user mode (os)
-```
-
-```shell
 
 harware (interrupt)
 
@@ -86,6 +83,91 @@ sudo stackcount-bpfcc -p $PID -v -d
 
 ```
 
+```shell
+
+# network protocol
+
+# l2 link
+
+(ethernet)
+preamble
+src
+dst
+type/len
+data (payload)
+
+switch > mac address table > flooding, filtering and forwarding, ageing
+
+# l3 network
+
+(ipv4)
+version
+headlen
+servicetype
+packetlen
+identifier
+flagmentation offset
+ttl
+proto
+header csum
+src 
+dst
+option
+padding
+data(payload)
+-
+(ipv6)
+version
+traffic class
+flow label
+payload len
+next header
+hop limitation
+src
+dst
+data(payload)
+-
+(arp)
+hardware type
+proto type
+hardware addrlen
+proto addr len
+op code
+src hardware addr
+src proto addr
+dst hardware addr
+dst proto addr
+
+-
+router > routing table > NAT, NAPT
+
+
+# l4 transport
+
+(icmp)
+-
+(tcp)
+src port
+dst port
+sequence
+confirmation reply number
+data offset
+reserved
+control bit (syn, ack, fin…)
+window
+checksum
+emergency ptr
+option
+data (payload)
+-
+(udp)
+src port
+dst port
+len
+checksum
+data(payload)
+
+```
 
 
 # LINUX KERNEL MODULE

@@ -714,7 +714,7 @@ systemctl start nc1234
 ```
 
 
-# LINUX EBPF LIBBPF
+# EBPF LINUX LIBBPF
 
 
 
@@ -761,6 +761,74 @@ cd libbpf-bootstrap
 git submodule update --init --recursive   
 
 
+
+```
+
+
+# XDP LINUX EBPF
+
+```shell
+# in project dir ex) xdp
+
+git clone https://github.com/xdp-project/xdp-tools
+
+git clone https://github.com/libbpf/libbpf
+
+sudo apt install clang llvm libelf-dev libpcap-dev build-essential libc6-dev-i386 m4
+
+# To install the ‘perf’ utility, run this on Debian:
+
+sudo apt install linux-perf
+# or this on Ubuntu:
+
+sudo apt install linux-tools-$(uname -r)
+
+# kernel header
+
+sudo apt install linux-headers-$(uname -r)
+
+# etc
+
+sudo apt install linux-tools-common linux-tools-generic
+sudo apt install tcpdump
+
+
+cd libbpf/src
+
+make
+
+sudo make install
+
+cd xdp-tools
+
+./configure
+
+make
+
+sudo make install
+
+# compile 
+
+clang -O2 -g -Wall -c -target bpf -o test_xdp.o test_xdp.c
+
+# create veth or on interface
+
+# load module
+
+sudo ip link set veth1 xdpgeneric obj test_xdp.o sec xdp_drop
+
+# or
+
+sudo xdp-loader load -m skb -s xdp_drop veth1 test_xdp.o
+
+
+# unload
+
+sudo ip link set veth1 xdpgeneric off
+
+# or 
+
+sudo xdp-loader unload -a veth1
 
 ```
 

@@ -12,5 +12,6 @@ sudo ip addr add 192.168.62.5/24 dev veth1
 
 sudo ip netns exec net1 ip addr add 192.168.62.6/24 dev veth2
 
+sudo sysctl -w net.ipv4.ip_forward=1
 
 

@@ -12,6 +12,7 @@ int check_map_fd_info(const struct bpf_map_info *info,
 int open_bpf_map_file(const char *pin_dir,
 		      const char *mapname,
 		      struct bpf_map_info *info);
+			  
 int do_unload(struct config *cfg);
 
 #endif /* __COMMON_USER_BPF_XDP_H */

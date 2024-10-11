@@ -2117,7 +2117,20 @@ include "ipv4-ipv5-webserver-rules.nft"
 
 ```
 
+# CONNTRACK
 
+
+```shell
+
+sudo apt-get install conntrack
+
+
+sudo conntrack -L
+
+# delete
+conntrack -D -p tcp --dport 993
+
+```
 
 
 # FIREWALL  

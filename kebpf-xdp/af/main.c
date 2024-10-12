@@ -22,8 +22,10 @@
 #include <net/if.h>
 #include <linux/if_link.h>
 #include <linux/if_ether.h>
+#include <linux/in.h>
 #include <linux/ip.h>
 #include <linux/tcp.h>
+#include <linux/icmp.h>
 #include <linux/ipv6.h>
 #include <linux/icmpv6.h>
 
@@ -282,14 +284,6 @@ static bool process_packet(struct xsk_socket_info *xsk,
 {
 	uint8_t *pkt = xsk_umem__get_data(xsk->umem->buffer, addr);
 
-    /* Lesson#3: Write an IPv6 ICMP ECHO parser to send responses
-	 *
-	 * Some assumptions to make it easier:
-	 * - No VLAN handling
-	 * - Only if nexthdr is ICMP
-	 * - Just return all data with MAC/IP swapped, and type set to
-	 *   ICMPV6_ECHO_REPLY
-	 * - Recalculate the icmp checksum */
 
 	if (true) {
 		int ret;
@@ -298,11 +292,15 @@ static bool process_packet(struct xsk_socket_info *xsk,
 		uint32_t tx_idx = 0;
 		
 		uint8_t tmp_mac[ETH_ALEN];
-		struct in_addr tmp_ip;
+		//struct in_addr tmp_ip;
+
+		uint16_t h_proto;
+		uint32_t tmp_ip;
 		uint16_t tmp_port;
 		struct ethhdr *eth = (struct ethhdr *) pkt;
-		struct iphdr *ipv4 = (struct iphdr *) (eth + 1);
-		struct tcphdr *tcphdr = (struct tcphdr *) (ipv4 + 1);
+		struct iphdr *ipv4 = (struct iphdr *) (pkt + sizeof(*eth)) ;
+		struct tcphdr *tcphdr;
+
 		//struct icmp6hdr *icmp = (struct icmp6hdr *) (ipv6 + 1);
 
 		/*
@@ -314,21 +312,69 @@ static bool process_packet(struct xsk_socket_info *xsk,
 
 		*/
 
-		
+		int proto = ipv4->protocol;
 
-		memcpy(tmp_mac, eth->h_dest, ETH_ALEN);
-		memcpy(eth->h_dest, eth->h_source, ETH_ALEN);
-		memcpy(eth->h_source, tmp_mac, ETH_ALEN);
+		if(proto == IPPROTO_ICMP){
 
-		memcpy(&tmp_ip, &ipv4->saddr, sizeof(tmp_ip));
-		memcpy(&ipv4->saddr, &ipv4->daddr, sizeof(tmp_ip));
-		memcpy(&ipv4->daddr, &tmp_ip, sizeof(tmp_ip));
+			printf("proto: icmp\n");
 
-		tmp_port = tcphdr->dest;
-		tcphdr->dest = tcphdr->source;
-		tcphdr->dest = tmp_port;
+			memcpy(tmp_mac, eth->h_dest, ETH_ALEN);
+			memcpy(eth->h_dest, eth->h_source, ETH_ALEN);
+			memcpy(eth->h_source, tmp_mac, ETH_ALEN);
 
-		tcphdr->seq += 1;
+			tmp_ip = ipv4->daddr;
+			ipv4->daddr = ipv4->saddr;
+			ipv4->saddr = tmp_ip;
+
+		} else if (proto == IPPROTO_TCP){
+
+			printf("proto: tcp\n");
+
+			tcphdr = (struct tcphdr *) (pkt + sizeof(*eth) + sizeof(*ipv4));
+
+			memcpy(tmp_mac, eth->h_dest, ETH_ALEN);
+			memcpy(eth->h_dest, eth->h_source, ETH_ALEN);
+			memcpy(eth->h_source, tmp_mac, ETH_ALEN);
+
+			tmp_ip = ipv4->daddr;
+			ipv4->daddr = ipv4->saddr;
+			ipv4->saddr = tmp_ip;
+
+			tmp_port = tcphdr->dest;
+			tcphdr->dest = tcphdr->source;
+			tcphdr->source = tmp_port;
+
+
+		} else {
+
+			printf("unsupported proto\n");
+
+			return false; 
+		}
+
+
+        printf("u: mac to use as dst: %02x:%02x:%02x:%02x:%02x:%02x\n", 
+            eth->h_dest[0], 
+            eth->h_dest[1], 
+            eth->h_dest[2], 
+            eth->h_dest[3], 
+            eth->h_dest[4],
+            eth->h_dest[5]
+            );
+
+
+        printf("u: ip to use as dst: %d.%d.%d.%d\n",
+            ipv4->daddr & 0xFF,
+            (ipv4->daddr >> 8) & 0xFF,
+            (ipv4->daddr >> 16) & 0xFF,
+            (ipv4->daddr >> 24) & 0xFF
+        );
+
+		if(proto == IPPROTO_TCP){
+			printf("u: port to use as dst: %d\n", htons(tcphdr->dest));
+
+		}
+
 
 		//icmp->icmp6_type = ICMPV6_ECHO_REPLY;
 
@@ -338,13 +384,11 @@ static bool process_packet(struct xsk_socket_info *xsk,
 			      htons(ICMPV6_ECHO_REPLY << 8));
 
 	        */
-		/* Here we sent the packet out of the receive port. Note that
-		 * we allocate one entry and schedule it. Your design would be
-		 * faster if you do batch processing/transmission */
 
 		ret = xsk_ring_prod__reserve(&xsk->tx, 1, &tx_idx);
 		if (ret != 1) {
 			/* No more transmit slots, drop the packet */
+			printf("no more tx slots\n");
 			return false;
 		}
 
@@ -397,8 +441,12 @@ static void handle_receive_packets(struct xsk_socket_info *xsk)
 		uint64_t addr = xsk_ring_cons__rx_desc(&xsk->rx, idx_rx)->addr;
 		uint32_t len = xsk_ring_cons__rx_desc(&xsk->rx, idx_rx++)->len;
 
-		if (!process_packet(xsk, addr, len))
+		if (!process_packet(xsk, addr, len)){
 			xsk_free_umem_frame(xsk, addr);
+			printf("pp: false\n");
+		} else {
+			printf("pp: true\n");
+		}
 
 		xsk->stats.rx_bytes += len;
 	}
@@ -406,9 +454,9 @@ static void handle_receive_packets(struct xsk_socket_info *xsk)
 	xsk_ring_cons__release(&xsk->rx, rcvd);
 	xsk->stats.rx_packets += rcvd;
 
-	/* Do we need to wake up the kernel for transmission */
+	
 	complete_tx(xsk);
-  }
+}
 
 static void rx_and_process(struct config *cfg,
 			   struct xsk_socket_info *xsk_socket)
@@ -514,12 +562,29 @@ static void *stats_poll(void *arg)
 	}
 	return NULL;
 }
-
+/*
 static void exit_application(int signal)
 {
     xdp_program__close(prog);
     exit(0);
 }
+*/
+
+static void exit_application(int signal)
+{
+	int err;
+
+	cfg.unload_all = true;
+	err = do_unload(&cfg);
+	if (err) {
+		fprintf(stderr, "couldn't detach XDP program on iface '%s' : (%d)\n",
+			cfg.ifname, err);
+	}
+
+	signal = signal;
+	global_exit = true;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -583,10 +648,10 @@ int main(int argc, char **argv)
 		}
 
 		/* We also need to load the xsks_map */
-		map = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog), "xsks_map");
+		map = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog), "if_redirect");
 		xsk_map_fd = bpf_map__fd(map);
 		if (xsk_map_fd < 0) {
-			fprintf(stderr, "ERROR: no xsks map found: %s\n",
+			fprintf(stderr, "ERROR: no if_redirect found: %s\n",
 				strerror(xsk_map_fd));
 			exit(EXIT_FAILURE);
 		}

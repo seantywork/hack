@@ -772,7 +772,7 @@ git submodule update --init --recursive
 
 git clone https://github.com/xdp-project/xdp-tools
 
-git clone https://github.com/libbpf/libbpf
+# git clone https://github.com/libbpf/libbpf
 
 sudo apt install clang llvm libelf-dev libpcap-dev build-essential libc6-dev-i386 m4
 
@@ -793,17 +793,15 @@ sudo apt install linux-tools-common linux-tools-generic
 sudo apt install tcpdump
 
 
-cd libbpf/src
-
-make
-
-sudo make install
-
 cd xdp-tools
 
 ./configure
 
 make
+
+sudo make install
+
+cd lib/libbpf/src
 
 sudo make install
 
@@ -2168,7 +2166,20 @@ include "ipv4-ipv5-webserver-rules.nft"
 
 ```
 
+# CONNTRACK
 
+
+```shell
+
+sudo apt-get install conntrack
+
+
+sudo conntrack -L
+
+# delete
+conntrack -D -p tcp --dport 993
+
+```
 
 
 # FIREWALL  

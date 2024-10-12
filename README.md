@@ -1822,6 +1822,10 @@ sudo sysctl --system
 # init rule
 sudo iptables -A FORWARD -i wlo1 -o deth0 -p tcp --syn --dport 8888 -m conntrack --ctstate NEW -j ACCEPT
 
+# allow all tcp init rule
+
+sudo iptables -A FORWARD -i wlo1 -o deth0 -p tcp -m conntrack --ctstate NEW -j ACCEPT
+
 # forward rules
 sudo iptables -A FORWARD -i wlo1 -o deth0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
@@ -1862,7 +1866,7 @@ sudo iptables -D INPUT $LINE_NUM
 
 # to NAT
 
-ip addr add 192.168.10.1/24 dev enp3s0
+ip addr add 192.168.10.2/24 dev enp3s0
 
 ip link set dev enp3s0 up
 
@@ -1878,6 +1882,51 @@ ip route add 192.168.10.0/24 via 192.168.100.1 dev eth0
 # eth0 being an interface with a connection to the router
 # using eth0 gateway router (192.168.100.1) to route to 192.168.10.0/24 network
 
+
+```
+
+```shell
+
+# NAT to NAT scenario
+
+sudo ip netns add net1
+
+sudo ip link add dev veth1 type veth peer name veth2 netns net1
+
+sudo ip link set up veth1
+
+sudo ip netns exec net1 ip link set up veth2
+
+sudo ip addr add 192.168.62.5/24 dev veth1
+
+sudo ip netns exec net1 ip addr add 192.168.62.6/24 dev veth2
+
+
+sudo ip netns add net2
+
+sudo ip link add dev veth21 type veth peer name veth22 netns net2
+
+sudo ip link set up veth21
+
+sudo ip netns exec net2 ip link set up veth22
+
+sudo ip addr add 192.168.26.5/24 dev veth21
+
+sudo ip netns exec net2 ip addr add 192.168.26.6/24 dev veth22
+
+sudo sysctl -w net.ipv4.ip_forward=1
+
+
+sudo ip netns exec net1 ip route add 192.168.26.0/24 via 192.168.62.5 dev veth2
+
+sudo ip netns exec net2 ip route add 192.168.62.0/24 via 192.168.26.5 dev veth22
+
+
+# test with
+
+sudo ip netns exec net1 nc -l 192.168.62.6 9999
+
+sudo ip netns exec net2 nc 192.168.62.6 9999
 
 ```
 

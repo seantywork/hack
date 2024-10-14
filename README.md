@@ -1808,9 +1808,15 @@ sudo modprobe -r dummy
 
 echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
+echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
+
 # permanent
 cat <<EOF | sudo tee /etc/sysctl.d/99-ipv4-forward.conf
 net.ipv4.ip_forward                 = 1
+EOF
+
+cat <<EOF | sudo tee /etc/sysctl.d/99-ipv6-forward.conf
+net.ipv6.conf.all.forwarding                 = 1
 EOF
 
 sudo sysctl -p

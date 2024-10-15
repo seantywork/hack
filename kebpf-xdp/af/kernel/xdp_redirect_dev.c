@@ -14,6 +14,7 @@
 #include <linux/if_ether.h>
 #include <linux/ip.h>
 #include <linux/tcp.h>
+#include <linux/udp.h>
 #include <linux/in.h>
 #include <linux/string.h>
 
@@ -44,6 +45,7 @@ int xdp_sock2_prog(struct xdp_md *ctx)
     struct ethhdr *eth_header;
     struct iphdr *ip_header;
     struct tcphdr *tcp_header;
+    struct udphdr *udp_header;
     eth_header = data;
     if ((void *)eth_header + sizeof(*eth_header) > data_end) {
         return XDP_PASS;
@@ -64,9 +66,9 @@ int xdp_sock2_prog(struct xdp_md *ctx)
     }
 
     
-    if (ip_header->protocol != IPPROTO_TCP) {
+    if (ip_header->protocol == IPPROTO_ICMP) {
 
-        bpf_printk("proto: not tcp\n");
+        bpf_printk("proto: icmp\n");
         
         // fill struct with zeroes, so we are sure no data is missing
         __builtin_memset(&fib_params, 0, sizeof(fib_params));
@@ -175,9 +177,9 @@ int xdp_sock2_prog(struct xdp_md *ctx)
 
         fib_params.family	= AF_INET;
         // use daddr as source in the lookup, so we refleect packet back (as if it wcame from us)
-        fib_params.ipv4_src	= ip_header->daddr;
+        fib_params.ipv4_src	= ip_header->saddr;
         // opposite here, the destination is the source of the icmp packet..remote end
-        fib_params.ipv4_dst	= ip_header->saddr;
+        fib_params.ipv4_dst	= ip_header->daddr;
         fib_params.ifindex = ctx->ingress_ifindex;
 
         bpf_printk("doing route lookup dst: %d\n", fib_params.ipv4_dst);
@@ -193,19 +195,10 @@ int xdp_sock2_prog(struct xdp_md *ctx)
         bpf_printk("route lookup success, ifindex: %d\n", fib_params.ifindex);
         bpf_printk("mac to use as dst: %lu\n", fib_params.dmac);
 
-        __u32 oldipdst = ip_header->daddr;
-        ip_header->daddr = ip_header->saddr;
-        ip_header->saddr = oldipdst;
+        //int action = bpf_redirect_map(&if_redirect, fib_params.ifindex, 0);
 
         memcpy(eth_header->h_dest, fib_params.dmac, ETH_ALEN);
         memcpy(eth_header->h_source, fib_params.smac, ETH_ALEN);
-
-        __u16 oldtcpdst = tcp_header->dest;
-        tcp_header->dest = tcp_header->source;
-        tcp_header->source = oldtcpdst;
-
-
-        //int action = bpf_redirect_map(&if_redirect, fib_params.ifindex, 0);
 
         int action = bpf_redirect(fib_params.ifindex,0);
 
@@ -223,6 +216,68 @@ int xdp_sock2_prog(struct xdp_md *ctx)
         }
 
         return action;
+
+    } else if (ip_header->protocol == IPPROTO_UDP) {
+
+        bpf_printk("proto: udp\n");
+
+        udp_header = data + sizeof(*eth_header) + sizeof(*ip_header);
+
+        if ((void *)udp_header + sizeof(*udp_header) > data_end) {
+
+            bpf_printk("packet len too short for udp: pass\n");
+
+            return XDP_PASS;
+
+        }
+
+        
+        // fill struct with zeroes, so we are sure no data is missing
+        __builtin_memset(&fib_params, 0, sizeof(fib_params));
+
+        fib_params.family	= AF_INET;
+        // use daddr as source in the lookup, so we refleect packet back (as if it wcame from us)
+        fib_params.ipv4_src	= ip_header->saddr;
+        // opposite here, the destination is the source of the icmp packet..remote end
+        fib_params.ipv4_dst	= ip_header->daddr;
+        fib_params.ifindex = ctx->ingress_ifindex;
+
+        bpf_printk("doing route lookup dst: %d\n", fib_params.ipv4_dst);
+        int rc = bpf_fib_lookup(ctx, &fib_params, sizeof(fib_params), 0);
+        if ((rc != BPF_FIB_LKUP_RET_SUCCESS) && (rc != BPF_FIB_LKUP_RET_NO_NEIGH)) {
+            bpf_printk("dropping packet\n");
+            return XDP_DROP;
+        } else if (rc == BPF_FIB_LKUP_RET_NO_NEIGH) {
+            // here we should let packet pass so we resolve arp.
+            bpf_printk("passing packet, lookup returned: %d\n", BPF_FIB_LKUP_RET_NO_NEIGH);
+            return XDP_PASS;
+        }
+        bpf_printk("route lookup success, ifindex: %d\n", fib_params.ifindex);
+        bpf_printk("mac to use as dst: %lu\n", fib_params.dmac);
+
+        //int action = bpf_redirect_map(&if_redirect, fib_params.ifindex, 0);
+
+
+        memcpy(eth_header->h_dest, fib_params.dmac, ETH_ALEN);
+        memcpy(eth_header->h_source, fib_params.smac, ETH_ALEN);
+
+        int action = bpf_redirect(fib_params.ifindex,0);
+
+        if (action == XDP_ABORTED){
+
+            bpf_printk("aborted\n");
+            return action;
+        }
+
+        if(action == XDP_REDIRECT){
+
+            bpf_printk("redirect\n");
+
+            return action;
+        }
+
+        return action;
+
     }
 
 

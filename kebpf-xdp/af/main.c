@@ -39,7 +39,11 @@
 #define INVALID_UMEM_FRAME UINT64_MAX
 
 static struct xdp_program *prog;
+static struct xdp_program *prog_tx;
+
 int xsk_map_fd;
+int xsk_map_fd_tx;
+
 bool custom_xsk = false;
 struct config cfg = {
 	.ifindex   = -1,

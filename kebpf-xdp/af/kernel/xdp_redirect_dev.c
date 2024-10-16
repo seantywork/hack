@@ -107,21 +107,6 @@ int xdp_sock2_prog(struct xdp_md *ctx)
             (ip_header->daddr >> 24) & 0xFF
         );
 
-        /*
-        eth_header->h_dest[0] = fib_params.dmac[5];
-        eth_header->h_dest[1] = fib_params.dmac[4];
-        eth_header->h_dest[2] = fib_params.dmac[3];
-        eth_header->h_dest[3] = fib_params.dmac[2];
-        eth_header->h_dest[4] = fib_params.dmac[1];
-        eth_header->h_dest[5] = fib_params.dmac[0];
-
-        eth_header->h_source[0] = fib_params.smac[5];
-        eth_header->h_source[1] = fib_params.smac[4];
-        eth_header->h_source[2] = fib_params.smac[3];
-        eth_header->h_source[3] = fib_params.smac[2];
-        eth_header->h_source[4] = fib_params.smac[1];
-        eth_header->h_source[5] = fib_params.smac[0];
-        */
 
         memcpy(eth_header->h_dest, fib_params.dmac, ETH_ALEN);
         memcpy(eth_header->h_source, fib_params.smac, ETH_ALEN);
@@ -200,6 +185,27 @@ int xdp_sock2_prog(struct xdp_md *ctx)
         memcpy(eth_header->h_dest, fib_params.dmac, ETH_ALEN);
         memcpy(eth_header->h_source, fib_params.smac, ETH_ALEN);
 
+        bpf_printk("dev: mac to use as src: %02x:%02x:%02x:%02x:%02x:%02x\n", 
+            eth_header->h_source[0], 
+            eth_header->h_source[1], 
+            eth_header->h_source[2], 
+            eth_header->h_source[3], 
+            eth_header->h_source[4],
+            eth_header->h_source[5]
+            );
+
+        bpf_printk("dev: mac to use as dst: %02x:%02x:%02x:%02x:%02x:%02x\n", 
+            eth_header->h_dest[0], 
+            eth_header->h_dest[1], 
+            eth_header->h_dest[2], 
+            eth_header->h_dest[3], 
+            eth_header->h_dest[4],
+            eth_header->h_dest[5]
+            );
+
+
+
+
         int action = bpf_redirect(fib_params.ifindex,0);
 
         if (action == XDP_ABORTED){
@@ -258,8 +264,28 @@ int xdp_sock2_prog(struct xdp_md *ctx)
         //int action = bpf_redirect_map(&if_redirect, fib_params.ifindex, 0);
 
 
+
         memcpy(eth_header->h_dest, fib_params.dmac, ETH_ALEN);
         memcpy(eth_header->h_source, fib_params.smac, ETH_ALEN);
+
+        bpf_printk("dev: mac to use as src: %02x:%02x:%02x:%02x:%02x:%02x\n", 
+            eth_header->h_source[0], 
+            eth_header->h_source[1], 
+            eth_header->h_source[2], 
+            eth_header->h_source[3], 
+            eth_header->h_source[4],
+            eth_header->h_source[5]
+            );
+
+        bpf_printk("dev: mac to use as dst: %02x:%02x:%02x:%02x:%02x:%02x\n", 
+            eth_header->h_dest[0], 
+            eth_header->h_dest[1], 
+            eth_header->h_dest[2], 
+            eth_header->h_dest[3], 
+            eth_header->h_dest[4],
+            eth_header->h_dest[5]
+            );
+
 
         int action = bpf_redirect(fib_params.ifindex,0);
 
@@ -277,6 +303,7 @@ int xdp_sock2_prog(struct xdp_md *ctx)
         }
 
         return action;
+
 
     }
 

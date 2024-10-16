@@ -172,7 +172,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
         //fib_params.sport = udp_header->source;
         //fib_params.dport = udp_header->dest;
 
-        fib_params.l4_protocol = IPPROTO_UDP;
+        //fib_params.l4_protocol = IPPROTO_UDP;
 
         fib_params.ifindex = ctx->ingress_ifindex;
 
@@ -196,7 +196,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
         memcpy(eth_header->h_source, fib_params.smac, ETH_ALEN);  
  
     }
-
+/*
     bpf_printk("xsk: mac to use as src: %02x:%02x:%02x:%02x:%02x:%02x\n", 
         eth_header->h_source[0], 
         eth_header->h_source[1], 
@@ -214,7 +214,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
         eth_header->h_dest[4],
         eth_header->h_dest[5]
         );
-
+*/
 
     val = bpf_map_lookup_elem(&if_redirect, &index);
 

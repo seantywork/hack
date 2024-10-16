@@ -6,4 +6,4 @@ all:
 
 #	gcc -c -o l.o common_libbpf.c
 
-	gcc -L ./libbpf/src -L xdp-tools/lib/libxdp -Wl,-rpath=./libbpf/src -Wl,-rpath=xdp-tools/lib/libxdp  -o uxdp.out main.c ubx.o p.o -lbpf -lxdp
+	gcc -L xdp-tools//lib/libbpf/src -L xdp-tools/lib/libxdp -Wl,-rpath=xdp-tools/lib/libbpf/src -Wl,-rpath=xdp-tools/lib/libxdp  -o uxdp.out main.c ubx.o p.o -lbpf -lxdp

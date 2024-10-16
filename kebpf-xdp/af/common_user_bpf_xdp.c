@@ -221,6 +221,7 @@ int open_bpf_map_file(const char *pin_dir,
 int do_unload(struct config *cfg)
 {
 	struct xdp_multiprog *mp = NULL;
+	struct xdp_multiprog *mp_tx = NULL;
 	enum xdp_attach_mode mode;
 	int err = EXIT_FAILURE;
 	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts);
@@ -236,54 +237,34 @@ int do_unload(struct config *cfg)
 		goto out;
 	}
 
-	if (cfg->unload_all) {
-		err = xdp_multiprog__detach(mp);
-		if (err) {
-			fprintf(stderr, "Unable to detach XDP program: %s\n",
-				strerror(-err));
-			goto out;
-		}
-	} else {
-		struct xdp_program *prog = NULL;
-
-		while ((prog = xdp_multiprog__next_prog(prog, mp))) {
-			if (xdp_program__id(prog) == cfg->prog_id) {
-				mode = xdp_multiprog__attach_mode(mp);
-				goto found;
-			}
-		}
-
-		if (xdp_multiprog__is_legacy(mp)) {
-			prog = xdp_multiprog__main_prog(mp);
-			if (xdp_program__id(prog) == cfg->prog_id) {
-				mode = xdp_multiprog__attach_mode(mp);
-				goto found;
-			}
-		}
-
-		prog = xdp_multiprog__hw_prog(mp);
-		if (xdp_program__id(prog) == cfg->prog_id) {
-			mode = XDP_MODE_HW;
-			goto found;
-		}
-
-		printf("Program with ID %u not loaded on %s\n",
-			cfg->prog_id, cfg->ifname);
-		err = -ENOENT;
+	mp_tx = xdp_multiprog__get_from_ifindex(cfg->redirect_ifindex);
+	if (libxdp_get_error(mp_tx)) {
+		fprintf(stderr, "Unable to get xdp_dispatcher program: tx: %s\n",
+			strerror(errno));
 		goto out;
-
-found:
-		printf("Detaching XDP program with ID %u from %s\n",
-			 xdp_program__id(prog), cfg->ifname);
-		err = xdp_program__detach(prog, cfg->ifindex, mode, 0);
-		if (err) {
-			fprintf(stderr, "Unable to detach XDP program: %s\n",
-				strerror(-err));
-			goto out;
-		}
+	} else if (!mp_tx) {
+		fprintf(stderr, "No XDP program loaded on %s\n", cfg->redirect_ifname);
+		mp_tx = NULL;
+		goto out;
 	}
+
+	err = xdp_multiprog__detach(mp);
+	if (err) {
+		fprintf(stderr, "Unable to detach XDP program: %s\n",
+			strerror(-err));
+		goto out;
+	}
+
+	err = xdp_multiprog__detach(mp_tx);
+	if (err) {
+		fprintf(stderr, "Unable to detach XDP program: tx: %s\n",
+			strerror(-err));
+		goto out;
+	}
+
 
 out:
 	xdp_multiprog__close(mp);
+	xdp_multiprog__close(mp_tx);
 	return err ? EXIT_FAILURE : EXIT_SUCCESS;
 }

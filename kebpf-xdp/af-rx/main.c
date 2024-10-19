@@ -36,22 +36,20 @@
 
 #define NUM_FRAMES         4096
 #define FRAME_SIZE         XSK_UMEM__DEFAULT_FRAME_SIZE
-#define RX_BATCH_SIZE      64
+#define RX_BATCH_SIZE      1
 #define INVALID_UMEM_FRAME UINT64_MAX
 
 char *filename_dev = "kernel/xdp_redirect_xsk.o";
-char *filename_tx = "kernel/xdp_pass.o";
 
 static struct xdp_program *prog;
-static struct xdp_program *prog_tx;
+
 
 int xsk_map_fd;
-int xsk_map_fd_tx;
+
 
 bool custom_xsk = false;
 struct config cfg = {
 	.ifindex   = -1,
-	.redirect_ifindex   = -1,
 };
 
 struct xsk_umem_info {
@@ -98,8 +96,6 @@ static const struct option_wrapper long_options[] = {
 	{{"dev",	 required_argument,	NULL, 'd' },
 	 "Operate on device <ifname>", "<ifname>", true},
 
-	{{"redirect-dev",	 required_argument,	NULL, 'r' },
-	 "Redirecton device <ifname>", "<ifname>", true},
 
 	{{"skb-mode",	 no_argument,		NULL, 'S' },
 	 "Install XDP program in SKB (AKA generic) mode"},
@@ -252,45 +248,6 @@ error_exit:
 	return NULL;
 }
 
-static struct xsk_socket_info *xsk_configure_socket_tx(struct config *cfg,
-						    struct xsk_umem_info *umem)
-{
-	struct xsk_socket_config xsk_cfg;
-	struct xsk_socket_info *xsk_info;
-	uint32_t idx;
-	int i;
-	int ret;
-	uint32_t prog_id;
-
-	xsk_info = calloc(1, sizeof(*xsk_info));
-	if (!xsk_info)
-		return NULL;
-
-	xsk_info->umem = umem;
-	xsk_cfg.rx_size = XSK_RING_CONS__DEFAULT_NUM_DESCS;
-	xsk_cfg.tx_size = XSK_RING_PROD__DEFAULT_NUM_DESCS;
-	xsk_cfg.xdp_flags = cfg->xdp_flags;
-	xsk_cfg.bind_flags = cfg->xsk_bind_flags;
-	xsk_cfg.libbpf_flags = (custom_xsk) ? XSK_LIBBPF_FLAGS__INHIBIT_PROG_LOAD: 0;
-	ret = xsk_socket__create_shared(&xsk_info->xsk, 
-									cfg->redirect_ifname,
-				 					cfg->xsk_if_queue, 
-									umem->umem, 
-									&xsk_info->rx,
-				 					&xsk_info->tx, 
-									&xsk_info->umem->fq,
-									&xsk_info->umem->cq,
-									&xsk_cfg);
-	if (ret)
-		goto error_exit;
-
-
-	return xsk_info;
-
-error_exit:
-	errno = -ret;
-	return NULL;
-}
 
 static void complete_tx(struct xsk_socket_info *xsk, uint64_t addr, uint32_t len)
 {
@@ -464,7 +421,7 @@ static bool process_packet(struct xsk_socket_info *xsk,
 	return false;
 }
 
-static void handle_receive_packets(struct xsk_socket_info *xsk, struct xsk_socket_info *xsk_tx)
+static void handle_receive_packets(struct xsk_socket_info *xsk)
 {
 	unsigned int rcvd, stock_frames, i;
 	uint32_t idx_rx = 0, idx_fq = 0;
@@ -474,7 +431,7 @@ static void handle_receive_packets(struct xsk_socket_info *xsk, struct xsk_socke
 	if (!rcvd)
 		return;
 
-	/* 
+	
 	stock_frames = xsk_prod_nb_free(&xsk->umem->fq,
 					xsk_umem_free_frames(xsk));
 
@@ -493,8 +450,8 @@ static void handle_receive_packets(struct xsk_socket_info *xsk, struct xsk_socke
 
 		xsk_ring_prod__submit(&xsk->umem->fq, stock_frames);
 	}
-	*/
-	/* Process received packets */
+	
+
 	printf("recv: %d, idx_rx: %d\n", recv, idx_rx);
 
 	for (i = 0; i < rcvd; i++) {
@@ -517,11 +474,11 @@ static void handle_receive_packets(struct xsk_socket_info *xsk, struct xsk_socke
 
 			xsk->stats.rx_packets += rcvd;
 
-			xsk_tx->outstanding_tx++;
+			xsk->outstanding_tx++;
 
 			xsk_ring_cons__release(&xsk->rx, rcvd);
 
-			complete_tx(xsk_tx, addr, len);
+			complete_tx(xsk, addr, len);
 		}
 
 	}
@@ -529,8 +486,7 @@ static void handle_receive_packets(struct xsk_socket_info *xsk, struct xsk_socke
 }
 
 static void rx_and_process(struct config *cfg,
-			   struct xsk_socket_info *xsk_socket,
-			   struct xsk_socket_info *xsk_socket_tx)
+			   struct xsk_socket_info *xsk_socket)
 {
 	struct pollfd fds[2];
 	int ret, nfds = 1;
@@ -545,7 +501,7 @@ static void rx_and_process(struct config *cfg,
 			if (ret <= 0 || ret > 1)
 				continue;
 		}
-		handle_receive_packets(xsk_socket, xsk_socket_tx);
+		handle_receive_packets(xsk_socket);
 	}
 }
 
@@ -664,12 +620,9 @@ int main(int argc, char **argv)
 	uint64_t packet_buffer_size;
 	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts);
 	DECLARE_LIBXDP_OPTS(xdp_program_opts, xdp_opts, 0);
-	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts_tx);
-	DECLARE_LIBXDP_OPTS(xdp_program_opts, xdp_opts_tx, 0);
 	struct rlimit rlim = {RLIM_INFINITY, RLIM_INFINITY};
 	struct xsk_umem_info *umem;
 	struct xsk_socket_info *xsk_socket;
-	struct xsk_socket_info *xsk_socket_tx;
 	pthread_t stats_poll_thread;
 	int err;
 	char errmsg[1024];
@@ -686,16 +639,12 @@ int main(int argc, char **argv)
 		usage(argv[0], __doc__, long_options, (argc == 1));
 		return EXIT_FAIL_OPTION;
 	}
-	if (cfg.redirect_ifindex == -1) {
-		fprintf(stderr, "ERROR: Required option --dev missing\n\n");
-		usage(argv[0], __doc__, long_options, (argc == 1));
-		return EXIT_FAIL_OPTION;
-	}
+
 
 	/* Load custom program if configured */
 
 	struct bpf_map *map;
-	struct bpf_map *map_tx;
+
 
 	custom_xsk = true;
 
@@ -703,16 +652,11 @@ int main(int argc, char **argv)
 	xdp_opts.prog_name = cfg.progname;
 	xdp_opts.opts = &opts;
 
-	xdp_opts_tx.open_filename = filename_tx;
-	xdp_opts_tx.prog_name = cfg.progname;
-	xdp_opts_tx.opts = &opts_tx;
 
 	prog = xdp_program__open_file(filename_dev,
 					NULL, &opts);
 
 
-	prog_tx = xdp_program__open_file(filename_tx,
-					NULL, &opts_tx);
 
 	err = libxdp_get_error(prog);
 	if (err) {
@@ -721,12 +665,6 @@ int main(int argc, char **argv)
 		return err;
 	}
 
-	err = libxdp_get_error(prog_tx);
-	if (err) {
-		libxdp_strerror(err, errmsg, sizeof(errmsg));
-		fprintf(stderr, "ERR: loading program: tx: %s\n", errmsg);
-		return err;
-	}
 
 	err = xdp_program__attach(prog, cfg.ifindex, cfg.attach_mode, 0);
 	if (err) {
@@ -736,15 +674,7 @@ int main(int argc, char **argv)
 		return err;
 	}
 
-	err = xdp_program__attach(prog_tx, cfg.redirect_ifindex, cfg.attach_mode, 0);
-	if (err) {
-		libxdp_strerror(err, errmsg, sizeof(errmsg));
-		fprintf(stderr, "Couldn't attach XDP program on: tx: iface '%s' : %s (%d)\n",
-			cfg.redirect_ifname, errmsg, err);
-		return err;
-	}
 
-	/* We also need to load the xsks_map */
 	map = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog), "if_redirect");
 	xsk_map_fd = bpf_map__fd(map);
 	if (xsk_map_fd < 0) {
@@ -752,13 +682,7 @@ int main(int argc, char **argv)
 			strerror(xsk_map_fd));
 		exit(EXIT_FAILURE);
 	}
-	map_tx = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog_tx), "if_redirect");
-	xsk_map_fd_tx = bpf_map__fd(map_tx);
-	if (xsk_map_fd_tx < 0) {
-		fprintf(stderr, "ERROR: no if_redirect found: tx: %s\n",
-			strerror(xsk_map_fd_tx));
-		exit(EXIT_FAILURE);
-	}
+
 
 
 	/* Allow unlimited locking of memory, so all memory needed for packet
@@ -796,12 +720,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	xsk_socket_tx = xsk_configure_socket_tx(&cfg, umem);
-	if (xsk_socket_tx == NULL) {
-		fprintf(stderr, "ERROR: Can't setup AF_XDP socket: tx: \"%s\"\n",
-			strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+
 
 	/* Start thread to do statistics display */
 	if (verbose) {
@@ -815,11 +734,10 @@ int main(int argc, char **argv)
 	}
 
 	/* Receive and count packets than drop them */
-	rx_and_process(&cfg, xsk_socket, xsk_socket_tx);
+	rx_and_process(&cfg, xsk_socket);
 
 	/* Cleanup */
 	xsk_socket__delete(xsk_socket->xsk);
-	xsk_socket__delete(xsk_socket_tx->xsk);
 	xsk_umem__delete(umem->umem);
 
 	return EXIT_OK;

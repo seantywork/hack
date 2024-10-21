@@ -1773,6 +1773,20 @@ arp -d 192.168.1.1
 
 ```
 
+# ETHTOOL
+
+
+```shell
+
+ethtool -l devname 
+
+# only use one combined rxtx channel
+
+ethtool -L devname combined 1
+
+
+```
+
 
 # IP INTERFACE IPTABLES NAT PORT FORWARD
 

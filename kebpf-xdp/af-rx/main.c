@@ -452,7 +452,7 @@ static void handle_receive_packets(struct xsk_socket_info *xsk)
 	}
 	
 
-	printf("recv: %d, idx_rx: %d\n", recv, idx_rx);
+	printf("recv: %d, idx_rx: %d\n", rcvd, idx_rx);
 
 	for (i = 0; i < rcvd; i++) {
 		uint64_t addr = xsk_ring_cons__rx_desc(&xsk->rx, idx_rx + i)->addr;

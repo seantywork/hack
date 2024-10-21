@@ -18,7 +18,7 @@ struct {
 	__uint(type, BPF_MAP_TYPE_XSKMAP);
 	__type(key, __u32);
 	__type(value, __u32);
-	__uint(max_entries, 1);
+	__uint(max_entries, 64);
 } if_redirect SEC(".maps");
 
 /*

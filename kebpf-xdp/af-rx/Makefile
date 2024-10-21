@@ -1,5 +1,7 @@
 all:
 
+	make -C kernel
+
 	gcc -c -o ubx.o common_user_bpf_xdp.c 
 
 	gcc -c -o p.o common_params.c 

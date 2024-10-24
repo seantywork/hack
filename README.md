@@ -11737,3 +11737,28 @@ sudo apt install ./dbeaver
 jdbc:mysql://localhost:3306/db?allowPublicKeyRetrieval=true
 
 ```
+
+# IFTOP
+```shell
+
+iftop
+
+```
+
+# IPERF
+
+```shell
+
+# tcp client
+
+iperf -c $ADDR -t 60 -i 1
+
+# tcp server
+
+iperf -s
+
+# udp client
+
+iperf -c $ADDR -u -b 10G -t 60 -i 1
+
+```

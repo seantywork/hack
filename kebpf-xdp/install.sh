@@ -12,9 +12,13 @@ sudo apt install linux-tools-$(uname -r)
 
 sudo apt install linux-headers-$(uname -r)
 
+/bin/cp -Rf kernel/_xsk_def_xdp_prog.c xdp-tools
+
 pushd xdp-tools
 
 ./configure
+
+/bin/cp -Rf ../kernel/_xsk_def_xdp_prog.c ./lib/libxdp/xsk_def_xdp_prog.c
 
 make
 

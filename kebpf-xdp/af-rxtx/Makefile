@@ -1,9 +1,10 @@
 all:
 
-	gcc -c -o ubx.o common_user_bpf_xdp.c 
+	gcc -g -c -o af_rxtx.o af_rxtx.c
 
-	gcc -c -o p.o common_params.c 
+	gcc -g -L ../xdp-tools/lib/libbpf/src -L ../xdp-tools/lib/libxdp -Wl,-rpath=../xdp-tools/lib/libbpf/src -Wl,-rpath=../xdp-tools/lib/libxdp  -o run.out main.c af_rxtx.o -lbpf -lxdp
 
-#	gcc -c -o l.o common_libbpf.c
 
-	gcc -L xdp-tools//lib/libbpf/src -L xdp-tools/lib/libxdp -Wl,-rpath=xdp-tools/lib/libbpf/src -Wl,-rpath=xdp-tools/lib/libxdp  -o uxdp.out main.c ubx.o p.o -lbpf -lxdp
+clean:
+
+	rm -rf *.out *.o

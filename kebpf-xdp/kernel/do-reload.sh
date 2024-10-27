@@ -11,4 +11,4 @@ fi
 
 sudo xdp-loader unload -a veth1
 
-sudo xdp-loader load -m skb -s "$1" veth1 "kernel/$1.o"
+sudo xdp-loader load -m skb -s "$1" veth1 "$1.o"

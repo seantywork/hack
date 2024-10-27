@@ -676,6 +676,14 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose .
 
 ```shell
 
+# check
+
+ulimit -c
+
+# set unlimited 
+
+ulimit -c unlimited
+
 
 ```
 

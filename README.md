@@ -1786,6 +1786,10 @@ sudo ip -s -s neigh flush all
 
 arp -d 192.168.1.1
 
+# add
+
+arp -i interface -s ip mac
+
 ```
 
 # ETHTOOL

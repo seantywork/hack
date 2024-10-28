@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 
         n = epoll_wait(EPLFD, CLIENT_SOCKET, MAX_CONN, -1);
 
-        for (i = 0 ; i < n; i ++){
+        for (i = 0 ; i < MAX_CONN; i ++){
 
             if (
                 (CLIENT_SOCKET[i].events & EPOLLERR) ||

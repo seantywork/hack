@@ -300,8 +300,10 @@ struct port *port_init(struct port_params *params)
 		return NULL;
 	}
 
-	params->xsk_cfg.libxdp_flags = XSK_LIBBPF_FLAGS__INHIBIT_PROG_LOAD;
+	params->xsk_cfg.libbpf_flags = XSK_LIBBPF_FLAGS__INHIBIT_PROG_LOAD;
+	printf("set: libxdp_falgs: XSK_LIBBPF_FLAGS__INHIBIT_PROG_LOAD\n");
 	params->xsk_cfg.bind_flags = XDP_USE_NEED_WAKEUP;
+	printf("set: bind_flags: XDP_USE_NEED_WAKEUP\n");
 
 	/* xsk socket. */
 	status = xsk_socket__create_shared(&p->xsk,
@@ -469,8 +471,7 @@ void *thread_func(void *arg)
 		n_pkts = port_rx_burst(port_rx, brx);
 		if (!n_pkts)
 			continue;
-        
-        printf("tx: %d\n", n_pkts);
+    
 
 		/* Process & TX. */
 		for (j = 0; j < n_pkts; j++) {

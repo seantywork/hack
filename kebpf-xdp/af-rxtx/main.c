@@ -2,6 +2,17 @@
 #include "af-rxtx.h"
 
 
+int lr_count;
+struct xdp_program *prog_l;
+struct xdp_program *prog_r;
+int xsk_map_fd_l;
+int xsk_map_fd_r;
+
+char* left_filename = "/usr/local/lib/bpf/xsk_def_xdp_prog.o";
+char* right_filename = "/usr/local/lib/bpf/xsk_def_xdp_prog.o";
+char* xsk_map_name = "xsks_map";
+
+enum xdp_attach_mode attach_mode = 0;
 
 struct bpool_params bpool_params_default = {
 	.n_buffers = 64 * 1024,
@@ -82,6 +93,14 @@ int main(int argc, char **argv)
 	u64 ns0;
 	int i;
 
+	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts_l);
+	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts_r);
+	DECLARE_LIBXDP_OPTS(xdp_program_opts, xdp_opts_l, 0);
+	DECLARE_LIBXDP_OPTS(xdp_program_opts, xdp_opts_r, 0);
+
+	struct bpf_map *map_l;
+	struct bpf_map *map_r;
+
 	/* Parse args. */
 	memcpy(&bpool_params, &bpool_params_default,
 	       sizeof(struct bpool_params));
@@ -95,6 +114,71 @@ int main(int argc, char **argv)
 		print_usage(argv[0]);
 		return -1;
 	}
+
+	xdp_opts_l.open_filename = left_filename;
+	xdp_opts_l.opts = &opts_l;
+
+	xdp_opts_r.open_filename = right_filename;
+	xdp_opts_r.opts = &opts_r;
+
+
+	prog_l = xdp_program__open_file(left_filename, NULL, &opts_l);
+
+	prog_r = xdp_program__open_file(right_filename, NULL, &opts_r);
+
+	err = libxdp_get_error(prog_l);
+	if (err) {
+		libxdp_strerror(err, errmsg, sizeof(errmsg));
+		printf("ERR: loading program: %s\n", errmsg);
+		return err;
+	}
+
+	err = libxdp_get_error(prog_r);
+	if (err) {
+		libxdp_strerror(err, errmsg, sizeof(errmsg));
+		printf("ERR: loading program: re: %s\n", errmsg);
+		return err;
+	}
+
+	
+
+	int left_ifindex = if_nametoindex(port_params[0].iface);
+	printf("left iface name: %s\n",port_params[0].iface);
+	int right_ifindex = if_nametoindex(port_params[1].iface);
+	printf("right iface name: %s\n",port_params[1].iface);
+
+	err = xdp_program__attach(prog_l, left_ifindex, attach_mode, 0);
+	if (err) {
+		libxdp_strerror(err, errmsg, sizeof(errmsg));
+		printf("Couldn't attach XDP program on iface '%d' : %s (%d)\n",
+			left_ifindex, errmsg, err);
+		return err;
+	}
+
+	err = xdp_program__attach(prog_r, right_ifindex, attach_mode, 0);
+	if (err) {
+		libxdp_strerror(err, errmsg, sizeof(errmsg));
+		printf("Couldn't attach XDP program on iface '%d' : %s (%d)\n",
+			right_ifindex, errmsg, err);
+		return err;
+	}
+
+	map_l = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog_l), xsk_map_name);
+	xsk_map_fd_l = bpf_map__fd(map_l);
+	if (xsk_map_fd_l < 0) {
+		printf("ERROR: no map found on left: %s\n",
+			strerror(xsk_map_fd_l));
+		return err;
+	}
+
+	map_r = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog_r), xsk_map_name);
+	xsk_map_fd_r = bpf_map__fd(map_r);
+	if (xsk_map_fd_r < 0) {
+		printf("ERROR: no map found on right: %s\n",
+			strerror(xsk_map_fd_r));
+		return err;
+	}
+
 
 	/* Buffer pool initialization. */
 	bp = bpool_init(&bpool_params, &umem_cfg);

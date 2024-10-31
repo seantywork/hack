@@ -300,6 +300,9 @@ struct port *port_init(struct port_params *params)
 		return NULL;
 	}
 
+	params->xsk_cfg.libxdp_flags = XSK_LIBBPF_FLAGS__INHIBIT_PROG_LOAD;
+	params->xsk_cfg.bind_flags = XDP_USE_NEED_WAKEUP;
+
 	/* xsk socket. */
 	status = xsk_socket__create_shared(&p->xsk,
 					   params->iface,
@@ -314,6 +317,19 @@ struct port *port_init(struct port_params *params)
 		port_free(p);
 		return NULL;
 	}
+
+	if(lr_count % 2 == 0){
+		status = xsk_socket__update_xskmap(p->xsk, xsk_map_fd_l);
+		lr_count += 1;
+	} else {
+		status = xsk_socket__update_xskmap(p->xsk, xsk_map_fd_r);
+		lr_count += 1;
+	}
+
+	if(status){
+		printf("failed to update xskmap: lr_count: %d\n", lr_count);
+		return NULL;
+	} 
 
 	/* umem fq. */
 	xsk_ring_prod__reserve(&p->umem_fq, umem_fq_size, &pos);

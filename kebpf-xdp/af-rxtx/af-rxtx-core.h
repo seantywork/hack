@@ -160,6 +160,18 @@ extern struct port_params port_params_default;
 
 
 
+extern int lr_count;
+extern struct xdp_program *prog_l;
+extern struct xdp_program *prog_r;
+extern int xsk_map_fd_l;
+extern int xsk_map_fd_r;
+
+extern char* left_filename;
+extern char* right_filename;
+
+extern char* xsk_map_name;
+extern enum xdp_attach_mode attach_mode;
+
 extern struct bpool_params bpool_params;
 extern struct xsk_umem_config umem_cfg;
 extern struct bpool *bp;

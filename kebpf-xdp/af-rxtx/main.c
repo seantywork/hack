@@ -92,6 +92,8 @@ int main(int argc, char **argv)
 	struct timespec time;
 	u64 ns0;
 	int i;
+	int err;
+	char errmsg[1024];
 
 	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts_l);
 	DECLARE_LIBBPF_OPTS(bpf_object_open_opts, opts_r);

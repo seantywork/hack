@@ -411,18 +411,6 @@ void port_tx_burst(struct port *p, struct burst_tx *b)
 	u32 n_pkts, pos, i;
 	int status;
 
-	/* UMEM CQ. */
-	n_pkts = p->params.bp->umem_cfg.comp_size;
-
-	n_pkts = xsk_ring_cons__peek(&p->umem_cq, n_pkts, &pos);
-
-	for (i = 0; i < n_pkts; i++) {
-		u64 addr = *xsk_ring_cons__comp_addr(&p->umem_cq, pos + i);
-
-		bcache_prod(p->bc, addr);
-	}
-
-	xsk_ring_cons__release(&p->umem_cq, n_pkts);
 
 	/* TXQ. */
 	n_pkts = b->n_pkts;
@@ -446,6 +434,20 @@ void port_tx_burst(struct port *p, struct burst_tx *b)
 	if (xsk_ring_prod__needs_wakeup(&p->txq))
 		sendto(xsk_socket__fd(p->xsk), NULL, 0, MSG_DONTWAIT, NULL, 0);
 	p->n_pkts_tx += n_pkts;
+
+
+	/* UMEM CQ. */
+	n_pkts = p->params.bp->umem_cfg.comp_size;
+
+	n_pkts = xsk_ring_cons__peek(&p->umem_cq, n_pkts, &pos);
+
+	for (i = 0; i < n_pkts; i++) {
+		u64 addr = *xsk_ring_cons__comp_addr(&p->umem_cq, pos + i);
+
+		bcache_prod(p->bc, addr);
+	}
+
+	xsk_ring_cons__release(&p->umem_cq, n_pkts);
 }
 
 

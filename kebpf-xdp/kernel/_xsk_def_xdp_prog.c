@@ -58,7 +58,9 @@ int xsk_def_prog(struct xdp_md *ctx)
 
     __u16 h_proto = eth_header->h_proto;
 
-    if (h_proto != 0x08U) {  // htons(ETH_P_IP) -> 0x08U
+	bpf_printk("h_proto: %02x\n", bpf_htons(h_proto));
+
+    if (bpf_htons(h_proto) != 0x0800) {  // htons(ETH_P_IP) -> 0x08U
 
 		bpf_printk("proto not ip\n");
 

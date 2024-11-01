@@ -6661,6 +6661,24 @@ sudo apt install ovmf
 
 ```
 
+```shell
+# clone with xml
+
+virsh shutdown "$source_vm"
+
+virsh dumpxml "$source_vm" > "/tmp/$new_vm.xml"
+
+sed -i /uuid/d "/tmp/$new_vm.xml"
+sed -i '/mac address/d' "/tmp/$new_vm.xml"
+
+sed -i "s/$source_vm/$new_vm/" "/tmp/$new_vm.xml"
+
+cp /var/lib/libvirt/images/ubuntu22.04.qcow2 /var/lib/libvirt/images/new.qcow2
+
+virsh define "/tmp/$new_vm.xml"
+
+```
+
 # VM QEMU NETWORK BRIDGE
 
 ```shell

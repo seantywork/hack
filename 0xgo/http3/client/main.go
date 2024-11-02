@@ -13,7 +13,6 @@ import (
 
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
-	"github.com/quic-go/quic-go/qlog"
 )
 
 func main() {
@@ -40,15 +39,13 @@ func main() {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
-	roundTripper := &http3.RoundTripper{
+	roundTripper := &http3.Transport{
 		TLSClientConfig: &tls.Config{
 			RootCAs:            caCertPool,
 			InsecureSkipVerify: *insecure,
 			KeyLogWriter:       keyLog,
 		},
-		QUICConfig: &quic.Config{
-			Tracer: qlog.DefaultTracer,
-		},
+		QUICConfig: &quic.Config{},
 	}
 	defer roundTripper.Close()
 	hclient := &http.Client{

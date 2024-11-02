@@ -4,7 +4,6 @@ rm -r ./client/certs/*
 
 rm -r ./server/certs/*
 
-
 mkdir -p ./client/certs
 
 mkdir -p ./server/certs

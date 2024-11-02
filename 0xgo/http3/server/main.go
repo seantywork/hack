@@ -17,7 +17,6 @@ import (
 
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
-	"github.com/quic-go/quic-go/qlog"
 )
 
 type binds []string
@@ -166,14 +165,12 @@ func main() {
 		go func() {
 			var err error
 			if *tcp {
-				err = http3.ListenAndServe(bCap, certFile, keyFile, handler)
+				err = http3.ListenAndServeQUIC(bCap, certFile, keyFile, handler)
 			} else {
 				server := http3.Server{
-					Handler: handler,
-					Addr:    bCap,
-					QUICConfig: &quic.Config{
-						Tracer: qlog.DefaultTracer,
-					},
+					Handler:    handler,
+					Addr:       bCap,
+					QUICConfig: &quic.Config{},
 				}
 				err = server.ListenAndServeTLS(certFile, keyFile)
 			}

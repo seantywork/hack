@@ -11219,6 +11219,96 @@ sudo nmcli c down VPN
 
 ```
 
+# VPN STRONGSWAN 
+
+
+```shell
+# server
+
+
+apt install strongswan libcharon-extra-plugins strongswan-pki -y
+
+ipsec pki --gen --size 4096 --type rsa --outform pem > ca.key.pem
+ipsec pki --self --in ca.key.pem --type rsa --dn "CN=VPN Server CA" --ca --lifetime 3650 --outform pem > ca.cert.pem
+ipsec pki --gen --size 4096 --type rsa --outform pem > server.key.pem
+ipsec pki --pub --in server.key.pem --type rsa | ipsec pki --issue --lifetime 2750 --cacert ca.cert.pem --cakey ca.key.pem --dn "CN=vpn.example.com" --san "vpn.example.com" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem
+
+cp -f ca.cert.pem /etc/ipsec.d/cacerts/
+cp -f server.cert.pem /etc/ipsec.d/certs/
+cp -f ca.key.pem /etc/ipsec.d/private/
+cp -f server.key.pem /etc/ipsec.d/private/
+
+vi  /etc/ipsec.conf
+config setup
+        charondebug="ike 2, knl 2, cfg 2, net 2, esp 2, dmn 2, mgr 2"
+        strictcrlpolicy=no
+        uniqueids=never
+        cachecrls=no
+        
+conn ipsec-ikev2-vpn
+      auto=add
+      compress=no
+      type=tunnel  # defines the type of connection, tunnel.
+      keyexchange=ikev2
+      fragmentation=yes
+      forceencaps=yes
+      dpdaction=clear
+      dpddelay=300s
+      rekey=no
+      left=%any
+      leftid=@vpn.example.com    # if using IP, define it without the @ sign
+      leftcert=server.cert.pem  # reads the VPN server cert in /etc/ipsec.d/certs
+      leftsendcert=always
+      leftsubnet=0.0.0.0/0
+      right=%any
+      rightid=%any
+      rightauth=pubkey
+      rightsourceip=192.168.0.0/24
+      rightdns=8.8.8.8 #DNS to be assigned to clients
+      rightsendcert=always
+      esp=aes256-sha256-modp2048
+
+vi /etc/ipsec.secret
+
+: RSA "server.key.pem"
+
+
+
+```
+
+```shell
+
+// from server
+ipsec pki --gen --type rsa --size 4096 --outform pem > client.key.pem
+ipsec pki --pub --in client.key.pem --type rsa | ipsec pki --issue --lifetime 3650 --cacert ca.cert.pem --cakey ca.key.pem --dn "CN=scope" --san scope --outform pem > client.cert.pem
+openssl pkcs12 -export -inkey client.key.pem -in client.cert.pem -name "scope" -certfile ca.cert.pem -caname "VPN Server CA" -out client.p12
+
+# get p12
+
+# from client
+apt install strongswan libcharon-extra-plugins libssl-dev -y
+cp -f client.p12 /etc/ipsec.d/private
+
+//ipsec.conf 
+conn ipsec-ikev2-vpn-client
+    auto=start
+    right=10.1.4.237
+    rightid=vpn.example.com
+    rightsubnet=192.168.0.0/24
+    rightauth=pubkey
+    leftsourceip=%config
+    leftid=scope
+    leftauth=pubkey
+    mediation=no
+
+//ipsec.secret 
+: P12 client.p12 "ipscan"
+
+
+
+
+```
+
 # VPN OPENVPN
 
 ```shell

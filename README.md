@@ -11238,7 +11238,15 @@ cp -f server.cert.pem /etc/ipsec.d/certs/
 cp -f ca.key.pem /etc/ipsec.d/private/
 cp -f server.key.pem /etc/ipsec.d/private/
 
-vi  /etc/ipsec.conf
+# for client
+ipsec pki --gen --type rsa --size 4096 --outform pem > client.key.pem
+ipsec pki --pub --in client.key.pem --type rsa | ipsec pki --issue --lifetime 3650 --cacert ca.cert.pem --cakey ca.key.pem --dn "CN=vpnclient" --san vpnclient --outform pem > client.cert.pem
+openssl pkcs12 -export -inkey client.key.pem -in client.cert.pem -name "vpnclient" -certfile ca.cert.pem -caname "VPN Server CA" -out client.p12
+sudo /bin/cp -Rf client.p12 /tmp/client.p12
+sudo chmod 777 /tmp/client.p12
+
+vim  /etc/ipsec.conf
+
 config setup
         charondebug="ike 2, knl 2, cfg 2, net 2, esp 2, dmn 2, mgr 2"
         strictcrlpolicy=no
@@ -11263,7 +11271,7 @@ conn ipsec-ikev2-vpn
       right=%any
       rightid=%any
       rightauth=pubkey
-      rightsourceip=192.168.0.0/24
+      rightsourceip=192.168.43.0/24
       rightdns=8.8.8.8 #DNS to be assigned to clients
       rightsendcert=always
       esp=aes256-sha256-modp2048
@@ -11278,31 +11286,31 @@ vi /etc/ipsec.secret
 
 ```shell
 
-// from server
-ipsec pki --gen --type rsa --size 4096 --outform pem > client.key.pem
-ipsec pki --pub --in client.key.pem --type rsa | ipsec pki --issue --lifetime 3650 --cacert ca.cert.pem --cakey ca.key.pem --dn "CN=scope" --san scope --outform pem > client.cert.pem
-openssl pkcs12 -export -inkey client.key.pem -in client.cert.pem -name "scope" -certfile ca.cert.pem -caname "VPN Server CA" -out client.p12
+# client 
 
 # get p12
 
-# from client
-apt install strongswan libcharon-extra-plugins libssl-dev -y
-cp -f client.p12 /etc/ipsec.d/private
+scp server@server.com:/tmp/client.p12 .
 
-//ipsec.conf 
+# from client
+sudo apt update
+sudo apt install strongswan libcharon-extra-plugins libssl-dev -y
+suod cp -f client.p12 /etc/ipsec.d/private
+
+# /etc/ipsec.conf 
 conn ipsec-ikev2-vpn-client
     auto=start
-    right=10.1.4.237
+    right=192.168.10.25
     rightid=vpn.example.com
-    rightsubnet=192.168.0.0/24
+    rightsubnet=192.168.43.0/24
     rightauth=pubkey
     leftsourceip=%config
-    leftid=scope
+    leftid=vpnclient
     leftauth=pubkey
     mediation=no
 
-//ipsec.secret 
-: P12 client.p12 "ipscan"
+# /etc/ipsec.secret 
+: P12 client.p12 ""
 
 
 

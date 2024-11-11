@@ -11302,7 +11302,7 @@ conn ipsec-ikev2-vpn-client
     auto=start
     right=192.168.10.25
     rightid=vpn.example.com
-    rightsubnet=192.168.43.0/24
+    rightsubnet=0.0.0.0/0
     rightauth=pubkey
     leftsourceip=%config
     leftid=vpnclient

@@ -26,6 +26,8 @@
 
 #include <linux/if.h>
 #include <linux/if_packet.h>
+#include <linux/if_ether.h>
+#include <linux/ip.h>
 
 /// The number of frames in the ring
 //  This number is not set in stone. Nor are block_size, block_nr or frame_size
@@ -33,8 +35,12 @@
 #define FRAME_SIZE 2048
 #define CONF_DEVICE "veth01"
 
-#define SOCK_PROTOCOL(ringtype) htons(0x88a4)
-#define SOCKADDR_PROTOCOL htons(0x88a4)
+// ethercat
+//#define SOCK_PROTOCOL(ringtype) htons(0x88a4)
+//#define SOCKADDR_PROTOCOL htons(0x88a4)
+
+#define SOCK_PROTOCOL(ringtype) htons(ETH_P_ALL)
+#define SOCKADDR_PROTOCOL htons(ETH_P_ALL)
 
 /// Offset of data from start of frame
 #define TX_DATA_OFFSET TPACKET_ALIGN(sizeof(struct tpacket2_hdr))
@@ -93,6 +99,89 @@ char*					  Ethernet_ifname = CONF_DEVICE;
 static struct sockaddr_ll ring_daddr;
 static struct sockaddr_ll dest_daddr;
 
+static unsigned short ipcsum(unsigned short *buf, int nwords)
+{
+  unsigned long sum;
+  for(sum=0; nwords>0; nwords--)
+    sum += *buf++;
+  sum = (sum >> 16) + (sum &0xffff);
+  sum += (sum >> 16);
+  return (unsigned short)(~sum);
+}
+
+
+static uint8_t* make_ip_packet(int* newlen, int msglen, char* msg){
+
+
+    int packetlen = sizeof(struct ethhdr) + sizeof(struct iphdr) + msglen;
+
+    *newlen = packetlen;
+
+    void* packet = (void*)malloc(packetlen);
+
+
+    memset(packet, 0, packetlen);
+
+    struct ethhdr *eth_header;
+    struct iphdr *ip_header;
+    uint8_t* data;
+
+    eth_header = packet;
+
+    ip_header = packet + sizeof(*eth_header);
+
+    data = packet + sizeof(*eth_header) + sizeof(*ip_header);
+
+    memcpy(eth_header->h_dest, client_hw_addr, ETH_ALEN);
+    memcpy(eth_header->h_source, server_hw_addr, ETH_ALEN);
+    eth_header->h_proto = htons(0x0800);
+
+
+    ip_header->ihl = 5;
+    ip_header->version = 4;
+    ip_header->tos = 0;
+    ip_header->tot_len = htons(sizeof(struct iphdr) + msglen);
+    ip_header->id = htons(54321);
+    ip_header->frag_off = 0;
+    ip_header->ttl = 64;
+    ip_header->saddr = inet_addr("192.168.10.1");
+    ip_header->daddr = inet_addr("192.168.10.2");
+    ip_header->protocol = 0xFD; // experiment
+
+    ip_header->check = ipcsum((unsigned short *)ip_header, sizeof(struct iphdr) + msglen);
+
+    memcpy(data, msg, msglen);
+
+    return packet;
+}
+
+static void view_ip_packet(void* packet){
+
+    struct ethhdr *eth_header;
+    struct iphdr *ip_header;
+    uint8_t* data;
+
+    eth_header = packet;
+
+    ip_header = packet + sizeof(*eth_header);
+
+    data = packet + sizeof(*eth_header) + sizeof(*ip_header);
+
+    printf("dst mac: %02x:%02x:%02x:%02x:%02x:%02x\n", 
+                eth_header->h_dest[0], 
+                eth_header->h_dest[1], 
+                eth_header->h_dest[2], 
+                eth_header->h_dest[3], 
+                eth_header->h_dest[4],
+                eth_header->h_dest[5]
+                );
+
+    printf("dst address: %d\n", ip_header->daddr);
+
+    printf("data: %s\n", data);
+
+
+}
 
 /// create a linklayer destination address
 //  @param ringdev is a link layer device name, such as "eth0"
@@ -241,11 +330,11 @@ static int process_tx(int fd, char* ring, const char* pkt, size_t pktlen, int of
             }
         }
 
-        char* offrx = ((void*)pkt) + RX_DATA_OFFSET;
+       // char* offrx = ((void*)pkt) + RX_DATA_OFFSET;
 
         // fill data
         off = ((void*)header) + TX_DATA_OFFSET + offset;
-        memcpy(off, offrx, pktlen);
+        memcpy(off, pkt, pktlen);
 
         // fill header
         header->tp_len	  = pktlen;
@@ -358,6 +447,13 @@ void do_serve()
         return;
     }
 
+
+    int newlen = 0;
+    char* hellodata = "hello this is peer";
+    int msglen = strlen(hellodata);
+    uint8_t* new_packet = make_ip_packet(&newlen, msglen, hellodata);
+
+
     while(1){
 
         rx_flush(rxRing);
@@ -368,27 +464,26 @@ void do_serve()
 
             while (pkt = process_rx(rxFd, rxRing, &len))
             {
-                char* off = ((void*)pkt) + RX_DATA_OFFSET;
+                uint8_t* off = ((void*)pkt) + RX_DATA_OFFSET;
 
-                printf("server RX: ");
-                for(int i = 0 ; i < len; i ++){
-                    if(i > 0 && i % 10 == 0){
-                        printf("[%x] \n", off[i]);
-                    } else {
-                        printf("[%x] ", off[i]);
-                    }
-                }
+                printf("server RX: \n");
+
+                view_ip_packet(off);
 
                 printf("\n");
 
-                process_tx(txFd, txRing, pkt, len, offset, 1, &dest_daddr);
+                process_tx(txFd, txRing, new_packet, newlen, offset, 1, &dest_daddr);
 
                 printf("server TX done\n");
 
                 process_rx_release(pkt);
+
+                
             }
         }
     }
+
+    free(new_packet);
 
 
     if (exit_packetsock(rxFd, rxRing, 1))

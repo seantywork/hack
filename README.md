@@ -1896,6 +1896,11 @@ sudo iptables -L --line-numbers
 
 sudo iptables -D INPUT $LINE_NUM
 
+
+# netfilter queue
+
+sudo iptables -I FORWARD -p tcp -j NFQUEUE --queue-num 100
+
 ```
 ```shell
 

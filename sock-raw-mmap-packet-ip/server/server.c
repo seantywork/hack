@@ -31,7 +31,7 @@
 
 /// The number of frames in the ring
 //  This number is not set in stone. Nor are block_size, block_nr or frame_size
-#define CONF_RING_FRAMES 16
+#define CONF_RING_FRAMES 2
 #define FRAME_SIZE 2048
 #define CONF_DEVICE "veth01"
 
@@ -73,7 +73,7 @@ static uint8_t client_hw_addr[ETH_ALEN]= {
     0x02,
 };
 
-void HandleError(const char* msg, int error)
+void handle_error(const char* msg, int error)
 {
     if (error != 0)
     {
@@ -83,13 +83,13 @@ void HandleError(const char* msg, int error)
     }
 }
 
-void SetAffinity(int8_t cpu)
+void set_affinity(int8_t cpu)
 {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(cpu, &cpuset);
 
-    HandleError("pthread_set_affinity_np", pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset));
+    handle_error("pthread_set_affinity_np", pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset));
 }
 
 char*					  Ethernet_ifname = CONF_DEVICE;
@@ -203,8 +203,8 @@ static int init_ring_daddr(int fd, const char* ringdev, const int ringtype, stru
     ring_daddr.sll_family	  = AF_PACKET;
     ring_daddr.sll_protocol = SOCKADDR_PROTOCOL;
     ring_daddr.sll_ifindex  = ifindex;
-    ring_daddr.sll_halen	  = ETH_ALEN;  
-    memcpy(&ring_daddr.sll_addr, hw_daddr, ETH_ALEN);
+    //ring_daddr.sll_halen	  = ETH_ALEN;  
+    //memcpy(&ring_daddr.sll_addr, hw_daddr, ETH_ALEN);
 
     memcpy(dest_daddr, &ring_daddr, sizeof(dest_daddr));
 
@@ -227,9 +227,11 @@ static char* init_packetsock_ring(int fd, int ringtype, int tx_mmap, struct sock
     }
 
     // tell kernel to export data through mmap()ped ring
-    tp.tp_block_size = getpagesize();
+//    tp.tp_block_size = getpagesize();
+    tp.tp_block_size = FRAME_SIZE * 2;
     tp.tp_frame_size = FRAME_SIZE;
     tp.tp_frame_nr	 = CONF_RING_FRAMES;
+//    tp.tp_block_nr	 = CONF_RING_FRAMES;
     tp.tp_block_nr	 = (tp.tp_frame_nr * tp.tp_frame_size) / tp.tp_block_size;
 
     {
@@ -239,11 +241,13 @@ static char* init_packetsock_ring(int fd, int ringtype, int tx_mmap, struct sock
 
     if (ringtype == PACKET_TX_RING & !tx_mmap)
     {
+        printf("no mmap\n");
         return NULL;
     }
 
     if (setsockopt(fd, SOL_PACKET, ringtype, (void*)&tp, sizeof(tp)))
         RETURN_ERROR(NULL, "setsockopt() ring\n");
+
 
     // open ring
     ring = mmap(0, tp.tp_block_size * tp.tp_block_nr, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -298,74 +302,6 @@ static int exit_packetsock(int fd, char* ring, int tx_mmap)
 }
 
 
-static int process_tx(int fd, char* ring, const char* pkt, size_t pktlen, int offset, int tx_mmap, struct sockaddr_ll* dest_daddr)
-{
-    static int ring_offset = 0;
-
-    struct tpacket2_hdr* header;
-    struct pollfd		 pollset;
-    char*				 off;
-    int					 ret;
-
-    if (tx_mmap)
-    {
-
-        header = (void*)ring + (ring_offset * FRAME_SIZE);
-        assert((((unsigned long)header) & (FRAME_SIZE - 1)) == 0);
-        while (header->tp_status != TP_STATUS_AVAILABLE)
-        {
-            // if none available: wait on more data
-            pollset.fd		= fd;
-            pollset.events	= POLLOUT;
-            pollset.revents = 0;
-            ret				= poll(&pollset, 1, 1 /* don't hang */);
-            if (ret < 0)
-            {
-                if (errno != EINTR)
-                {
-                    perror("poll");
-                    return -1;
-                }
-                return 0;
-            }
-        }
-
-       // char* offrx = ((void*)pkt) + RX_DATA_OFFSET;
-
-        // fill data
-        off = ((void*)header) + TX_DATA_OFFSET + offset;
-        memcpy(off, pkt, pktlen);
-
-        // fill header
-        header->tp_len	  = pktlen;
-        header->tp_status = TP_STATUS_SEND_REQUEST;
-
-        // increase consumer ring pointer
-        ring_offset = (ring_offset + 1) & (CONF_RING_FRAMES - 1);
-
-        if (send(fd, NULL, 0, 0) < 0)
-
-        {
-            perror("sendto");
-            return -1;
-        }
-    }
-    else
-    {
-        off = (void*)pkt;
-
-        if (sendto(fd, off, pktlen, 0, (struct sockaddr*)&dest_daddr, sizeof(dest_daddr)) < 0)
-        {
-            perror("sendto");
-            return -1;
-        }
-    }
-
-    // printf("Tx:%d\n",ring_offset);fflush(stdout);
-
-    return 0;
-}
-
 static void* process_rx(const int fd, char* rx_ring, int* len)
 {
     volatile struct tpacket2_hdr* header;
@@ -373,12 +309,26 @@ static void* process_rx(const int fd, char* rx_ring, int* len)
     int							  ret;
     char*				 off;
 
+
+
     for (int i = 0; i < CONF_RING_FRAMES; i++)
     {
         // fetch a frame
         
         header = (void*)rx_ring + (i * FRAME_SIZE);
         assert((((unsigned long)header) & (FRAME_SIZE - 1)) == 0);
+
+        if (header->tp_status != TP_STATUS_AVAILABLE)
+        {
+            // if none available: wait on more data
+            pollset.fd		= fd;
+            pollset.events	= POLLIN;
+            pollset.revents = 0;
+            ret				= poll(&pollset, 1, 1 /* don't hang */);
+
+        }
+
+
         if (header->tp_status & TP_STATUS_USER)
         {
             if (header->tp_status & TP_STATUS_COPY)
@@ -414,19 +364,13 @@ static void rx_flush(void* ring)
 void do_serve()
 {
     int	  status = 1;
-    char *txRing, *rxRing, *pkt;
-    int   txFd;
+    char *rxRing, *pkt;
     int	  rxFd;
     int	  len;
 
     struct sockaddr_ll txdest_daddr;
     struct sockaddr_ll rxdest_daddr;
 
-    txFd = init_packetsock(&txRing, PACKET_TX_RING, 1, &txdest_daddr, client_hw_addr);
-    if (txFd < 0){
-        printf("failed to init tx packet sock\n");
-        return;
-    }
 
     rxFd = init_packetsock(&rxRing, PACKET_RX_RING, 1, &rxdest_daddr, server_hw_addr);
     if (rxFd < 0){
@@ -435,11 +379,6 @@ void do_serve()
     }
 
     
-    if (bind(txFd, (struct sockaddr*)&txdest_daddr, sizeof(txdest_daddr)) != 0)
-    {
-        printf("bind txfd\n");
-        return;
-    }
 
     if (bind(rxFd, (struct sockaddr*)&rxdest_daddr, sizeof(rxdest_daddr)) != 0)
     {
@@ -448,49 +387,46 @@ void do_serve()
     }
 
 
-    int newlen = 0;
-    char* hellodata = "hello this is peer";
-    int msglen = strlen(hellodata);
-    uint8_t* new_packet = make_ip_packet(&newlen, msglen, hellodata);
 
-
+    int needs_flush = 0;
+    int count = 0;
     while(1){
-
-        rx_flush(rxRing);
 
         {
             int	  offset = 0;
             char* pkt	 = NULL;
 
+
             while (pkt = process_rx(rxFd, rxRing, &len))
             {
                 uint8_t* off = ((void*)pkt) + RX_DATA_OFFSET;
 
-                printf("server RX: \n");
+                printf("server RX: %d \n", count);
 
                 view_ip_packet(off);
 
                 printf("\n");
 
-                process_tx(txFd, txRing, new_packet, newlen, offset, 1, &dest_daddr);
-
-                printf("server TX done\n");
-
                 process_rx_release(pkt);
 
+                needs_flush = 1;
+
+                count += 1;
                 
+            }
+
+            if (needs_flush == 1){
+                rx_flush(rxRing);
+                needs_flush = 1;
             }
         }
     }
 
-    free(new_packet);
 
 
     if (exit_packetsock(rxFd, rxRing, 1))
         return;
 
-    if (exit_packetsock(txFd, txRing, 1))
-        return;
 
 
     return;
@@ -501,6 +437,9 @@ int main(int argc, char** argv)
 {
     if (argc > 1)
         Ethernet_ifname = argv[1];
+
+    printf("set affinity: 0\n");
+    set_affinity(0);
 
     printf("using interface: %s\n", Ethernet_ifname);
 

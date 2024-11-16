@@ -23,7 +23,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-
+#include <signal.h>
 #include <linux/if.h>
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
@@ -31,7 +31,7 @@
 
 /// The number of frames in the ring
 //  This number is not set in stone. Nor are block_size, block_nr or frame_size
-#define CONF_RING_FRAMES 16
+#define CONF_RING_FRAMES 2
 #define FRAME_SIZE 2048
 #define CONF_DEVICE "veth02"
 
@@ -55,6 +55,14 @@
     } while (0);
 
 
+int keepalive = 1;
+
+static void stop_function(int signal) {
+    puts("interactive attention signal caught.");
+    keepalive = 0;
+}
+
+
 static uint8_t server_hw_addr[ETH_ALEN]= {
     0xaa,
     0xaa,
@@ -73,7 +81,7 @@ static uint8_t client_hw_addr[ETH_ALEN]= {
     0x02,
 };
 
-void HandleError(const char* msg, int error)
+void handle_error(const char* msg, int error)
 {
     if (error != 0)
     {
@@ -83,13 +91,13 @@ void HandleError(const char* msg, int error)
     }
 }
 
-void SetAffinity(int8_t cpu)
+void set_affinity(int8_t cpu)
 {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(cpu, &cpuset);
 
-    HandleError("pthread_set_affinity_np", pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset));
+    handle_error("pthread_set_affinity_np", pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset));
 }
 
 char*					  Ethernet_ifname = CONF_DEVICE;
@@ -201,8 +209,8 @@ static int init_ring_daddr(int fd, const char* ringdev, const int ringtype, stru
     ring_daddr.sll_family	  = AF_PACKET;
     ring_daddr.sll_protocol = SOCKADDR_PROTOCOL;
     ring_daddr.sll_ifindex  = ifindex;
-    ring_daddr.sll_halen	  = ETH_ALEN;  
-    memcpy(&ring_daddr.sll_addr, hw_daddr, ETH_ALEN);
+//    ring_daddr.sll_halen	  = ETH_ALEN;  
+    //memcpy(&ring_daddr.sll_addr, hw_daddr, ETH_ALEN);
 
     memcpy(dest_daddr, &ring_daddr, sizeof(dest_daddr));
 
@@ -225,9 +233,11 @@ static char* init_packetsock_ring(int fd, int ringtype, int tx_mmap, struct sock
     }
 
     // tell kernel to export data through mmap()ped ring
-    tp.tp_block_size = getpagesize();
+//    tp.tp_block_size = getpagesize();
+    tp.tp_block_size = FRAME_SIZE * 2;
     tp.tp_frame_size = FRAME_SIZE;
     tp.tp_frame_nr	 = CONF_RING_FRAMES;
+//    tp.tp_block_nr	 = CONF_RING_FRAMES;
     tp.tp_block_nr	 = (tp.tp_frame_nr * tp.tp_frame_size) / tp.tp_block_size;
 
     {
@@ -237,8 +247,10 @@ static char* init_packetsock_ring(int fd, int ringtype, int tx_mmap, struct sock
 
     if (ringtype == PACKET_TX_RING & !tx_mmap)
     {
+        printf("no mmap\n");
         return NULL;
     }
+
 
     if (setsockopt(fd, SOL_PACKET, ringtype, (void*)&tp, sizeof(tp)))
         RETURN_ERROR(NULL, "setsockopt() ring\n");
@@ -362,50 +374,6 @@ static int process_tx(int fd, char* ring, const char* pkt, size_t pktlen, int of
     return 0;
 }
 
-static void* process_rx(const int fd, char* rx_ring, int* len)
-{
-    volatile struct tpacket2_hdr* header;
-    struct pollfd				  pollset;
-    int							  ret;
-    char*				 off;
-
-    for (int i = 0; i < CONF_RING_FRAMES; i++)
-    {
-        // fetch a frame
-        
-        header = (void*)rx_ring + (i * FRAME_SIZE);
-        assert((((unsigned long)header) & (FRAME_SIZE - 1)) == 0);
-        if (header->tp_status & TP_STATUS_USER)
-        {
-            if (header->tp_status & TP_STATUS_COPY)
-            {
-                printf("copy\n");
-                continue;
-            }
-            *len = header->tp_len;
-
-            return (void*)header;
-        }
-    }
-    return NULL;
-}
-
-// Release the slot back to the kernel
-static void process_rx_release(char* packet)
-{
-    volatile struct tpacket2_hdr* header = (struct tpacket2_hdr*)packet;
-    header->tp_status					 = TP_STATUS_KERNEL;
-}
-
-static void rx_flush(void* ring)
-{
-    for (int i = 0; i < CONF_RING_FRAMES; i++)
-    {
-        volatile struct tpacket2_hdr* hdr = ring + (i * FRAME_SIZE);
-        hdr->tp_status					  = TP_STATUS_KERNEL;
-    }
-}
-
 
 void do_req()
 {
@@ -424,12 +392,6 @@ void do_req()
         return;
     }
 
-    rxFd = init_packetsock(&rxRing, PACKET_RX_RING, 1, &rxdest_daddr, client_hw_addr);
-    if (rxFd < 0){
-        printf("failed to init rx packet sock\n");
-        return;
-    }
-
     
     if (bind(txFd, (struct sockaddr*)&txdest_daddr, sizeof(txdest_daddr)) != 0)
     {
@@ -437,11 +399,6 @@ void do_req()
         return;
     }
 
-    if (bind(rxFd, (struct sockaddr*)&rxdest_daddr, sizeof(rxdest_daddr)) != 0)
-    {
-        printf("bind rxfd\n");
-        return;
-    }
 
     int	  offset = 0;
 
@@ -456,44 +413,20 @@ void do_req()
 
     uint8_t* new_packet = make_ip_packet(&newlen, msglen, hellodata);
 
-    while(1){
 
-        if (got_reply == 1){
-            break;
-        }
+    process_tx(txFd, txRing, new_packet, newlen, offset, 1, &dest_daddr);
 
-        rx_flush(rxRing);
+    int go = 0;
+    while(keepalive == 1){
+
+        sleep(1);
+        printf("tx: %d\n", go);
 
         process_tx(txFd, txRing, new_packet, newlen, offset, 1, &dest_daddr);
 
-
-        {
-            char* pkt	 = NULL;
-
-            while (pkt = process_rx(rxFd, rxRing, &len))
-            {
-
-                uint8_t* off = ((void*)pkt) + RX_DATA_OFFSET;
-                printf("client RX: \n");
-
-                view_ip_packet(off);
-
-                printf("\n");
-
-                process_rx_release(pkt);
-
-                got_reply = 1;
-
-                break;
-
-            }
-        }
-
+        go += 1;
     }
 
-
-    if (exit_packetsock(rxFd, rxRing, 1))
-        return;
 
     if (exit_packetsock(txFd, txRing, 1))
         return;
@@ -509,6 +442,14 @@ int main(int argc, char** argv)
 {
     if (argc > 1)
         Ethernet_ifname = argv[1];
+
+    if (signal(SIGINT, stop_function) == SIG_ERR) {
+        printf("signal set error\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("set affinity: 0\n");
+    set_affinity(0);
 
     printf("using interface: %s\n", Ethernet_ifname);
 

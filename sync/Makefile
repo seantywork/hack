@@ -3,4 +3,4 @@ all:
 	@echo "sync"
 
 build: 
-	gcc -o sync.out mutex.c -lpthread
+	gcc -o mutex.out mutex.c -lpthread

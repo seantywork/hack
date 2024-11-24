@@ -728,6 +728,16 @@ systemctl start nc1234
 
 ```
 
+# CPU NUMA 
+
+```shell
+
+# from numa nodes 0,1 use 1 if possible
+numactl --cpubind=0,1 --preferred=1 $EXECUTABLE
+
+
+```
+
 
 # EBPF LINUX LIBBPF
 

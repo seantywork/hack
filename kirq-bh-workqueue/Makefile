@@ -1,5 +1,5 @@
 PWD          := $(shell pwd)
-obj-m        += kwaitqueue.o
+obj-m        += kworkqueue.o
 
 
 all:

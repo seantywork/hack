@@ -9,15 +9,18 @@
 #include <string.h>
 #include <openssl/pem.h>
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
 #include <time.h>
 
+#define CBC 1
 #define KEYBIT 256
 #define KEYLEN KEYBIT / 8
-#define IVLEN 96 / 8
+#define IVLEN 128 / 8
 #define TAGLEN 128 / 8
 
+#define MAX_IN 256
 #define MAX_OUT 1024
-#define PADDING 2
+//#define PADDING 2
 
 extern int howmany;
 
@@ -41,7 +44,7 @@ unsigned char* gen_random_bytestream (size_t num_bytes);
 
 unsigned char* char2hex(int arrlen, unsigned char* bytearray);
 
-unsigned char* hex2char(unsigned char* hexarray);
+unsigned char* hex2char(int* arrlen, unsigned char* hexarray);
 
 
 

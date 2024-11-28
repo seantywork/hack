@@ -66,6 +66,7 @@ int asym_encrypt(char* pub_key_path, char* enc_msg_path, int msg_len, char* msg)
 
     fclose(fp);
 
+
     RSA* rsa_pub_key = EVP_PKEY_get1_RSA(pub_key);
 
     enc_msg = (char*)malloc(RSA_size(rsa_pub_key));

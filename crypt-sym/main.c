@@ -26,8 +26,13 @@ int main(int argc, char** argv){
             cipher  = EVP_aes_192_gcm ();
             break;
         case 256: 
+#if CBC
+            cipher  = EVP_aes_256_cbc ();
+            break;
+#else
             cipher  = EVP_aes_256_gcm ();
             break;
+#endif
         default:
             break;
 

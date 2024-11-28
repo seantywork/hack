@@ -2196,6 +2196,32 @@ sudo ip netns exec bottom ncat 10.10.5.2 9999
 ```
 
 
+```shell
+# macvlan
+
+ip link add macvlan1 link eth0 type macvlan mode bridge
+
+ip netns add net1
+
+ip link set macvlan1 netns net1
+
+ip netns exec net1 ip link set macvlan1 up 
+
+ip netns exec net1 ip link addr add 192.168.0.16 dev macvlan1
+
+
+```
+
+```shell
+
+# bond 
+
+ip link add bond1 type bond miimon 100 mode active-backup
+ip link set eth0 master bond1
+ip link set eth1 master bond1
+```
+
+
 # NFTABLES NFT
 
 

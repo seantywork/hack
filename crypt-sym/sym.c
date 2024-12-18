@@ -117,7 +117,11 @@ int sym_encrypt(char* key_path, char* iv_path, int enc_len, char* enc_msg, char*
 
     ctx = EVP_CIPHER_CTX_new();
 
-    EVP_EncryptInit(ctx, cipher, cbc_key, cbc_iv);
+    //EVP_CIPHER_CTX_set_padding(ctx, 0);
+
+    //EVP_EncryptInit(ctx, cipher, cbc_key, cbc_iv);
+
+    EVP_EncryptInit_ex(ctx, cipher, NULL, cbc_key, cbc_iv);
 
     EVP_EncryptUpdate(ctx, outbuf, &outlen, inbuf, enc_len);
 
@@ -296,8 +300,11 @@ int sym_decrypt(char* key_path, char* iv_path, char* enc_path, char* dec_msg){
 
     ctx = EVP_CIPHER_CTX_new();
 
+    //EVP_CIPHER_CTX_set_padding(ctx, 0);
 
-    EVP_DecryptInit(ctx, cipher, cbc_key, cbc_iv);
+    //EVP_DecryptInit(ctx, cipher, cbc_key, cbc_iv);
+
+    EVP_DecryptInit_ex(ctx, cipher, NULL, cbc_key, cbc_iv);
 
     printf("%d\n", bin_outlen);
 
@@ -394,7 +401,7 @@ int sym_decrypt(char* key_path, char* iv_path, char* enc_path, char* dec_msg){
 
     EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, TAGLEN, gcm_tag);
 
-    rv = EVP_DecryptFinal_ex(ctx, outbuf, &outlen);
+    rv = EVP_DecryptFinal(ctx, outbuf, &outlen);
 
     printf("decrypt rv: %d\n", rv);
 

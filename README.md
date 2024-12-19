@@ -11353,8 +11353,141 @@ conn ipsec-ikev2-vpn-client
 # /etc/ipsec.secret 
 : P12 client.p12 ""
 
+```
 
 
+```shell
+
+# swanctl
+
+
+sudo apt-get update
+
+sudo apt-get -y install strongswan-swanctl charon-systemd strongswan-pki libcharon-extra-plugins libstrongswan-standard-plugins libstrongswan-extra-plugins libtss2-tcti-tabrmd-dev
+
+
+sudo pki --gen --size 4096 --type rsa --outform pem > ca.key.pem
+sudo pki --self --in ca.key.pem --type rsa --dn "CN=VPN Server CA" --ca --lifetime 3650 --outform pem > ca.cert.pem
+sudo pki --gen --size 4096 --type rsa --outform pem > server.key.pem
+sudo pki --pub --in server.key.pem --type rsa | pki --issue --lifetime 2750 --cacert ca.cert.pem --cakey ca.key.pem --dn "CN=vpn.example.com" --san "vpn.example.com" --flag serverAuth --flag ikeIntermediate --outform pem > server.cert.pem
+
+sudo /bin/cp -Rf ca.cert.pem /etc/swanctl/x509ca/
+sudo /bin/cp -Rf server.cert.pem /etc/swanctl/x509/
+sudo /bin/cp -Rf server.key.pem /etc/swanctl/private/
+
+# for client
+
+sudo pki --gen --type rsa --size 4096 --outform pem > client.key.pem
+sudo pki --pub --in client.key.pem --type rsa | pki --issue --lifetime 3650 --cacert ca.cert.pem --cakey ca.key.pem --dn "CN=test.client" --san test.client --outform pem > client.cert.pem
+
+
+sudo /bin/cp -Rf ca.cert.pem /tmp/ca.cert.pem
+sudo /bin/cp -Rf client.cert.pem /tmp/client.cert.pem
+sudo /bin/cp -Rf client.key.pem /tmp/client.key.pem
+
+sudo chmod 777 /tmp/ca.cert.pem
+sudo chmod 777 /tmp/client.cert.pem
+sudo chmod 777 /tmp/client.key.pem
+
+# for client done
+
+
+# /etc/swanctl/swanctl.conf
+
+connections {
+
+   rw {
+      local_addrs  = %any
+      pools = rw_pool
+      version = 2
+      proposals = aes256-sha256-modp2048
+      unique = never
+      encap = yes
+
+      local {
+         auth = pubkey
+         certs = server.cert.pem
+         id = vpn.example.com
+      }
+      remote {
+         auth = pubkey
+      }
+      children {
+         net {
+            local_ts  = 10.168.0.0/24
+            mode = tunnel
+            esp_proposals = aes256-sha256
+            dpd_action = restart
+            rekey_time = 0
+         }
+      }
+   }
+}
+
+pools{
+	rw_pool {
+		addrs = 10.168.0.0/24
+	}
+}
+
+
+sudo systemctl restart strongswan
+
+
+
+```
+
+
+```shell
+
+# swanctl client
+
+sudo apt-get update
+
+
+sudo apt-get -y install strongswan-swanctl charon-systemd strongswan-pki libcharon-extra-plugins libstrongswan-standard-plugins libstrongswan-extra-plugins libtss2-tcti-tabrmd-dev 
+
+
+
+sudo /bin/cp -Rf ca.cert.pem /etc/swanctl/x509ca
+sudo /bin/cp -Rf client.cert.pem /etc/swanctl/x509
+sudo /bin/cp -Rf client.key.pem /etc/swanctl/private
+
+
+connections {
+    home {
+      remote_addrs = 192.168.101.25
+      vips = 0.0.0.0
+      version = 2
+      proposals = aes256-sha256-modp2048
+
+      local {
+        auth = pubkey
+        certs = client.cert.pem
+        id = test.client
+      }
+      remote {
+        auth = pubkey
+        id = vpn.example.com
+      }
+      children {
+        home {
+          remote_ts  = 10.168.0.0/24
+          start_action = start
+          esp_proposals = aes256-sha256
+        }
+      }
+    }
+}
+
+sudo systemctl restart strongswan
+
+
+sudo swanctl --initiate --child $NAME
+
+sudo swanctl --list-sas
+
+sudo swanctl --terminate --ike-id $ID
 
 ```
 

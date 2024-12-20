@@ -1,11 +1,14 @@
 
+#define PROTO_IP     0x0800
+
+
 #define AF_INET		2	/* Internet IP Protocol 	*/
 #define ETH_ALEN    6
 
 #include <linux/bpf.h>
-
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_endian.h>
+#include <xdp/xdp_helpers.h>
 
 #include <linux/if_ether.h>
 #include <linux/ip.h>
@@ -14,11 +17,15 @@
 #include <linux/in.h>
 #include <linux/string.h>
 
+#include "xsk_def_xdp_prog.h"
+
+#define DEFAULT_QUEUE_IDS 64
+
 struct {
 	__uint(type, BPF_MAP_TYPE_XSKMAP);
-	__type(key, __u32);
-	__type(value, __u32);
-	__uint(max_entries, 64);
+	__uint(key_size, sizeof(int));
+	__uint(value_size, sizeof(int));
+	__uint(max_entries, DEFAULT_QUEUE_IDS);
 } if_redirect SEC(".maps");
 
 /*
@@ -30,9 +37,24 @@ struct {
 } xdp_stats_map SEC(".maps");
 */
 
+struct {
+	__uint(priority, 20);
+	__uint(XDP_PASS, 1);
+} XDP_RUN_CONFIG(xdp_def_prog);
+
+
+volatile int refcnt = 1;
+
+
 SEC("xdp_redirect_xsk")
-int xdp_sock_prog(struct xdp_md *ctx)
+int xdp_def_prog(struct xdp_md *ctx)
 {
+
+	if (!refcnt)
+		return XDP_PASS;
+
+
+
     int index = ctx->rx_queue_index;
 
     /*
@@ -64,7 +86,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
     __u16 h_proto = eth_header->h_proto;
 
     /* anything that is not IPv4 (including ARP) goes up to the kernel */
-    if (h_proto != 0x08U) {  // htons(ETH_P_IP) -> 0x08U
+    if (bpf_htons(h_proto) != PROTO_IP) {  // htons(ETH_P_IP) -> 0x08U
         return XDP_PASS;
     }
 
@@ -215,6 +237,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
         eth_header->h_dest[5]
         );
 */
+
 
     val = bpf_map_lookup_elem(&if_redirect, &index);
 

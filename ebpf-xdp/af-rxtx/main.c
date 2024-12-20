@@ -8,9 +8,9 @@ struct xdp_program *prog_r;
 int xsk_map_fd_l;
 int xsk_map_fd_r;
 
-char* left_filename = "/usr/local/lib/bpf/xsk_def_xdp_prog.o";
-char* right_filename = "/usr/local/lib/bpf/xsk_def_xdp_prog.o";
-char* xsk_map_name = "xsks_map";
+char* left_filename = "/bpf/xdp_redirect_xsk.o";
+char* right_filename = "/bpf/xdp_redirect_xsk.o";
+char* xsk_map_name = "if_redirect";
 
 enum xdp_attach_mode attach_mode = 0;
 

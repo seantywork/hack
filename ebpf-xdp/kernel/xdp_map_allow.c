@@ -38,17 +38,27 @@ SEC("xdp")
 
 int allowed_addr_prog(struct xdp_md *ctx) {
 
-  unsigned char *data_end = (unsigned char *)(long)ctx->data_end;
-  unsigned char *data = (unsigned char *)(long)ctx->data;
+  void *data_end = (void *)(long)ctx->data_end;
+  void *data = (void *)(long)ctx->data;
 
-  struct ethhdr *eth_header = (struct ethhdr *)data;
+  struct ethhdr *eth_header = data;
   if (data + sizeof(*eth_header) > data_end) {
 
     return XDP_DROP;
   }
 
-  struct iphdr *ip = (struct iphdr *)data;
-  if (data + sizeof(*ip) > data_end) {
+  __u16 h_proto = eth_header->h_proto;
+
+  if (bpf_htons(h_proto) != PROTO_IP) { 
+
+    bpf_printk("proto not ip\n");
+    return XDP_PASS;
+  }
+
+  bpf_printk("proto ip\n");
+
+  struct iphdr *ip = data + sizeof(*eth_header);
+  if (data + sizeof(*eth_header) + sizeof(*ip) > data_end) {
 
     return XDP_DROP;
   }
@@ -67,7 +77,7 @@ int allowed_addr_prog(struct xdp_md *ctx) {
 
   __u64 *allow_port_v = bpf_map_lookup_elem(&allowed_addr, &key);
   if (!allow_port_v) {
-    bpf_printk("allow port not stored : %llp\n", allow_port_v);
+    bpf_printk("allow port not stored : %llu\n", allow_port_v);
     return XDP_DROP;
   }
 
@@ -81,12 +91,16 @@ int allowed_addr_prog(struct xdp_md *ctx) {
     return XDP_DROP;
   }
 
+  bpf_printk("allow port: %d\n", allow_port);
+
+  bpf_printk("ip proto: %d\n", ip->protocol);
+
   if (ip->protocol == IPPROTO_UDP) { 
 
     bpf_printk("proto udp \n"); 
-    data += ip->ihl * 4;
-    struct udphdr *udp = (struct udphdr *)data;
-    if (data + sizeof(*udp) > data_end) {
+
+    struct udphdr *udp = data + sizeof(*eth_header) + sizeof(*ip);
+    if (data + sizeof(*eth_header) + sizeof(*ip) + sizeof(*udp) > data_end) {
 
       return XDP_DROP;
     }
@@ -96,8 +110,8 @@ int allowed_addr_prog(struct xdp_md *ctx) {
       bpf_printk("coming in allowed packet\n");
       return XDP_PASS;
     } else {
-      bpf_printk("udp dest not allowed port\n");
-      return XDP_PASS;
+      bpf_printk("udp dest not allowed port: %d\n", bpf_ntohs(udp->dest));
+      return XDP_DROP;
     }
 
   }
@@ -107,3 +121,6 @@ int allowed_addr_prog(struct xdp_md *ctx) {
   return XDP_DROP;
 
 }
+
+
+char _license[] SEC("license") = "GPL";

@@ -14,13 +14,6 @@
 #include <linux/in.h>
 #include <linux/string.h>
 
-struct {
-	__uint(type, BPF_MAP_TYPE_XSKMAP);
-	__type(key, __u32);
-	__type(value, __u32);
-	__uint(max_entries, 64);
-} if_redirect SEC(".maps");
-
 
 SEC("xdp_pass")
 int xdp_pass_prog(struct xdp_md *ctx)

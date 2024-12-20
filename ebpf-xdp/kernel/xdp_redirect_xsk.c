@@ -238,7 +238,7 @@ int xdp_def_prog(struct xdp_md *ctx)
         );
 */
 
-
+    /*
     val = bpf_map_lookup_elem(&if_redirect, &index);
 
     if (val){
@@ -267,10 +267,13 @@ int xdp_def_prog(struct xdp_md *ctx)
 
         return action;
     }
+    */
 
-    return action;
+    return bpf_redirect_map(&if_redirect, index, XDP_PASS);
+
 }
 
 
 
 char _license[] SEC("license") = "GPL";
+__uint(xsk_prog_version, XSK_PROG_VERSION) SEC(XDP_METADATA_SECTION);

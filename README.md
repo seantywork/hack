@@ -12090,3 +12090,17 @@ sudo reboot
 
 
 ```
+
+# LAPTOP LID CLOSE DO NOTHNG 
+
+
+```shell
+
+sudo vim /etc/systemd/logind.conf
+
+# uncomment
+# HandleLidSwitch=ignore
+
+sudo systemctl restart systemd-logind
+
+```

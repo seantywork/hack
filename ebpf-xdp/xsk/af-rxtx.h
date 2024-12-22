@@ -33,6 +33,8 @@ void port_tx_burst(struct port *p, struct burst_tx *b);
 
 void *thread_func(void *arg);
 
+void *thread_func_poll(void *arg);
+
 void print_usage(char *prog_name);
 
 

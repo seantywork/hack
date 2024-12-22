@@ -496,6 +496,113 @@ void *thread_func(void *arg)
 }
 
 
+
+void *thread_func_poll(void *arg)
+{
+	struct thread_data *t = arg;
+	cpu_set_t cpu_cores;
+	int i, j;
+	int done = 0;
+	
+	CPU_ZERO(&cpu_cores);
+	CPU_SET(t->cpu_core_id, &cpu_cores);
+	pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpu_cores);
+	
+	struct pollfd* pollfds;
+
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_nsec = 1;
+
+	pollfds = calloc(t->n_ports_rx, sizeof(struct pollfd));
+
+	for(i = 0 ; i < t->n_ports_rx; i ++){
+
+		struct port *port_rx = t->ports_rx[i];
+
+		int sockfd_rx = xsk_socket__fd(port_rx->xsk);
+		
+		pollfds[i].fd = sockfd_rx;
+		pollfds[i].events = POLLIN;
+
+	}
+
+
+	for(;!t->quit;){
+
+		int n;
+		int result;
+
+		n = poll(pollfds, t->n_ports_rx, -1);
+
+		//dbg_printf("poll ready: %d\n", n);
+		for(i = 0; i < t->n_ports_rx; i++){
+
+			if(
+				(pollfds[i].revents & POLLERR)
+				|| (pollfds[i].revents & POLLHUP)
+			){
+
+				printf("poll wait error\n");
+				continue;
+			}
+
+
+			for(j = 0; j < t->n_ports_rx; j++){
+
+				struct port *port_rx = t->ports_rx[j];
+				struct port *port_tx = t->ports_tx[j];
+				struct burst_rx *brx = &t->burst_rx;
+				struct burst_tx *btx = &t->burst_tx[j];
+				u32 n_pkts, k;
+				int ret;
+
+				int sockfd = xsk_socket__fd(port_rx->xsk);
+
+				if(pollfds[i].fd == sockfd && (pollfds[i].revents & POLLIN)){
+
+					n_pkts = port_rx_burst(port_rx, brx);
+					
+					if (!n_pkts)
+						continue;
+
+
+					/* Process & TX. */
+					for (k = 0; k < n_pkts; k++) {
+
+						u64 addr = xsk_umem__add_offset_to_addr(brx->addr[k]);
+						u8 *pkt = xsk_umem__get_data(port_rx->params.bp->addr,
+										addr);
+
+
+						btx->addr[btx->n_pkts] = brx->addr[k];
+						btx->len[btx->n_pkts] = brx->len[k];
+						btx->n_pkts++;
+
+						if (btx->n_pkts == MAX_BURST_TX) {
+
+							port_tx_burst(port_tx, btx);
+							btx->n_pkts = 0;
+						}
+
+					}
+					
+
+				} else {
+
+					continue;
+				}				
+
+			}
+
+		}
+
+
+	}
+
+	return NULL;
+}
+
 void print_usage(char *prog_name)
 {
 	const char *usage =

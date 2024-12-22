@@ -24,20 +24,25 @@ struct bpool_params bpool_params_default = {
 };
 
 struct xsk_umem_config umem_cfg_default = {
-	.fill_size = XSK_RING_PROD__DEFAULT_NUM_DESCS * 2,
+	.fill_size = XSK_RING_PROD__DEFAULT_NUM_DESCS,
 	.comp_size = XSK_RING_CONS__DEFAULT_NUM_DESCS,
-	.frame_size = XSK_UMEM__DEFAULT_FRAME_SIZE,
+	.frame_size = XSK_UMEM__DEFAULT_FRAME_SIZE ,
 	.frame_headroom = XSK_UMEM__DEFAULT_FRAME_HEADROOM,
 	.flags = 0,
 };
 
+// CRUCIAL
+//   don't use need wakeup
+
 struct port_params port_params_default = {
 	.xsk_cfg = {
-		.rx_size = XSK_RING_CONS__DEFAULT_NUM_DESCS,
+		.rx_size = XSK_RING_CONS__DEFAULT_NUM_DESCS ,
 		.tx_size = XSK_RING_PROD__DEFAULT_NUM_DESCS,
 		.libxdp_flags = 0,
-		.xdp_flags = XDP_FLAGS_DRV_MODE,
-		.bind_flags = XDP_USE_NEED_WAKEUP,
+		.xdp_flags = 0,
+		.bind_flags = 0,
+//		.xdp_flags = XDP_FLAGS_DRV_MODE,
+//		.bind_flags = XDP_USE_NEED_WAKEUP,
 	},
 
 	.bp = NULL,
@@ -223,9 +228,19 @@ int main(int argc, char **argv)
 	for (i = 0; i < n_threads; i++) {
 		int status;
 
+/* no poll
 		status = pthread_create(&threads[i],
 					NULL,
 					thread_func,
+					&thread_data[i]);
+*/
+
+// CRUCIAL:
+//   use poll
+
+		status = pthread_create(&threads[i],
+					NULL,
+					thread_func_poll,
 					&thread_data[i]);
 		if (status) {
 			printf("Thread %d creation failed.\n", i);

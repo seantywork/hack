@@ -12071,3 +12071,22 @@ iperf -s
 iperf -c $ADDR -u -b 10G -t 60 -i 1
 
 ```
+
+# KOREAN ON LINUX
+
+```shell
+
+sudo apt install fcitx5 fcitx5-hangul
+
+# go to settings > region & language 
+
+# change keyboard input to fctix5
+
+# go to settings > keyboard
+
+# add input source as hangul
+
+sudo reboot
+
+
+```

@@ -1817,7 +1817,7 @@ ethtool -L devname combined 1
 ```
 
 
-# IP INTERFACE IPTABLES NAT PORT FORWARD
+# IP INTERFACE IPTABLES NAT PORT FORWARD NETFILTER
 
 ```shell
 
@@ -1910,6 +1910,10 @@ sudo iptables -D INPUT $LINE_NUM
 # netfilter queue
 
 sudo iptables -I FORWARD -p tcp -j NFQUEUE --queue-num 100
+
+# netfilter queue dev
+
+sudo apt install libnetfilter-queue-dev
 
 ```
 ```shell
@@ -12102,5 +12106,13 @@ sudo vim /etc/systemd/logind.conf
 # HandleLidSwitch=ignore
 
 sudo systemctl restart systemd-logind
+
+```
+
+# IO URING IOURING
+
+```shell
+
+sudo apt install liburing
 
 ```

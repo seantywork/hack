@@ -11,7 +11,7 @@ cmake ..
 
 make
 
-mv main.out ..
+mv *.out ..
 
 popd
 

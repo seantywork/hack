@@ -23,6 +23,7 @@ type Config struct {
 		Key     string   `yaml:"key"`
 		Members []string `yaml:"members"`
 	} `yaml:"rooms"`
+	Url                   string `yaml:"url"`
 	SignalPort            int    `yaml:"signalPort"`
 	RtpReceivePort        int    `yaml:"rtpReceivePort"`
 	PeerSignalAttemptSync int    `yaml:"peerSignalAttemptSync"`
@@ -60,6 +61,39 @@ func main() {
 		os.Exit(-1)
 	}
 
+	turnlen := len(conf.TurnServerAddr)
+
+	for i := 0; i < turnlen; i++ {
+
+		addr := struct {
+			Addr string `json:"addr"`
+			Id   string `json:"id"`
+			Pw   string `json:"pw"`
+		}{}
+
+		addr.Addr = conf.TurnServerAddr[i].Addr
+		addr.Id = conf.TurnServerAddr[i].Id
+		addr.Pw = conf.TurnServerAddr[i].Pw
+
+		webrtc.TURN_SERVER_ADDR = append(webrtc.TURN_SERVER_ADDR, addr)
+
+	}
+
+	roomlen := len(conf.Rooms)
+
+	for i := 0; i < roomlen; i++ {
+
+		pc := webrtc.PeersCreate{}
+
+		pc.RoomName = conf.Rooms[i].Key
+
+		pc.Users = conf.Rooms[i].Members
+
+		webrtc.CreatePeers(&pc)
+
+	}
+
+	webrtc.URL = conf.Url
 	webrtc.CHANNEL_PORT = fmt.Sprintf("%d", conf.SignalPort)
 	webrtc.RTP_RECEIVE_PORT = fmt.Sprintf("%d", conf.RtpReceivePort)
 	webrtc.PEER_SIGNAL_ATTEMPT_SYNC = conf.PeerSignalAttemptSync
@@ -80,20 +114,6 @@ func main() {
 	server.LoadHTMLGlob("view/*")
 
 	server.Static("/public", "./public")
-
-	roomlen := len(conf.Rooms)
-
-	for i := 0; i < roomlen; i++ {
-
-		pc := webrtc.PeersCreate{}
-
-		pc.RoomName = conf.Rooms[i].Key
-
-		pc.Users = conf.Rooms[i].Members
-
-		webrtc.CreatePeers(&pc)
-
-	}
 
 	server.GET("/", GetIndex)
 

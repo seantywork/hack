@@ -9,6 +9,8 @@ rooms:
       - hello
       - world
 
+url: "192.168.0.2"
+
 signalPort: 8002
 
 rtpReceivePort: 8004

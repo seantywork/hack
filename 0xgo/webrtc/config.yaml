@@ -1,0 +1,25 @@
+turnServerAddr:
+  - addr: turn:localhost:3478
+    id: hello
+    pw: example
+
+rooms:
+  - key: abcd
+    members:
+      - hello
+      - world
+
+signalPort: 8002
+
+rtpReceivePort: 8004
+
+peerSignalAttemptSync: 5
+
+peerSignalAddr : /signal/peer/
+
+rtcpPLIInterval: 3
+
+udpMuxPort: 8006
+
+udpEphemeralPortMin: 31000
+udpEphemeralPortMax: 31100

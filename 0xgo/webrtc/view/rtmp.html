@@ -1,0 +1,32 @@
+{{ define "rtmp.html" }}
+<!doctype html>
+<html class="tui-bg-blue-black">
+  <head>
+    <title> rtmp </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="row">
+        <div class="col s6 m6 l6"></div>
+          <div class="tui-window tui-scroll-white">
+            <fieldset class="tui-fieldset tui-border-double">
+              <legend>rtmp</legend>
+              <fieldset class="tui-fieldset tui-border-dotted">
+                <div id="cctv-reader"></div>
+              </fieldset>
+              <input class="tui-button" type="button" onclick="initRTMP()" value="start rtmp">
+
+            </fieldset>
+          </div>
+        </div>
+  </body>
+
+  <script src="/public/js/rtmp.js"></script>
+
+
+</html>
+{{ end }}

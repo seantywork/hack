@@ -1,0 +1,61 @@
+{{ define "room.html" }}
+<!DOCTYPE html>
+<html class="tui-bg-blue-black">
+  <head>
+
+    <meta charset="utf-8">
+    <title> room </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script>
+
+      ROOM_INFO = JSON.parse("{{ .room_code }}")
+
+    </script>
+
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col s12 m12 l12">
+          <div class="tui-window tui-scroll-white">
+            <fieldset class="tui-fieldset tui-border-double">
+              <legend>Video</legend>
+              <h3> Local Video </h3>
+              <fieldset class="tui-fieldset tui-border-dotted">
+                <video id="localVideo" width="160" height="120" autoplay muted></video> <br />
+              </fieldset>
+              <h3> Remote Video </h3>
+              <fieldset class="tui-fieldset tui-border-dotted">
+                <div id="remoteVideos"></div> <br>  
+              </fieldset>    
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tui-overlap">
+      <div id="modal" class="tui-modal">
+          <div class="tui-window tui-scroll-white">
+            <fieldset class="tui-fieldset tui-border-double">
+              <legend class="red-255 yellow-255-text">Chat</legend>
+              <textarea class="tui-input purple-255" id="chat-sender"></textarea>
+              <br>
+              <input class="tui-button" type="button" value="send" onclick="sendChat()">
+              <p>Thread</p>
+              <fieldset class="tui-fieldset tui-border-dotted">
+                <pre id="chat-reader"></pre>
+              </fieldset>
+              <button class="tui-button tui-modal-close-button right" data-modal="modal">close</button>
+            </fieldset>
+          </div>
+      </div>
+    </div>
+
+
+
+  </body>
+
+  <script src="/public/js/room.js"></script>
+</html>
+{{ end }}

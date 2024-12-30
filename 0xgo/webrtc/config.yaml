@@ -1,5 +1,5 @@
 turnServerAddr:
-  - addr: turn:192.168.122.106:3478
+  - addr: turn:localhost:3478
     id: hello
     pw: example
 
@@ -9,7 +9,7 @@ rooms:
       - hello
       - world
 
-url: "192.168.122.106"
+url: "localhost"
 
 signalPort: 8002
 

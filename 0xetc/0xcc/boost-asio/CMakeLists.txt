@@ -6,29 +6,44 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set (BOOST_DIR boost_1_81_0/build)
 
+set ( PROJECT_LINK_LIBS libboost_system.a)
+
 include_directories(
     include
     "${BOOST_DIR}/include"
     )
 
 
-set ( PROJECT_LINK_LIBS libboost_system.a)
-
 link_directories( 
     "${BOOST_DIR}/lib"
     )
 
 
-file(GLOB server_source
-    "src/*.cc"
+file(GLOB async_server_source
+    "src/async_server.cc"
 )
+
+file(GLOB coroutine_server_source
+    "src/coroutine_server.cc"
+)
+
 
 add_executable(async_server.out 
     main_async.cc
-    ${server_source}
+    ${async_server_source}
+    )
+
+
+add_executable(coroutine_server.out 
+    main_coroutine.cc
+    ${coroutine_server_source}
     )
 
 
 target_link_libraries(async_server.out
+    ${PROJECT_LINK_LIBS}
+)
+
+target_link_libraries(coroutine_server.out
     ${PROJECT_LINK_LIBS}
 )

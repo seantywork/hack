@@ -20,7 +20,7 @@ import (
 	rtmpmsg "github.com/yutopp/go-rtmp/message"
 )
 
-var RTP_RECEIVE_ADDR string
+var RTP_RECEIVE_ADDR string = "0.0.0.0"
 
 var RTP_RECEIVE_PORT string
 

@@ -125,6 +125,8 @@ func main() {
 
 	server.GET("/api/peers/signal/address", webrtc.GetPeersSignalAddress)
 
+	go webrtc.InitRTMPServer()
+
 	webrtc.AddChannelHandler(conf.PeerSignalAddr, webrtc.RoomSignalHandler)
 
 	webrtc.AddChannelCallback(webrtc.SignalDispatcher)

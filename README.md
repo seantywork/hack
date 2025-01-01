@@ -12,7 +12,7 @@
 
 
 # process & memory (arch_mem)
-   process, hardware interrupt (timer) -> kernel -> process -> hardware interrupt(timer)..., threads, scheduling
+   process, hardware interrupt (timer) -> kernel -> process -> hardware interrupt(timer)..., threads, scheduling, pcb
    memory, kernel space, user space, virtual address (page num + distance), physical address, page table, page, frame, mmu, tlb, major fault, minor fault
    ps, top, lsof, strace, ltrace, renice, uptime, trace-cmd, kernelshark
    vmstat, iostat, iotop, pidstat
@@ -39,6 +39,7 @@
      ipc (inter process communication) > unix domain socket > eg) mysql.sock
      rsync
 # syscall & user mode (os)
+  shell
   build-essential
   go
   make

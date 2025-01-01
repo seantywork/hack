@@ -10,9 +10,8 @@
 
 ```shell
 
-# kernel mode
 
-process & memory (arch_mem)
+# process & memory (arch_mem)
    process, hardware interrupt (timer) -> kernel -> process -> hardware interrupt(timer)..., threads, scheduling
    memory, kernel space, user space, virtual address (page num + distance), physical address, page table, page, frame, mmu, tlb, major fault, minor fault
    ps, top, lsof, strace, ltrace, renice, uptime, trace-cmd, kernelshark
@@ -40,6 +39,19 @@ process & memory (arch_mem)
      ipc (inter process communication) > unix domain socket > eg) mysql.sock
      rsync
 # syscall & user mode (os)
+  build-essential
+  go
+  make
+  git
+  curl
+  docker
+  chrome
+  libreoffice
+  vscode
+  virsh
+  wireshark
+  gh
+
 
 harware (interrupt)
 

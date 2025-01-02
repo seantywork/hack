@@ -1,14 +1,11 @@
-package crypt
+package pki
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha512"
 	"crypto/x509/pkix"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"math/big"
 	mathrand "math/rand"
@@ -182,68 +179,6 @@ func DecryptWithPrivateKey(ciphertext []byte, priv *rsa.PrivateKey) ([]byte, err
 		return plaintext, fmt.Errorf("failed to decrypt with private key: %s", err.Error())
 	}
 	return plaintext, nil
-}
-
-func EncryptWithSymmetricKey(key []byte, file_byte []byte) ([]byte, error) {
-
-	var ret_byte []byte
-
-	c, err := aes.NewCipher(key)
-
-	if err != nil {
-		return ret_byte, fmt.Errorf("failed to encrypt with symmetric key: %s", err.Error())
-
-	}
-
-	gcm, err := cipher.NewGCM(c)
-
-	if err != nil {
-		return ret_byte, fmt.Errorf("failed to encrypt with symmetric key: %s", err.Error())
-
-	}
-
-	nonce := make([]byte, gcm.NonceSize())
-
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		return ret_byte, fmt.Errorf("failed to encrypt with symmetric key: %s", err.Error())
-	}
-
-	enc_file := gcm.Seal(nonce, nonce, file_byte, nil)
-
-	ret_byte = enc_file
-
-	return ret_byte, nil
-
-}
-
-func DecryptWithSymmetricKey(key []byte, file_byte []byte) ([]byte, error) {
-
-	var ret_byte []byte
-
-	c, err := aes.NewCipher(key)
-	if err != nil {
-		return ret_byte, fmt.Errorf("failed to decrypt with symmetric key: %s", err.Error())
-	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		return ret_byte, fmt.Errorf("failed to decrypt with symmetric key: %s", err.Error())
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(file_byte) < nonceSize {
-		return ret_byte, fmt.Errorf("failed to decrypt with symmetric key: %s", err.Error())
-	}
-
-	nonce, ciphertext := file_byte[:nonceSize], file_byte[nonceSize:]
-	plain_file, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return ret_byte, fmt.Errorf("failed to decrypt with symmetric key: %s", err.Error())
-	}
-
-	ret_byte = plain_file
-
-	return ret_byte, nil
 }
 
 func GetRandIntInRange(min int, max int) int {

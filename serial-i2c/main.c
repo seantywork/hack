@@ -27,7 +27,6 @@ int main (int argc, char **argv)
         dataY = -(~(int16_t)dataY + 1);
         int dataZ = wiringPiI2CReadReg16(fd, REG_DATA_Z_LOW);
         dataZ = -(~(int16_t)dataZ + 1);
-        std::cout << "x: " << dataX << ", y: " << dataY << ", z: " << dataZ << "\n";
 
         printf("x: %d, y: %d, z: %d\n", dataX, dataY, dataZ);
 

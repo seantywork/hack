@@ -6,6 +6,8 @@ all:
 
 	gcc -I./chan/src -o test.out main.c chan.o queue.o -lpthread
 
+	gcc -I./chan/src -o test_select.out main_select.c chan.o queue.o -lpthread
+
 vendor:
 
 	git clone https://github.com/seantywork/chan.git

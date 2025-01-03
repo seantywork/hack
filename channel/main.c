@@ -19,6 +19,9 @@ int main()
     // Initialize unbuffered channel.
     chan = chan_init(0);
 
+    // buffered size 2
+    // chan = chan_init(2);
+
     pthread_t th;
     pthread_create(&th, NULL, ping, NULL);
 

@@ -1,4 +1,4 @@
-# hack
+# linuxyz
 
 ***crap compilation of mostly Linux stuff***
 

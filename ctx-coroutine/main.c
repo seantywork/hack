@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "coroutine.h"
 
@@ -21,7 +22,9 @@ int hello_world() {
 
 int main(){
     assert(hello_world() == 1);     // Verifying return value
+    printf("main hello\n");
     assert(hello_world() == 2);     // Verifying return value
+    printf("main world\n");
     assert(hello_world() == -1);    // Invalid call
 
     return EXIT_SUCCESS;
